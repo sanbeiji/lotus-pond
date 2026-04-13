@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lotus Pond Reader – Mandarin Story Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>🪷 Lotus Pond Reader</h1>
+      <p class="header-subtitle">蓮花池讀者 · AI-Powered Mandarin Story Generator</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- Input form -->
+    <section class="card" aria-labelledby="settings-heading">
+      <h2 id="settings-heading">Story Settings</h2>
+      <form id="story-form" novalidate>
+
+        <div class="form-group">
+          <label for="plot">Plot / Theme <span class="required">*</span></label>
+          <textarea
+            id="plot"
+            name="plot"
+            rows="4"
+            placeholder="Describe the story's plot or theme in English or Mandarin…"
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="skillLevel">Difficulty Level <span class="required">*</span></label>
+            <select id="skillLevel" name="skillLevel" required>
+              <option value="1">1 – TOCFL Level 1 (Beginner)</option>
+              <option value="2" selected>2 – TOCFL Level 2 (Elementary)</option>
+              <option value="3">3 – TOCFL Level 3 (Pre-Intermediate)</option>
+              <option value="4">4 – TOCFL Level 4 (Intermediate)</option>
+              <option value="5">5 – TOCFL Level 5 (Upper Intermediate)</option>
+              <option value="6">6 – TOCFL Level 6 (Advanced)</option>
+              <option value="7">7 – Beyond TOCFL (Expert)</option>
+              <option value="8">8 – Arcane / Poetic (Literary)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="lengthInWords">Word Count <span class="required">*</span></label>
+            <input
+              type="number"
+              id="lengthInWords"
+              name="lengthInWords"
+              value="300"
+              min="50"
+              max="1000"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="requiredTerms">Required Vocabulary
+            <span class="label-optional">(optional)</span>
+          </label>
+          <input
+            type="text"
+            id="requiredTerms"
+            name="requiredTerms"
+            placeholder="e.g. 電腦, 學習, 朋友"
+          />
+          <small>Enter Mandarin words the story must include, separated by commas.</small>
+        </div>
+
+        <button type="submit" id="generate-btn" class="btn-primary">
+          <span class="btn-text">✨ Generate Story</span>
+          <span class="btn-loading" hidden aria-live="polite">Generating…</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Error display -->
+    <section id="error-section" class="error-card" hidden aria-live="assertive">
+      <p id="error-message"></p>
+    </section>
+
+    <!-- Story output -->
+    <section id="result-section" hidden aria-labelledby="story-heading">
+      <div class="card story-card">
+        <h2 id="story-heading" class="story-heading">Generated Story</h2>
+        <div id="story-content" class="story-content"></div>
+        <div class="story-actions">
+          <button id="copy-btn" class="btn-secondary" aria-label="Copy story to clipboard">
+            Copy Story
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Lotus Pond Reader · Powered by Vertex AI Gemini Flash · 繁體中文</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

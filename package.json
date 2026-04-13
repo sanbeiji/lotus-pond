@@ -1,0 +1,16 @@
+{
+  "name": "lotus-pond-reader-web",
+  "version": "1.0.0",
+  "description": "Lotus Pond Reader – AI-powered Mandarin story generator using Vertex AI Gemini Flash",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@google/genai": "^1.50.0",
+    "express": "^4.21.2"
+  }
+}
