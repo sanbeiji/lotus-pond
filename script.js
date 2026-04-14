@@ -5,11 +5,11 @@
 
 // ─── Constants & Configuration ────────────────────────────────
 
-const MODEL_NAME = 'gemini-3.1-flash-lite-preview';
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
 const DEFAULT_SETTINGS = {
     apiKey: '',
+    selectedModel: 'gemini-2.5-flash-lite',
     pronunciation: 'pinyin',
     studyMode: false,
     history: []
@@ -28,13 +28,15 @@ const elements = {
     lengthInput: document.getElementById('lengthInWords'),
     requiredTermsInput: document.getElementById('requiredTerms'),
     generateBtn: document.getElementById('generate-btn'),
-    
+
     apiKeyInput: document.getElementById('api-key'),
+    modelSelect: document.getElementById('model-select'),
     pinyinToggle: document.getElementById('pinyin-toggle'),
     zhuyinToggle: document.getElementById('zhuyin-toggle'),
     studyModeToggle: document.getElementById('study-mode'),
     toggleSettingsBtn: document.getElementById('toggle-settings'),
     settingsContent: document.getElementById('settings-content'),
+
     
     progressSection: document.getElementById('progress-section'),
     progressFill: document.getElementById('progress-fill'),
@@ -87,6 +89,9 @@ function loadState() {
     
     // Apply state to UI
     elements.apiKeyInput.value = state.apiKey;
+    if (elements.modelSelect) {
+        elements.modelSelect.value = state.selectedModel || 'gemini-2.5-flash-lite';
+    }
     if (state.pronunciation === 'zhuyin') {
         elements.zhuyinToggle.checked = true;
     } else {
@@ -94,10 +99,17 @@ function loadState() {
     }
     elements.studyModeToggle.checked = state.studyMode;
     
+    updateModelFooter();
+    
     // If no API key, show settings
     if (!state.apiKey) {
         elements.settingsContent.hidden = false;
     }
+}
+
+function updateModelFooter() {
+    const modelDisplay = document.getElementById('model-version');
+    if (modelDisplay) modelDisplay.textContent = state.selectedModel || 'gemini-2.5-flash-lite';
 }
 
 function saveState() {
@@ -116,6 +128,12 @@ function setupEventListeners() {
     elements.apiKeyInput.addEventListener('change', (e) => {
         state.apiKey = e.target.value.trim();
         saveState();
+    });
+    
+    elements.modelSelect.addEventListener('change', (e) => {
+        state.selectedModel = e.target.value;
+        saveState();
+        updateModelFooter();
     });
     
     [elements.pinyinToggle, elements.zhuyinToggle].forEach(el => {
@@ -210,28 +228,35 @@ async function handleGenerate(e) {
 function buildPrompt(plot, skillLevel, length, requiredTerms) {
     return `You are teaching Mandarin to an English speaker. Generate a story in Mandarin to be used for the purposes of learning to read, write, and speak Mandarin. 
 
-CRITICAL REQUIREMENTS:
+CRITICAL LINGUISTIC REQUIREMENTS:
 1. TRADITIONAL CHARACTERS: Use traditional Mandarin characters only.
-2. TAIWANESE STYLE: Use language, grammar, slang, and idioms common to Taiwan (e.g., use 影片 instead of 視頻, 捷運 instead of 地鐵).
-3. SKILL LEVEL: Adhere strictly to the ${skillLevel} level.
-4. WORD COUNT: Aim for approximately ${length} Mandarin characters.
-5. VOCABULARY: Include these terms if provided: "${requiredTerms}".
-6. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
+2. TAIWANESE STYLE: Use grammar, slang, and idioms common to Taiwan (e.g., use 影片 instead of 視頻, 捷運 instead of 地鐵, 腳踏車 instead of 自行車).
+3. TAIWANESE PRONUNCIATION: The Pinyin and Zhuyin MUST reflect local Taiwanese pronunciation. 
+   - CRUCIAL: '和' must be pronounced 'hàn' (not 'hé').
+   - Use other Taiwanese variations where applicable (e.g., 垃圾 as 'lèsè').
+4. CULTURAL CONTEXT: Use Taiwanese place names (e.g., Xinyi District, Kaohsiung), cultural topics (e.g., night markets, 7-Eleven culture), and local social norms.
+5. SKILL LEVEL: Adhere strictly to the ${skillLevel} level.
+6. WORD COUNT: Aim for approximately ${length} Mandarin characters.
+7. VOCABULARY: Include these terms if provided: "${requiredTerms}".
+8. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
 
 OUTPUT FORMAT:
-You must return a valid JSON object with NO OTHER TEXT.
-The JSON must follow this exact structure:
+You must return a valid JSON object with NO OTHER TEXT before or after the JSON. DO NOT include markdown code blocks.
+` + 
+`The JSON must follow this exact structure:
 {
   "title": "Story Title in Traditional Mandarin",
   "sentences": [
     {
       "mandarin": "Mandarin sentence here",
-      "pinyin": "Pinyin pronunciation here (with tone marks)",
+      "pinyin": "Pinyin pronunciation here (Taiwanese style, e.g. 'hàn')",
       "zhuyin": "Zhuyin/Bopomofo pronunciation here"
     },
     ...
   ]
 }
+` +
+`IMPORTANT: DO NOT include anything else in your response. Only the JSON object.
 
 Plot for the story: ${plot}`;
 }
@@ -239,7 +264,8 @@ Plot for the story: ${plot}`;
 async function callGemini(prompt) {
     updateProgress(10, 'Sending request to Gemini...');
     
-    const url = `${API_BASE}/models/${MODEL_NAME}:generateContent?key=${state.apiKey}`;
+    const model = state.selectedModel || 'gemini-2.5-flash-lite';
+    const url = `${API_BASE}/models/${model}:generateContent?key=${state.apiKey}`;
     
     const response = await fetch(url, {
         method: 'POST',
@@ -270,10 +296,18 @@ async function callGemini(prompt) {
 }
 
 function parseResponse(text) {
+    console.log("Raw text from AI:", text);
     try {
-        // Handle potential markdown code blocks in response
-        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(cleanText);
+        // Find the start and end of the JSON object in case of markdown or other noise
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        
+        if (start === -1 || end === -1) {
+            throw new Error('No JSON object found in response.');
+        }
+        
+        const cleanJSON = text.substring(start, end + 1);
+        return JSON.parse(cleanJSON);
     } catch (e) {
         console.error('JSON Parse Error:', e, text);
         throw new Error('Failed to parse AI response. The AI might have returned invalid JSON. Please try again.');
