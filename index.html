@@ -16,7 +16,7 @@
   <header>
     <div class="header-inner">
       <h1>🪷 Lotus Pond Reader</h1>
-      <p class="header-subtitle">蓮池故事機 · Gemini-Powered Taiwanese Mandarin Story Generator</p>
+      <p class="header-subtitle">蓮池故事機 (liánchí gùshìjī) · Gemini-powered Taiwanese Mandarin story generator</p>
     </div>
   </header>
 
@@ -29,7 +29,7 @@
       </div>
       <div id="settings-content" hidden>
         <div class="form-group">
-          <label for="api-key">Gemini API Key <span class="required">*</span></label>
+          <label for="api-key">Gemini API key <span class="required">*</span></label>
           <input
             type="password"
             id="api-key"
@@ -38,7 +38,7 @@
           <small>Your key is stored locally in your browser.</small>
         </div>
         <div class="form-group">
-          <label for="model-select">Gemini Model</label>
+          <label for="model-select">Gemini model</label>
           <select id="model-select">
             <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite</option>
             <option value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</option>
@@ -46,7 +46,7 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Pronunciation Toggle</label>
+            <label>Pronunciation toggle</label>
             <div class="toggle-group">
               <input type="radio" id="pinyin-toggle" name="pronunciation" value="pinyin" checked>
               <label for="pinyin-toggle">Pinyin</label>
@@ -55,10 +55,10 @@
             </div>
           </div>
           <div class="form-group">
-            <label>Study Mode</label>
+            <label>Study mode</label>
             <div class="toggle-switch">
               <input type="checkbox" id="study-mode">
-              <label for="study-mode">Highlight vocab</label>
+              <label for="study-mode">Highlight required vocabulary</label>
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@
 
     <!-- History section (Mobile view) -->
     <div class="history-mobile-toggle">
-        <button id="show-history-btn" class="btn-secondary">📜 View History</button>
+        <button id="show-history-btn" class="btn-secondary">📜 View history</button>
     </div>
 
     <div class="main-layout">
@@ -77,17 +77,17 @@
         <div id="history-list" class="history-list">
           <p class="empty-msg">No stories yet.</p>
         </div>
-        <button id="clear-history" class="btn-text-only">Clear All</button>
+        <button id="clear-history" class="btn-text-only">Clear all</button>
       </aside>
 
       <div class="content-area">
         <!-- Input form -->
         <section class="card" aria-labelledby="generator-heading">
-          <h2 id="generator-heading">Generate a Story</h2>
+          <h2 id="generator-heading">Generate a story</h2>
           <form id="story-form" novalidate>
 
             <div class="form-group">
-              <label for="plot">Plot / Theme <span class="required">*</span></label>
+              <label for="plot">Plot / theme <span class="required">*</span></label>
               <textarea
                 id="plot"
                 name="plot"
@@ -99,7 +99,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="skillLevel">Level (TOCFL Band) <span class="required">*</span></label>
+                <label for="skillLevel">Level (<a href="https://en.wikipedia.org/wiki/Test_of_Chinese_as_a_Foreign_Language" target="_blank" rel="noopener noreferrer">TOCFL</a> band) <span class="required">*</span></label>
                 <select id="skillLevel" name="skillLevel" required>
                   <option value="Novice 1">Novice 1</option>
                   <option value="Novice 2">Novice 2</option>
@@ -113,7 +113,7 @@
               </div>
 
               <div class="form-group">
-                <label for="lengthInWords">Mandarin Characters <span class="required">*</span></label>
+                <label for="lengthInWords">Mandarin characters <span class="required">*</span></label>
                 <input
                   type="number"
                   id="lengthInWords"
@@ -127,7 +127,7 @@
             </div>
 
             <div class="form-group">
-              <label for="requiredTerms">Required Vocabulary
+              <label for="requiredTerms">Required vocabulary
                 <span class="label-optional">(optional)</span>
               </label>
               <input
@@ -139,7 +139,7 @@
             </div>
 
             <button type="submit" id="generate-btn" class="btn-primary">
-              <span class="btn-text">✨ Generate Story</span>
+              <span class="btn-text">✨ Generate story</span>
             </button>
           </form>
         </section>
@@ -163,16 +163,16 @@
         <section id="result-section" hidden aria-labelledby="story-heading">
           <div class="card story-card">
             <div class="story-header-row">
-              <h2 id="story-heading" class="story-heading">Generated Story</h2>
+              <h2 id="story-heading" class="story-heading">Generated story</h2>
               <div class="toggle-switch">
                 <input type="checkbox" id="show-pronunciation" checked>
-                <label for="show-pronunciation">Show Pronunciation</label>
+                <label for="show-pronunciation">Show pronunciation</label>
               </div>
             </div>
             <div id="story-content" class="story-content"></div>
             <div class="story-actions">
               <button id="copy-btn" class="btn-secondary">
-                Copy Story
+                Copy story
               </button>
             </div>
           </div>
@@ -182,7 +182,7 @@
   </main>
 
   <footer>
-    <p>Lotus Pond Reader · Powered by Google AI Studio Gemini Flash (<span id="model-version"></span>) · 繁體中文</p>
+    <p>Lotus Pond Reader · Powered by Google AI Studio Gemini Flash (<span id="model-version"></span>) · Made by <a href="https://sanbeiji.com" target="_blank" rel="noopener noreferrer">sanbeiji.com</a></p>
   </footer>
 
   <!-- Modal for History (Mobile) -->
@@ -193,7 +193,7 @@
               <button id="close-history" class="btn-close">&times;</button>
           </div>
           <div id="history-list-mobile" class="history-list"></div>
-          <button id="clear-history-mobile" class="btn-text-only">Clear All</button>
+          <button id="clear-history-mobile" class="btn-text-only">Clear all</button>
       </div>
   </div>
 

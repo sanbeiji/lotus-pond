@@ -186,6 +186,16 @@ label {
   margin-bottom: 0.45rem;
 }
 
+label a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+label a:hover {
+    color: var(--primary-dark);
+}
+
 .required {
   color: var(--primary);
 }
@@ -356,17 +366,19 @@ select:focus {
 .story-header-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.75rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1.5px solid var(--border);
+    align-items: flex-start;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--primary);
 }
 
-.story-heading {
-  font-size: 1.15rem;
+.story-card .story-heading {
+  font-size: 2.4rem !important;
   font-weight: 700;
-  color: var(--primary);
-  margin-bottom: 0 !important;
+  color: var(--primary-dark);
+  margin: 0 !important;
+  line-height: 1.2;
+  font-family: var(--mandarin-font);
 }
 
 .pronunciation[hidden] {
