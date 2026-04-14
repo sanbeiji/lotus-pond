@@ -49,24 +49,6 @@
             <option value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</option>
           </select>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Pronunciation toggle</label>
-            <div class="toggle-group">
-              <input type="radio" id="pinyin-toggle" name="pronunciation" value="pinyin" checked>
-              <label for="pinyin-toggle">Pinyin</label>
-              <input type="radio" id="zhuyin-toggle" name="pronunciation" value="zhuyin">
-              <label for="zhuyin-toggle">Zhuyin</label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Study mode</label>
-            <div class="toggle-switch">
-              <input type="checkbox" id="study-mode">
-              <label for="study-mode">Highlight required vocabulary</label>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -132,7 +114,7 @@
             </div>
 
             <div class="form-group">
-              <label for="requiredTerms">Required vocabulary
+              <label for="requiredTerms">Required Mandarin vocabulary
                 <span class="label-optional">(optional)</span>
               </label>
               <input
@@ -141,6 +123,7 @@
                 name="requiredTerms"
                 placeholder="e.g. 電腦, 學習, 朋友"
               />
+              <small id="vocab-warning" class="input-warning" hidden>Please use Mandarin characters only (separated by commas).</small>
             </div>
 
             <button type="submit" id="generate-btn" class="btn-primary">
@@ -169,9 +152,21 @@
           <div class="card story-card">
             <div class="story-header-row">
               <h2 id="story-heading" class="story-heading">Generated story</h2>
-              <div class="toggle-switch">
-                <input type="checkbox" id="show-pronunciation" checked>
-                <label for="show-pronunciation">Show pronunciation</label>
+              <div class="view-options-stack">
+                <div class="toggle-switch">
+                  <input type="checkbox" id="study-mode">
+                  <label for="study-mode">Highlight required vocabulary</label>
+                </div>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="show-pronunciation" checked>
+                  <label for="show-pronunciation">Show pronunciation</label>
+                </div>
+                <div class="toggle-group">
+                  <input type="radio" id="pinyin-toggle" name="pronunciation" value="pinyin" checked>
+                  <label for="pinyin-toggle">Pinyin</label>
+                  <input type="radio" id="zhuyin-toggle" name="pronunciation" value="zhuyin">
+                  <label for="zhuyin-toggle">Zhuyin</label>
+                </div>
               </div>
             </div>
             <div id="story-content" class="story-content"></div>

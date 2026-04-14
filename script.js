@@ -72,6 +72,27 @@ function init() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     });
+    
+    // Vocab validation
+    const vocabWarning = document.getElementById('vocab-warning');
+    elements.requiredTermsInput.addEventListener('input', function() {
+        const val = this.value.trim();
+        if (val === '') {
+            this.classList.remove('invalid');
+            vocabWarning.hidden = true;
+            return;
+        }
+        
+        // Allowed: CJK characters, English and Chinese commas, spaces
+        const validRegex = /^[\u4e00-\u9fa5,，\s]*$/;
+        if (!validRegex.test(val)) {
+            this.classList.add('invalid');
+            vocabWarning.hidden = false;
+        } else {
+            this.classList.remove('invalid');
+            vocabWarning.hidden = true;
+        }
+    });
 }
 
 // ─── State Management ─────────────────────────────────────────
@@ -226,7 +247,20 @@ async function handleGenerate(e) {
 }
 
 function buildPrompt(plot, skillLevel, length, requiredTerms) {
+    const levelGuide = `
+SKILL LEVEL DEFINITIONS (TOCFL BANDS):
+- Novice 1/2: Extremely simple S-V-O sentences. Use only the most basic daily vocabulary (numbers, greetings, colors, family). Avoid all complex grammar.
+- A1 (Entry): Basic social interactions. Simple daily topics (shopping, weather). Clear, short sentences.
+- A2 (Foundation): Common life situations. Basic connectors (because, but). Simple descriptions of past/future events.
+- B3 (Intermediate): Fluent daily communication. Use of more varied conjunctions and descriptive adverbs. Discussion of work/travel.
+- B4 (Upper Intermediate): Can discuss abstract topics. Uses passive voice and complex relative clauses. Varied vocabulary.
+- C5 (Fluent): Professional and academic topics. High-level idioms and nuanced cultural expressions.
+- C6 (Advanced): Academic, technical, and literary proficiency. Use of sophisticated Chengyu (idioms), classical structures, and nuanced stylistic variances.
+`;
+
     return `You are teaching Mandarin to an English speaker. Generate a story in Mandarin to be used for the purposes of learning to read, write, and speak Mandarin. 
+
+${levelGuide}
 
 CRITICAL LINGUISTIC REQUIREMENTS:
 1. TRADITIONAL CHARACTERS: Use traditional Mandarin characters only.
@@ -235,9 +269,9 @@ CRITICAL LINGUISTIC REQUIREMENTS:
    - CRUCIAL: '和' must be pronounced 'hàn' (not 'hé').
    - Use other Taiwanese variations where applicable (e.g., 垃圾 as 'lèsè').
 4. CULTURAL CONTEXT: Use Taiwanese place names (e.g., Xinyi District, Kaohsiung), cultural topics (e.g., night markets, 7-Eleven culture), and local social norms.
-5. SKILL LEVEL: Adhere strictly to the ${skillLevel} level.
+5. SKILL LEVEL: Adhere strictly to the ${skillLevel} level requirements defined above.
 6. WORD COUNT: Aim for approximately ${length} Mandarin characters.
-7. VOCABULARY: Include these terms if provided: "${requiredTerms}".
+7. VOCABULARY INTEGRATION: If specific vocabulary terms are provided ("${requiredTerms}"), you MUST include EVERY term at least TWICE in the story. Ensure they are used naturally but frequently enough for the reader to practice them. Integrate them into both narrative and dialogue where appropriate.
 8. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
 
 OUTPUT FORMAT:
