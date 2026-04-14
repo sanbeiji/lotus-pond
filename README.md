@@ -10,10 +10,10 @@ Lotus Pond Reader is a standalone web application that uses the Google AI Studio
 - **8 [TOCFL](https://en.wikipedia.org/wiki/Test_of_Chinese_as_a_Foreign_Language)-aligned levels** — From Novice 1 to C6 (Advanced), tailored specifically for Taiwanese linguistic patterns.
 - **Pinyin & Zhuyin toggle** — Switch between Pinyin and Zhuyin (Bopomofo) for pronunciation globally.
 - **Show pronunciation toggle** — Hide Pinyin/Zhuyin for a reading challenge or show it for assistance.
-- **Read aloud (TTS)** — Listen to each sentence with high-quality Mandarin speech synthesis (supports Taiwanese accents).
+- **Read aloud (TTS)** — Listen to each sentence with browser-native Mandarin speech synthesis.
 - **Study mode** — Visually highlight required vocabulary within the generated story.
 - **Story history** — Access your last 10 generated stories, saved locally in your browser.
-- **Iansui (芫荽) font** — Beautiful handwriting-style font specifically designed for Traditional Chinese legibility.
+- **[Iansui (芫荽) font](https://fonts.google.com/specimen/Iansui)** — Beautiful handwriting-style font specifically designed for Traditional Chinese legibility.
 - **Model selection** — Choose between various stable 'lite' versions of Gemini (2.5, 3.1, etc.).
 - **Standalone & portable** — Zero dependencies, no `npm` required. Runs on any web server or directly from your local machine.
 
