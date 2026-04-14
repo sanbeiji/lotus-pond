@@ -1,0 +1,524 @@
+/* ─── Design tokens ─────────────────────────────────────────── */
+:root {
+  --bg:           #f4f0eb;
+  --card-bg:      #ffffff;
+  --primary:      #b85c72;
+  --primary-dark: #9a4860;
+  --accent:       #4e8060;
+  --text:         #2a2a2a;
+  --text-muted:   #7a6f6a;
+  --border:       #ddd4ca;
+  --error-bg:     #fff0f0;
+  --error-border: #f5c0c0;
+  --error-text:   #b52a2a;
+  --shadow:       0 2px 14px rgba(0, 0, 0, 0.08);
+  --radius:       12px;
+  --mandarin-font: 'Iansui', '芫荽', 'Klee One', 'Noto Serif TC', serif;
+}
+
+/* ─── Reset / base ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Header ─────────────────────────────────────────────────── */
+header {
+  background: linear-gradient(135deg, #c96f85 0%, #8b4a5e 100%);
+  color: #fff;
+  padding: 2.25rem 1rem;
+  text-align: center;
+}
+
+.header-inner h1 {
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.4rem;
+}
+
+.header-subtitle {
+  opacity: 0.88;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Main layout ────────────────────────────────────────────── */
+main {
+  flex: 1;
+  max-width: 1000px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* ─── Cards ──────────────────────────────────────────────────── */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.5rem;
+}
+
+.card h2, .card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 1.25rem;
+}
+
+/* ─── Settings section ────────────────────────────────────────── */
+.settings-card {
+    padding: 1rem 1.5rem;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-header h2 {
+    margin-bottom: 0;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-icon:hover {
+    transform: rotate(45deg);
+}
+
+/* ─── History sidebar ───────────────────────────────────────── */
+.history-sidebar {
+    height: calc(100vh - 400px);
+    position: sticky;
+    top: 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.history-list {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+.history-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.9rem;
+}
+
+.history-item:hover {
+    background: #f9f7f4;
+}
+
+.history-item .history-title {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+}
+
+.history-item .history-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.empty-msg {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.btn-text-only {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: underline;
+    align-self: center;
+}
+
+.history-mobile-toggle {
+    display: none;
+    margin-bottom: 1rem;
+}
+
+/* ─── Form elements ──────────────────────────────────────────── */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+}
+
+.required {
+  color: var(--primary);
+}
+
+textarea,
+input[type="text"],
+input[type="number"],
+input[type="password"],
+select {
+  width: 100%;
+  padding: 0.7rem 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--text);
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+}
+
+textarea:focus,
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(184, 92, 114, 0.15);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.toggle-group {
+    display: flex;
+    gap: 0.5rem;
+    background: #eee;
+    padding: 0.25rem;
+    border-radius: 6px;
+}
+
+.toggle-group input[type="radio"] {
+    display: none;
+}
+
+.toggle-group label {
+    flex: 1;
+    text-align: center;
+    padding: 0.4rem;
+    margin-bottom: 0;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    transition: background 0.2s, color 0.2s;
+}
+
+.toggle-group input[type="radio"]:checked + label {
+    background: #fff;
+    color: var(--primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toggle-switch input[type="checkbox"] {
+    width: 32px;
+    height: 18px;
+    appearance: none;
+    background: #ccc;
+    border-radius: 9px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.toggle-switch input[type="checkbox"]:checked {
+    background: var(--accent);
+}
+
+.toggle-switch input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s;
+}
+
+.toggle-switch input[type="checkbox"]:checked::after {
+    transform: translateX(14px);
+}
+
+/* ─── Buttons ────────────────────────────────────────────────── */
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 0.5rem 1.25rem;
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ─── Progress Bar ───────────────────────────────────────────── */
+.progress-container {
+    text-align: center;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary);
+    width: 0%;
+    transition: width 0.3s;
+}
+
+/* ─── Story Rendering ────────────────────────────────────────── */
+.story-card {
+  padding: 2rem;
+}
+
+.story-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1.5px solid var(--border);
+}
+
+.story-heading {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0 !important;
+}
+
+.pronunciation[hidden] {
+    display: none;
+}
+
+.sentence-block {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2rem;
+    position: relative;
+    padding-left: 2.5rem;
+}
+
+.sentence-play-btn {
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.sentence-play-btn:hover {
+    opacity: 1;
+}
+
+.mandarin {
+    font-family: var(--mandarin-font);
+    font-size: 1.5rem;
+    line-height: 1.6;
+}
+
+.pronunciation {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 0.25rem;
+}
+
+.vocab-highlight {
+    background-color: #fff2cc;
+    border-bottom: 2px solid #ffd966;
+    font-weight: 600;
+}
+
+/* ─── Error display ─────────────────────────────────────────── */
+.error-card {
+  background: var(--error-bg);
+  border: 1.5px solid var(--error-border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.5rem;
+  color: var(--error-text);
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+/* ─── Modal (Mobile History) ────────────────────────────────── */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+}
+
+.modal[hidden] {
+    display: none;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.btn-close {
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.5rem;
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.btn-close:hover {
+    color: var(--primary);
+}
+
+/* ─── Footer ─────────────────────────────────────────────────── */
+footer {
+  text-align: center;
+  padding: 1.75rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  border-top: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 850px) {
+    .main-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .history-sidebar {
+        display: none;
+    }
+
+    .history-mobile-toggle {
+        display: block;
+    }
+}
+
+@media (max-width: 580px) {
+  header {
+    padding: 1.5rem 1rem;
+  }
+  .header-inner h1 {
+    font-size: 1.6rem;
+  }
+
+  .card, .story-card {
+    padding: 1.25rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mandarin {
+    font-size: 1.3rem;
+  }
+}

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lotus Pond Reader – Mandarin Story Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Klee+One:wght@400;600&family=Iansui&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>🪷 Lotus Pond Reader</h1>
+      <p class="header-subtitle">蓮花池讀者 · AI-Powered Mandarin Story Generator</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- Settings section -->
+    <section class="card settings-card" aria-labelledby="settings-heading">
+      <div class="settings-header">
+        <h2 id="settings-heading">Settings</h2>
+        <button id="toggle-settings" class="btn-icon" aria-label="Toggle settings">⚙️</button>
+      </div>
+      <div id="settings-content" hidden>
+        <div class="form-group">
+          <label for="api-key">Gemini API Key <span class="required">*</span></label>
+          <input
+            type="password"
+            id="api-key"
+            placeholder="Enter your Google AI Studio API key"
+          />
+          <small>Your key is stored locally in your browser.</small>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Pronunciation Toggle</label>
+            <div class="toggle-group">
+              <input type="radio" id="pinyin-toggle" name="pronunciation" value="pinyin" checked>
+              <label for="pinyin-toggle">Pinyin</label>
+              <input type="radio" id="zhuyin-toggle" name="pronunciation" value="zhuyin">
+              <label for="zhuyin-toggle">Zhuyin</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Study Mode</label>
+            <div class="toggle-switch">
+              <input type="checkbox" id="study-mode">
+              <label for="study-mode">Highlight vocab</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- History section (Mobile view) -->
+    <div class="history-mobile-toggle">
+        <button id="show-history-btn" class="btn-secondary">📜 View History</button>
+    </div>
+
+    <div class="main-layout">
+      <!-- Sidebar History (Desktop) -->
+      <aside class="history-sidebar card">
+        <h3>History</h3>
+        <div id="history-list" class="history-list">
+          <p class="empty-msg">No stories yet.</p>
+        </div>
+        <button id="clear-history" class="btn-text-only">Clear All</button>
+      </aside>
+
+      <div class="content-area">
+        <!-- Input form -->
+        <section class="card" aria-labelledby="generator-heading">
+          <h2 id="generator-heading">Generate a Story</h2>
+          <form id="story-form" novalidate>
+
+            <div class="form-group">
+              <label for="plot">Plot / Theme <span class="required">*</span></label>
+              <textarea
+                id="plot"
+                name="plot"
+                rows="3"
+                placeholder="e.g. A college student looking for a job…"
+                required
+              ></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="skillLevel">Level (TOCFL Band) <span class="required">*</span></label>
+                <select id="skillLevel" name="skillLevel" required>
+                  <option value="Novice 1">Novice 1</option>
+                  <option value="Novice 2">Novice 2</option>
+                  <option value="A1 (Entry)" selected>A1 (Entry)</option>
+                  <option value="A2 (Foundation)">A2 (Foundation)</option>
+                  <option value="B3 (Intermediate)">B3 (Intermediate)</option>
+                  <option value="B4 (Upper Intermediate)">B4 (Upper Intermediate)</option>
+                  <option value="C5 (Fluent)">C5 (Fluent)</option>
+                  <option value="C6 (Advanced)">C6 (Advanced)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="lengthInWords">Mandarin Characters <span class="required">*</span></label>
+                <input
+                  type="number"
+                  id="lengthInWords"
+                  name="lengthInWords"
+                  value="300"
+                  min="50"
+                  max="1000"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="requiredTerms">Required Vocabulary
+                <span class="label-optional">(optional)</span>
+              </label>
+              <input
+                type="text"
+                id="requiredTerms"
+                name="requiredTerms"
+                placeholder="e.g. 電腦, 學習, 朋友"
+              />
+            </div>
+
+            <button type="submit" id="generate-btn" class="btn-primary">
+              <span class="btn-text">✨ Generate Story</span>
+            </button>
+          </form>
+        </section>
+
+        <!-- Progress section -->
+        <section id="progress-section" class="card" hidden>
+            <div class="progress-container">
+                <p id="progress-text">Asking the AI for a story...</p>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error display -->
+        <section id="error-section" class="error-card" hidden aria-live="assertive">
+          <p id="error-message"></p>
+        </section>
+
+        <!-- Story output -->
+        <section id="result-section" hidden aria-labelledby="story-heading">
+          <div class="card story-card">
+            <div class="story-header-row">
+              <h2 id="story-heading" class="story-heading">Generated Story</h2>
+              <div class="toggle-switch">
+                <input type="checkbox" id="show-pronunciation" checked>
+                <label for="show-pronunciation">Show Pronunciation</label>
+              </div>
+            </div>
+            <div id="story-content" class="story-content"></div>
+            <div class="story-actions">
+              <button id="copy-btn" class="btn-secondary">
+                Copy Story
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Lotus Pond Reader · Powered by Google AI Studio Gemini Flash · 繁體中文</p>
+  </footer>
+
+  <!-- Modal for History (Mobile) -->
+  <div id="history-modal" class="modal" hidden>
+      <div class="modal-content card">
+          <div class="modal-header">
+              <h3>History</h3>
+              <button id="close-history" class="btn-close">&times;</button>
+          </div>
+          <div id="history-list-mobile" class="history-list"></div>
+          <button id="clear-history-mobile" class="btn-text-only">Clear All</button>
+      </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

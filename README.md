@@ -2,65 +2,42 @@
 
 **蓮花池讀者** — AI-powered Mandarin story generator for language learners.
 
-Lotus Pond Reader uses Google Vertex AI (Gemini Flash) to generate short stories in Taiwanese Mandarin, complete with traditional Chinese characters and Pinyin pronunciation under each sentence.
+Lotus Pond Reader is a standalone web application that uses the Google AI Studio Gemini API to generate short stories in Taiwanese Mandarin, complete with traditional Chinese characters and interlinear Pinyin/Zhuyin pronunciation.
 
 ## Features
 
-- **Story generation** — describe a plot/theme and get a full story in Traditional Mandarin
-- **Difficulty levels 1–8** — aligned with the TOCFL exam (levels 1–6) plus expert and literary tiers
-- **Required vocabulary** — optionally specify Mandarin words the story must include
-- **Word count control** — set the desired story length
-- **Pinyin display** — every sentence is followed by its Pinyin pronunciation
-- **Copy to clipboard** — copy the full interleaved story with one click
-
-## Technology
-
-- **Backend:** Node.js + Express
-- **AI:** Vertex AI – Gemini Flash (`gemini-2.0-flash-001`)
-- **Frontend:** HTML, CSS, Vanilla JavaScript
+- **Story Generation** — Describe a plot/theme and get a full story in Traditional Mandarin.
+- **8 Difficulty Levels** — From Novice 1 to C6 (Advanced), tailored for Taiwanese patterns.
+- **Pinyin & Zhuyin Toggle** — Switch between Pinyin and Zhuyin (Bopomofo) for pronunciation.
+- **Read Aloud (TTS)** — Listen to each sentence with high-quality Mandarin speech synthesis.
+- **Study Mode** — Visually highlight required vocabulary within the generated story.
+- **Story History** — Access your last 10 generated stories, saved locally in your browser.
+- **Standalone & Portable** — Zero dependencies, no `npm` required. Runs on any web server or directly from your local machine.
 
 ## Setup
 
 ### Prerequisites
 
-- Node.js 20+
-- A Google Cloud project with the Vertex AI API enabled
-- Application Default Credentials configured (`gcloud auth application-default login`)
+- A **Gemini API Key** from [Google AI Studio](https://aistudio.google.com/).
 
-### Install & run
+### Running the App
 
-```bash
-# 1. Install dependencies
-npm install
+Since this is a static web app, you can run it in several ways:
 
-# 2. Set required environment variable
-export GOOGLE_CLOUD_PROJECT=your-gcp-project-id
+1.  **Directly:** Open `index.html` in any modern web browser.
+2.  **Simple Server:** Run a simple local server if needed (e.g., `python3 -m http.server 8000`).
+3.  **Static Hosting:** Deploy the files (`index.html`, `style.css`, `script.js`) to GitHub Pages, Netlify, or any static host.
 
-# 3. Start the server
-npm start
-```
+### Configuration
 
-The app will be available at <http://localhost:3000>.
+Once the app is open, click the **Settings (⚙️)** icon and enter your Gemini API Key. Your key is stored securely in your browser's `localStorage` and is never sent to any server except the Google Gemini API.
 
-### Environment variables
+## Technology
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `GOOGLE_CLOUD_PROJECT` | **Yes** | – | Your GCP project ID |
-| `LOCATION` | No | `us-central1` | Vertex AI region |
-| `GEMINI_MODEL` | No | `gemini-2.0-flash-001` | Gemini model name |
-| `PORT` | No | `3000` | Server port |
+- **Frontend:** HTML5, CSS3 (Vanilla), Vanilla JavaScript.
+- **AI:** Google AI Studio – Gemini 1.5 Flash.
+- **API:** Direct client-side `fetch` calls (Zero-npm).
 
-See `.env.example` for a template.
+## Development
 
-## Deploying to Google Cloud Run
-
-```bash
-gcloud run deploy lotus-pond-reader \
-  --source . \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project)
-```
-
-Cloud Run automatically provides the credentials needed for Vertex AI.
+This project was built to be as portable and lightweight as possible. All logic is contained within `script.js`, and all styling is in `style.css`. No build steps or compilation are required.
