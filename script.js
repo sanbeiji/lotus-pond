@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS = {
     selectedModel: 'gemini-2.5-flash-lite',
     pronunciation: 'pinyin',
     studyMode: false,
+    showTranslation: false,
     history: []
 };
 
@@ -49,6 +50,7 @@ const elements = {
     storyContent: document.getElementById('story-content'),
     storyHeading: document.getElementById('story-heading'),
     showPronunciationToggle: document.getElementById('show-pronunciation'),
+    showTranslationToggle: document.getElementById('show-translation'),
     copyBtn: document.getElementById('copy-btn'),
     
     historyList: document.getElementById('history-list'),
@@ -62,10 +64,24 @@ const elements = {
 
 // ─── Initialization ───────────────────────────────────────────
 
+window.addEventListener('error', function(e) {
+    console.error("GLOBAL ERROR CAPTURED:", e.message, "at", e.filename, ":", e.lineno);
+});
+
 function init() {
+    console.log("Lotus Pond Reader initializing...");
     loadState();
     setupEventListeners();
     renderHistory();
+    
+    // Debug: check elements
+    console.log("Form element:", elements.storyForm);
+    if (elements.storyForm) {
+        console.log("Attaching test listener to form...");
+        elements.storyForm.addEventListener('submit', (e) => {
+            console.log("Form submit event captured in init TEST!");
+        });
+    }
     
     // Auto-expand textarea
     elements.plotInput.addEventListener('input', function() {
@@ -168,17 +184,25 @@ function setupEventListeners() {
         });
     });
     
-    elements.studyModeToggle.addEventListener('change', (e) => {
+    elements.studyModeToggle?.addEventListener('change', (e) => {
         state.studyMode = e.target.checked;
         saveState();
         if (!elements.resultSection.hidden && lastStoryData) {
             renderStory(lastStoryData);
         }
     });
-    
-    elements.showPronunciationToggle.addEventListener('change', updatePronunciationVisibility);
-    
-    elements.copyBtn.addEventListener('click', copyToClipboard);
+
+    if (elements.showPronunciationToggle) {
+        elements.showPronunciationToggle.addEventListener('change', updatePronunciationVisibility);
+    }
+
+    if (elements.showTranslationToggle) {
+        elements.showTranslationToggle.addEventListener('change', updateTranslationVisibility);
+    }
+
+    if (elements.copyBtn) {
+        elements.copyBtn.addEventListener('click', copyToClipboard);
+    }
     
     // History
     elements.clearHistoryBtn.addEventListener('click', clearHistory);
@@ -284,7 +308,8 @@ You must return a valid JSON object with NO OTHER TEXT before or after the JSON.
     {
       "mandarin": "Mandarin sentence here",
       "pinyin": "Pinyin pronunciation here (Taiwanese style, e.g. 'hàn')",
-      "zhuyin": "Zhuyin/Bopomofo pronunciation here"
+      "zhuyin": "Zhuyin/Bopomofo pronunciation here",
+      "english": "Natural English translation here"
     },
     ...
   ]
@@ -383,9 +408,15 @@ function renderStory(storyData) {
         pron.textContent = state.pronunciation === 'zhuyin' ? s.zhuyin : s.pinyin;
         pron.hidden = !elements.showPronunciationToggle.checked;
         
+        const english = document.createElement('div');
+        english.className = 'english-translation';
+        english.textContent = s.english;
+        english.hidden = !elements.showTranslationToggle.checked;
+        
         block.appendChild(playBtn);
         block.appendChild(mandarin);
         block.appendChild(pron);
+        block.appendChild(english);
         elements.storyContent.appendChild(block);
     });
 }
@@ -394,6 +425,12 @@ function updatePronunciationVisibility() {
     const show = elements.showPronunciationToggle.checked;
     const prons = elements.storyContent.querySelectorAll('.pronunciation');
     prons.forEach(p => p.hidden = !show);
+}
+
+function updateTranslationVisibility() {
+    const show = elements.showTranslationToggle.checked;
+    const translations = elements.storyContent.querySelectorAll('.english-translation');
+    translations.forEach(t => t.hidden = !show);
 }
 
 function showLoading(show) {
@@ -507,15 +544,16 @@ function clearHistory() {
 function copyToClipboard() {
     if (!lastStoryData) return;
     
-    let text = `${lastStoryData.title}
-
-`;
+    let text = `${lastStoryData.title}\n\n`;
     lastStoryData.sentences.forEach(s => {
-        text += `${s.mandarin}
-`;
-        text += `${state.pronunciation === 'zhuyin' ? s.zhuyin : s.pinyin}
-
-`;
+        text += `${s.mandarin}\n`;
+        if (elements.showPronunciationToggle && elements.showPronunciationToggle.checked) {
+            text += `${state.pronunciation === 'zhuyin' ? s.zhuyin : s.pinyin}\n`;
+        }
+        if (elements.showTranslationToggle && elements.showTranslationToggle.checked) {
+            text += `${s.english}\n`;
+        }
+        text += `\n`;
     });
     
     navigator.clipboard.writeText(text).then(() => {

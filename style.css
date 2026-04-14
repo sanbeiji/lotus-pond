@@ -457,6 +457,17 @@ input.invalid {
     margin-top: 0.25rem;
 }
 
+.english-translation {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.4rem;
+    line-height: 1.5;
+}
+
+.english-translation[hidden] {
+    display: none;
+}
+
 .vocab-highlight {
     background-color: #fff2cc;
     border-bottom: 2px solid #ffd966;
