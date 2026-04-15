@@ -7,6 +7,22 @@
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
+const LOADING_QUOTES = [
+    "正在喚醒神龍...\nZhèngzài huànxǐng shénlóng...\nWaking up the dragon...",
+    "正在磨練書法筆...\nZhèngzài móliàn shūfǎ bǐ...\nSharpening the calligraphy brushes...",
+    "正在泡高山烏龍茶...\nZhèngzài pào gāoshān wūlóngchá...\nBrewing some high-mountain oolong...",
+    "正在練習「臺灣」的筆畫...\nZhèngzài liànxí \"Táiwān\" de bǐhuà...\nPracticing the brush strokes for writing 臺灣...",
+    "正在查閱農曆...\nZhèngzài cháyuè nónglì...\nConsulting the lunar calendar...",
+    "正在種植蓮子...\nZhèngzài zhòngzhí liánzǐ...\nPlanting the lotus seeds...",
+    "正在拉伸墨條...\nZhèngzài lāshēn mòtiáo...\nStretching the ink sticks...",
+    "正在向灶神尋求靈感...\nZhèngzài xiàng Zàoshén xúnqiú línggǎn...\nAsking the kitchen god for inspiration...",
+    "正在調古箏...\nZhèngzài tiáo gǔzhēng...\nTuning the guzheng...",
+    "正在變魔術...\nZhèngzài biàn móshù...\nWhipping up the magic...",
+    "你需要更多水晶塔...\nNǐ xūyào gèng duō shuǐjīng tǎ...\nYou require more pylons...",
+    "攪拌，不要搖晃...\nJiǎobàn, bùyào yáohuàng...\nShaking, not stirring...",
+    "正在做墨西哥捲餅...\nZhèngzài zuò mòxīgē juǎnbǐng...\nMaking the chimichangas..."
+];
+
 const DEFAULT_SETTINGS = {
     apiKey: '',
     selectedModel: 'gemini-2.5-flash-lite',
@@ -29,7 +45,7 @@ const elements = {
     lengthInput: document.getElementById('lengthInWords'),
     requiredTermsInput: document.getElementById('requiredTerms'),
     generateBtn: document.getElementById('generate-btn'),
-
+    
     apiKeyInput: document.getElementById('api-key'),
     modelSelect: document.getElementById('model-select'),
     pinyinToggle: document.getElementById('pinyin-toggle'),
@@ -37,10 +53,8 @@ const elements = {
     studyModeToggle: document.getElementById('study-mode'),
     toggleSettingsBtn: document.getElementById('toggle-settings'),
     settingsContent: document.getElementById('settings-content'),
-
     
     progressSection: document.getElementById('progress-section'),
-    progressFill: document.getElementById('progress-fill'),
     progressText: document.getElementById('progress-text'),
     
     errorSection: document.getElementById('error-section'),
@@ -81,24 +95,26 @@ function init() {
     
     // Vocab validation
     const vocabWarning = document.getElementById('vocab-warning');
-    elements.requiredTermsInput.addEventListener('input', function() {
-        const val = this.value.trim();
-        if (val === '') {
-            this.classList.remove('invalid');
-            vocabWarning.hidden = true;
-            return;
-        }
-        
-        // Allowed: CJK characters, English and Chinese commas, spaces
-        const validRegex = /^[\u4e00-\u9fa5,，\s]*$/;
-        if (!validRegex.test(val)) {
-            this.classList.add('invalid');
-            vocabWarning.hidden = false;
-        } else {
-            this.classList.remove('invalid');
-            vocabWarning.hidden = true;
-        }
-    });
+    if (elements.requiredTermsInput) {
+        elements.requiredTermsInput.addEventListener('input', function() {
+            const val = this.value.trim();
+            if (val === '') {
+                this.classList.remove('invalid');
+                if (vocabWarning) vocabWarning.hidden = true;
+                return;
+            }
+            
+            // Allowed: CJK characters, English and Chinese commas, spaces
+            const validRegex = /^[\u4e00-\u9fa5,，\s]*$/;
+            if (!validRegex.test(val)) {
+                this.classList.add('invalid');
+                if (vocabWarning) vocabWarning.hidden = false;
+            } else {
+                this.classList.remove('invalid');
+                if (vocabWarning) vocabWarning.hidden = true;
+            }
+        });
+    }
 }
 
 // ─── State Management ─────────────────────────────────────────
@@ -115,21 +131,22 @@ function loadState() {
     }
     
     // Apply state to UI
-    elements.apiKeyInput.value = state.apiKey;
+    if (elements.apiKeyInput) elements.apiKeyInput.value = state.apiKey;
     if (elements.modelSelect) {
         elements.modelSelect.value = state.selectedModel || 'gemini-2.5-flash-lite';
     }
     if (state.pronunciation === 'zhuyin') {
-        elements.zhuyinToggle.checked = true;
+        if (elements.zhuyinToggle) elements.zhuyinToggle.checked = true;
     } else {
-        elements.pinyinToggle.checked = true;
+        if (elements.pinyinToggle) elements.pinyinToggle.checked = true;
     }
-    elements.studyModeToggle.checked = state.studyMode;
+    if (elements.studyModeToggle) elements.studyModeToggle.checked = state.studyMode;
+    if (elements.showTranslationToggle) elements.showTranslationToggle.checked = state.showTranslation;
     
     updateModelFooter();
     
     // If no API key, show settings
-    if (!state.apiKey) {
+    if (!state.apiKey && elements.settingsContent) {
         elements.settingsContent.hidden = false;
     }
 }
@@ -164,13 +181,9 @@ function setupEventListeners() {
     });
     
     [elements.pinyinToggle, elements.zhuyinToggle].forEach(el => {
-        el.addEventListener('change', (e) => {
+        el?.addEventListener('change', (e) => {
             state.pronunciation = e.target.value;
             saveState();
-            // Re-render current story if visible
-            if (!elements.resultSection.hidden && lastStoryData) {
-                renderStory(lastStoryData);
-            }
         });
     });
     
@@ -182,12 +195,14 @@ function setupEventListeners() {
         }
     });
 
+    elements.showTranslationToggle?.addEventListener('change', (e) => {
+        state.showTranslation = e.target.checked;
+        saveState();
+        updateTranslationVisibility();
+    });
+
     if (elements.showPronunciationToggle) {
         elements.showPronunciationToggle.addEventListener('change', updatePronunciationVisibility);
-    }
-
-    if (elements.showTranslationToggle) {
-        elements.showTranslationToggle.addEventListener('change', updateTranslationVisibility);
     }
 
     if (elements.copyBtn) {
@@ -206,7 +221,7 @@ function setupEventListeners() {
     elements.closeHistoryBtn.addEventListener('click', () => {
         elements.historyModal.hidden = true;
     });
-    
+
     elements.aboutBtn.addEventListener('click', () => {
         elements.aboutModal.hidden = false;
     });
@@ -241,7 +256,7 @@ async function handleGenerate(e) {
     
     const plot = elements.plotInput.value.trim();
     const skillLevel = elements.skillLevelSelect.value;
-    const length = elements.lengthInput.value;
+    let length = parseInt(elements.lengthInput.value);
     const requiredTerms = elements.requiredTermsInput.value.trim();
     
     if (!plot) {
@@ -283,6 +298,17 @@ SKILL LEVEL DEFINITIONS (TOCFL BANDS):
 - C6 (Advanced): Academic, technical, and literary proficiency. Use of sophisticated Chengyu (idioms), classical structures, and nuanced stylistic variances.
 `;
 
+    const sentenceTarget = length > 1000 ? Math.ceil(length / 20) : Math.ceil(length / 12);
+    const novellaInstruction = length > 1000 ? `
+The requested story is a NOVELLA (at least ${length} characters). 
+You MUST structure it as a 5-chapter story with distinct scenes for each chapter. 
+Expand on the world-building, sensory details, internal character thoughts, and extensive dialogue. 
+DO NOT SUMMARIZE. Write as if you are a professional author.
+` : "";
+
+    const pronLabel = state.pronunciation === 'zhuyin' ? 'zhuyin' : 'pinyin';
+    const pronInstruction = state.pronunciation === 'zhuyin' ? 'Zhuyin/Bopomofo pronunciation here' : 'Pinyin pronunciation here (Taiwanese style, e.g. \'hàn\')';
+
     return `You are teaching Mandarin to an English speaker. Generate a story in Mandarin to be used for the purposes of learning to read, write, and speak Mandarin. 
 
 ${levelGuide}
@@ -290,40 +316,43 @@ ${levelGuide}
 CRITICAL LINGUISTIC REQUIREMENTS:
 1. TRADITIONAL CHARACTERS: Use traditional Mandarin characters only.
 2. TAIWANESE STYLE: Use grammar, slang, and idioms common to Taiwan (e.g., use 影片 instead of 視頻, 捷運 instead of 地鐵, 腳踏車 instead of 自行車).
-3. TAIWANESE PRONUNCIATION: The Pinyin and Zhuyin MUST reflect local Taiwanese pronunciation. 
+3. TAIWANESE PRONUNCIATION: The ${state.pronunciation.toUpperCase()} MUST reflect local Taiwanese pronunciation. 
    - CRUCIAL: '和' must be pronounced 'hàn' (not 'hé').
    - Use other Taiwanese variations where applicable (e.g., 垃圾 as 'lèsè').
-4. CULTURAL CONTEXT: Use Taiwanese place names (e.g., Xinyi District, Kaohsiung), cultural topics (e.g., night markets, 7-Eleven culture), and local social norms.
+4. CULTURAL & GEOGRAPHICAL BREADTH: Explore the full diversity of Taiwan. Do not over-rely on Taipei or common tropes. 
+   - GEOGRAPHY: Vary the settings across different cities (e.g., Taichung, Tainan, Hualien, Keelung), counties (e.g., Yilan, Pingtung, Nantou), and landscapes (high mountain tea farms, coastal fishing villages, bustling night markets, quiet rural towns).
+   - CULTURE: Incorporate a wide range of Taiwanese life, such as temple festivals, traditional arts (like glove puppetry), tea ceremonies, hiking culture, family dynamics, local snacks (小吃), and historical landmarks.
+   - SOCIAL NORMS: Reflect authentic Taiwanese social etiquette and daily interactions.
 5. SKILL LEVEL: Adhere strictly to the ${skillLevel} level requirements defined above.
-6. WORD COUNT: Aim for approximately ${length} Mandarin characters.
-7. VOCABULARY INTEGRATION: If specific vocabulary terms are provided ("${requiredTerms}"), you MUST include EVERY term at least TWICE in the story. Ensure they are used naturally but frequently enough for the reader to practice them. Integrate them into both narrative and dialogue where appropriate.
-8. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
+6. VOCABULARY INTEGRATION: If specific vocabulary terms are provided ("${requiredTerms}"), you MUST include EVERY term at least TWICE in the story. Ensure they are used naturally but frequently enough for the reader to practice them. Integrate them into both narrative and dialogue where appropriate.
+7. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
 
 OUTPUT FORMAT:
 You must return a valid JSON object with NO OTHER TEXT before or after the JSON. DO NOT include markdown code blocks.
-` + 
-`The JSON must follow this exact structure:
+The JSON must follow this exact structure:
 {
   "title": "Story Title in Traditional Mandarin",
   "sentences": [
     {
       "mandarin": "Mandarin sentence here",
-      "pinyin": "Pinyin pronunciation here (Taiwanese style, e.g. 'hàn')",
-      "zhuyin": "Zhuyin/Bopomofo pronunciation here",
+      "${pronLabel}": "${pronInstruction}",
       "english": "Natural English translation here"
     },
     ...
   ]
 }
-` +
-`IMPORTANT: DO NOT include anything else in your response. Only the JSON object.
+
+CRITICAL LENGTH REQUIREMENT:
+${novellaInstruction}
+The user has requested a story of AT LEAST ${length} Mandarin characters.
+To achieve this, you MUST:
+- Generate at least ${sentenceTarget} sentences.
+- This length requirement (at least ${length} characters) is the ABSOLUTE HIGHEST priority.
 
 Plot for the story: ${plot}`;
 }
 
 async function callGemini(prompt) {
-    updateProgress(10, 'Sending request to Gemini...');
-    
     const model = state.selectedModel || 'gemini-2.5-flash-lite';
     const url = `${API_BASE}/models/${model}:generateContent?key=${state.apiKey}`;
     
@@ -336,13 +365,11 @@ async function callGemini(prompt) {
                 temperature: 0.7,
                 topK: 40,
                 topP: 0.95,
-                maxOutputTokens: 2048,
+                maxOutputTokens: 8192,
                 responseMimeType: "application/json"
             }
         })
     });
-    
-    updateProgress(50, 'Receiving story from AI...');
     
     if (!response.ok) {
         const err = await response.json();
@@ -350,26 +377,63 @@ async function callGemini(prompt) {
     }
     
     const data = await response.json();
-    updateProgress(90, 'Finalizing content...');
-    
     return data.candidates[0].content.parts[0].text;
 }
 
 function parseResponse(text) {
     try {
-        // Find the start and end of the JSON object in case of markdown or other noise
-        const start = text.indexOf('{');
-        const end = text.lastIndexOf('}');
+        // 1. Try a standard clean parse first
+        let start = text.indexOf('{');
+        let end = text.lastIndexOf('}');
         
-        if (start === -1 || end === -1) {
-            throw new Error('No JSON object found in response.');
+        if (start !== -1 && end !== -1 && end > start) {
+            const cleanJSON = text.substring(start, end + 1);
+            try {
+                return JSON.parse(cleanJSON);
+            } catch (e) {
+                // If standard parse fails, fall through to recovery
+            }
         }
+
+        // 2. Recovery Mode: The response was likely truncated due to token limits or contains invalid characters
+        console.warn("Response appears truncated or invalid. Attempting partial recovery...");
+        console.log("Raw text for recovery:", text);
         
-        const cleanJSON = text.substring(start, end + 1);
-        return JSON.parse(cleanJSON);
+        // Find all complete sentence objects using a more robust regex that handles potential internal quotes/noise
+        // This looks for: { "mandarin": "...", "[pinyin/zhuyin]": "...", "english": "..." }
+        const pronField = state.pronunciation === 'zhuyin' ? 'zhuyin' : 'pinyin';
+        
+        // Improved regex: matches the keys and values while allowing for escaped characters or different whitespace
+        const sentenceRegex = new RegExp(`\\{\\s*"mandarin"\\s*:\\s*"(.*?)"\\s*,\\s*"${pronField}"\\s*:\\s*"(.*?)"\\s*,\\s*"english"\\s*:\\s*"(.*?)"\\s*\\}`, 'gs');
+        
+        const sentences = [];
+        let match;
+        while ((match = sentenceRegex.exec(text)) !== null) {
+            const sentence = {
+                mandarin: match[1],
+                english: match[3]
+            };
+            sentence[pronField] = match[2];
+            sentences.push(sentence);
+        }
+
+        if (sentences.length > 0) {
+            // Extract title if possible
+            const titleMatch = /"title"\s*:\s*"([^"]*)"/.exec(text);
+            const title = titleMatch ? titleMatch[1] : "Recovered Story (Incomplete)";
+            
+            showError("The story was so long it was cut off by the AI's limit, but we recovered " + sentences.length + " sentences for you.");
+            
+            return {
+                title: title + " [Truncated]",
+                sentences: sentences
+            };
+        }
+
+        throw new Error('Could not find any valid story sentences in the response.');
     } catch (e) {
-        console.error('JSON Parse Error:', e, text);
-        throw new Error('Failed to parse AI response. The AI might have returned invalid JSON. Please try again.');
+        console.error('JSON Parse/Recovery Error:', e, text);
+        throw new Error('Failed to parse AI response. The story may be too long for the AI to finish. Try a shorter length.');
     }
 }
 
@@ -405,13 +469,14 @@ function renderStory(storyData) {
         
         const pron = document.createElement('div');
         pron.className = 'pronunciation';
-        pron.textContent = state.pronunciation === 'zhuyin' ? s.zhuyin : s.pinyin;
+        pron.textContent = s[state.pronunciation]; // Use the selected pronunciation directly
         pron.hidden = !elements.showPronunciationToggle.checked;
-        
+
         const english = document.createElement('div');
         english.className = 'english-translation';
         english.textContent = s.english;
         english.hidden = !elements.showTranslationToggle.checked;
+
         
         block.appendChild(playBtn);
         block.appendChild(mandarin);
@@ -433,19 +498,34 @@ function updateTranslationVisibility() {
     translations.forEach(t => t.hidden = !show);
 }
 
+let loadingInterval = null;
+
 function showLoading(show) {
     elements.generateBtn.disabled = show;
     elements.progressSection.hidden = !show;
+    
     if (show) {
-        updateProgress(0, 'Waking up the dragon...');
         elements.resultSection.hidden = true;
         elements.errorSection.hidden = true;
+        
+        let quoteIndex = 0;
+        elements.progressText.innerHTML = LOADING_QUOTES[quoteIndex].replace(/\n/g, '<br>');
+        
+        loadingInterval = setInterval(() => {
+            quoteIndex = (quoteIndex + 1) % LOADING_QUOTES.length;
+            elements.progressText.innerHTML = LOADING_QUOTES[quoteIndex].replace(/\n/g, '<br>');
+        }, 3000);
+    } else {
+        if (loadingInterval) {
+            clearInterval(loadingInterval);
+            loadingInterval = null;
+        }
     }
 }
 
+// updateProgress is no longer needed but kept as an empty function to avoid breaking other calls if any
 function updateProgress(percent, text) {
-    elements.progressFill.style.width = `${percent}%`;
-    if (text) elements.progressText.textContent = text;
+    // No-op
 }
 
 function showError(msg) {
@@ -548,7 +628,7 @@ function copyToClipboard() {
     lastStoryData.sentences.forEach(s => {
         text += `${s.mandarin}\n`;
         if (elements.showPronunciationToggle && elements.showPronunciationToggle.checked) {
-            text += `${state.pronunciation === 'zhuyin' ? s.zhuyin : s.pinyin}\n`;
+            text += `${s[state.pronunciation]}\n`; // Use the dynamically accessed pronunciation
         }
         if (elements.showTranslationToggle && elements.showTranslationToggle.checked) {
             text += `${s.english}\n`;

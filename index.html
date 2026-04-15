@@ -45,9 +45,19 @@
         <div class="form-group">
           <label for="model-select">Gemini model</label>
           <select id="model-select">
-            <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro (Best for long stories)</option>
             <option value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</option>
+            <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label>Pronunciation style</label>
+          <div class="toggle-group">
+            <input type="radio" id="pinyin-toggle" name="pronunciation" value="pinyin" checked>
+            <label for="pinyin-toggle">Pinyin</label>
+            <input type="radio" id="zhuyin-toggle" name="pronunciation" value="zhuyin">
+            <label for="zhuyin-toggle">Zhuyin</label>
+          </div>
         </div>
       </div>
     </section>
@@ -100,16 +110,16 @@
               </div>
 
               <div class="form-group">
-                <label for="lengthInWords">Mandarin characters <span class="required">*</span></label>
-                <input
-                  type="number"
-                  id="lengthInWords"
-                  name="lengthInWords"
-                  value="300"
-                  min="50"
-                  max="1000"
-                  required
-                />
+                <label for="lengthInWords">Number of Mandarin characters <span class="required">*</span></label>
+                <select id="lengthInWords" name="lengthInWords" required>
+                  <option value="100">100</option>
+                  <option value="200">200</option>
+                  <option value="300" selected>300</option>
+                  <option value="400">400</option>
+                  <option value="500">500</option>
+                  <option value="600">600</option>
+                  <option value="700">700</option>
+                </select>
               </div>
             </div>
 
@@ -134,11 +144,9 @@
 
         <!-- Progress section -->
         <section id="progress-section" class="card" hidden>
-            <div class="progress-container">
-                <p id="progress-text">Asking the AI for a story...</p>
-                <div class="progress-bar">
-                    <div id="progress-fill" class="progress-fill"></div>
-                </div>
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p id="progress-text">Waking up the dragon...</p>
             </div>
         </section>
 
@@ -164,12 +172,6 @@
                 <div class="toggle-switch">
                   <input type="checkbox" id="show-pronunciation" checked>
                   <label for="show-pronunciation">Show pronunciation</label>
-                </div>
-                <div class="toggle-group">
-                  <input type="radio" id="pinyin-toggle" name="pronunciation" value="pinyin" checked>
-                  <label for="pinyin-toggle">Pinyin</label>
-                  <input type="radio" id="zhuyin-toggle" name="pronunciation" value="zhuyin">
-                  <label for="zhuyin-toggle">Zhuyin</label>
                 </div>
               </div>
             </div>
