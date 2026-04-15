@@ -59,29 +59,19 @@ const elements = {
     clearHistoryMobileBtn: document.getElementById('clear-history-mobile'),
     showHistoryBtn: document.getElementById('show-history-btn'),
     historyModal: document.getElementById('history-modal'),
-    closeHistoryBtn: document.getElementById('close-history')
+    closeHistoryBtn: document.getElementById('close-history'),
+    
+    aboutBtn: document.getElementById('about-btn'),
+    aboutModal: document.getElementById('about-modal'),
+    closeAboutBtn: document.getElementById('close-about')
 };
 
 // ─── Initialization ───────────────────────────────────────────
 
-window.addEventListener('error', function(e) {
-    console.error("GLOBAL ERROR CAPTURED:", e.message, "at", e.filename, ":", e.lineno);
-});
-
 function init() {
-    console.log("Lotus Pond Reader initializing...");
     loadState();
     setupEventListeners();
     renderHistory();
-    
-    // Debug: check elements
-    console.log("Form element:", elements.storyForm);
-    if (elements.storyForm) {
-        console.log("Attaching test listener to form...");
-        elements.storyForm.addEventListener('submit', (e) => {
-            console.log("Form submit event captured in init TEST!");
-        });
-    }
     
     // Auto-expand textarea
     elements.plotInput.addEventListener('input', function() {
@@ -217,9 +207,20 @@ function setupEventListeners() {
         elements.historyModal.hidden = true;
     });
     
+    elements.aboutBtn.addEventListener('click', () => {
+        elements.aboutModal.hidden = false;
+    });
+    
+    elements.closeAboutBtn.addEventListener('click', () => {
+        elements.aboutModal.hidden = true;
+    });
+    
     window.addEventListener('click', (e) => {
         if (e.target === elements.historyModal) {
             elements.historyModal.hidden = true;
+        }
+        if (e.target === elements.aboutModal) {
+            elements.aboutModal.hidden = true;
         }
     });
 }
@@ -355,7 +356,6 @@ async function callGemini(prompt) {
 }
 
 function parseResponse(text) {
-    console.log("Raw text from AI:", text);
     try {
         // Find the start and end of the JSON object in case of markdown or other noise
         const start = text.indexOf('{');

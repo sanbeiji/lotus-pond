@@ -186,7 +186,11 @@
   </main>
 
   <footer>
-    <p>Lotus Pond Reader · Powered by Google AI Studio Gemini Flash (<span id="model-version"></span>) · Made by <a href="https://sanbeiji.com" target="_blank" rel="noopener noreferrer">sanbeiji.com</a></p>
+    <p>
+      Lotus Pond Reader · Powered by Google AI Studio Gemini Flash (<span id="model-version"></span>) · 
+      <button id="about-btn" class="btn-text-only">About</button> · 
+      Made by <a href="https://sanbeiji.com" target="_blank" rel="noopener noreferrer">sanbeiji.com</a>
+    </p>
   </footer>
 
   <!-- Modal for History (Mobile) -->
@@ -198,6 +202,36 @@
           </div>
           <div id="history-list-mobile" class="history-list"></div>
           <button id="clear-history-mobile" class="btn-text-only">Clear all</button>
+      </div>
+  </div>
+
+  <!-- Modal for About -->
+  <div id="about-modal" class="modal" hidden>
+      <div class="modal-content card">
+          <div class="modal-header">
+              <h3>About Lotus Pond Reader</h3>
+              <button id="close-about" class="btn-close">&times;</button>
+          </div>
+          <div class="modal-body">
+              <p><strong>Lotus Pond Reader</strong> is an interactive tool designed to help Mandarin learners master Traditional Chinese characters, with a specific focus on Taiwanese language patterns and cultural context.</p>
+              
+              <p><strong>Our Goal</strong><br>
+              The primary goal is to provide engaging, AI-generated reading material tailored to your specific skill level. By focusing on Traditional characters and Taiwanese-specific vocabulary and pronunciation, learners can better prepare for real-world interactions in Taiwan.</p>
+              
+              <p><strong>Key Features</strong><br>
+              • <strong>Adaptive Difficulty:</strong> Choose from 8 levels aligned with the <a href="https://en.wikipedia.org/wiki/Test_of_Chinese_as_a_Foreign_Language" target="_blank" rel="noopener noreferrer">TOCFL</a> bands.<br>
+              • <strong>Interlinear Assistance:</strong> Toggle between Pinyin and Zhuyin (Bopomofo) to assist with pronunciation.<br>
+              • <strong>English Translations:</strong> Show or hide natural English translations for each sentence.<br>
+              • <strong>Read Aloud (TTS):</strong> Use the built-in text-to-speech feature to hear correct pronunciations.<br>
+              • <strong>Vocabulary Practice:</strong> Input specific terms you want to practice, and the AI will naturally integrate them into the story.</p>
+              
+              <p><strong>How to Use</strong><br>
+              1. Enter a brief plot or theme.<br>
+              2. Select your current proficiency level.<br>
+              3. (Optional) Enter specific Mandarin words you want to study.<br>
+              4. Click "Generate story" and wait for your custom content.<br>
+              5. Practice by reading aloud as best you can for your level. Increase the difficulty as you become more comfortable.</p>
+          </div>
       </div>
   </div>
 
