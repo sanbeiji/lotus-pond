@@ -298,13 +298,18 @@ SKILL LEVEL DEFINITIONS (TOCFL BANDS):
 - C6 (Advanced): Academic, technical, and literary proficiency. Use of sophisticated Chengyu (idioms), classical structures, and nuanced stylistic variances.
 `;
 
-    const sentenceTarget = length > 1000 ? Math.ceil(length / 20) : Math.ceil(length / 12);
+    // Realistic sentence targets: ~20-25 characters per sentence
+    const sentenceTarget = Math.max(3, Math.ceil(length / 22));
+    
     const novellaInstruction = length > 1000 ? `
 The requested story is a NOVELLA (at least ${length} characters). 
 You MUST structure it as a 5-chapter story with distinct scenes for each chapter. 
 Expand on the world-building, sensory details, internal character thoughts, and extensive dialogue. 
 DO NOT SUMMARIZE. Write as if you are a professional author.
 ` : "";
+
+    const lengthPriority = length > 1000 ? "ABSOLUTE HIGHEST priority" : "important target";
+    const lengthAdjective = length > 1000 ? "AT LEAST" : "approximately";
 
     const pronLabel = state.pronunciation === 'zhuyin' ? 'zhuyin' : 'pinyin';
     const pronInstruction = state.pronunciation === 'zhuyin' ? 'Zhuyin/Bopomofo pronunciation here' : 'Pinyin pronunciation here (Taiwanese style, e.g. \'hàn\')';
@@ -344,10 +349,11 @@ The JSON must follow this exact structure:
 
 CRITICAL LENGTH REQUIREMENT:
 ${novellaInstruction}
-The user has requested a story of AT LEAST ${length} Mandarin characters.
+The user has requested a story of ${lengthAdjective} ${length} Mandarin characters.
 To achieve this, you MUST:
-- Generate at least ${sentenceTarget} sentences.
-- This length requirement (at least ${length} characters) is the ABSOLUTE HIGHEST priority.
+- Generate approximately ${sentenceTarget} sentences.
+- Do not summarize. 
+- This length requirement is an ${lengthPriority}.
 
 Plot for the story: ${plot}`;
 }
