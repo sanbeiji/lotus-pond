@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lotus Pond Reader – Mandarin Story Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Klee+One:wght@400;600&family=Iansui&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>🪷 Lotus Pond Reader</h1>
+      <p class="header-subtitle">蓮池故事機 (liánchí gùshìjī) · Gemini-powered Taiwanese Mandarin story generator</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- Settings section -->
+    <section class="card settings-card" aria-labelledby="settings-heading">
+      <div class="settings-header">
+        <h2 id="settings-heading">Settings</h2>
+        <button id="toggle-settings" class="btn-icon" aria-label="Toggle settings">⚙️</button>
+      </div>
+      <div id="settings-content" hidden>
+        <div class="form-group">
+          <label for="api-key">Gemini API key <span class="required">*</span></label>
+          <input
+            type="password"
+            id="api-key"
+            placeholder="Enter your Google AI Studio API key"
+          />
+          <small>Your key is stored locally in your browser.</small>
+        </div>
+        <div class="form-group">
+          <label for="model-select">Gemini model</label>
+          <select id="model-select">
+            <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro (Best for long stories)</option>
+            <option value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Pronunciation style</label>
+          <div class="toggle-group">
+            <input type="radio" id="pinyin-toggle" name="pronunciation" value="pinyin" checked>
+            <label for="pinyin-toggle">Pinyin</label>
+            <input type="radio" id="zhuyin-toggle" name="pronunciation" value="zhuyin">
+            <label for="zhuyin-toggle">Zhuyin</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- History section (Mobile view) -->
+    <div class="history-mobile-toggle">
+        <button id="show-history-btn" class="btn-secondary">📜 View history</button>
+    </div>
+
+    <div class="main-layout">
+      <!-- Sidebar History (Desktop) -->
+      <aside class="history-sidebar card">
+        <h3>History</h3>
+        <div id="history-list" class="history-list">
+          <p class="empty-msg">No stories yet.</p>
+        </div>
+        <button id="clear-history" class="btn-text-only">Clear all</button>
+      </aside>
+
+      <div class="content-area">
+        <!-- Input form -->
+        <section class="card" aria-labelledby="generator-heading">
+          <h2 id="generator-heading">Generate a story</h2>
+          <form id="story-form" novalidate>
+
+            <div class="form-group">
+              <label for="plot">Plot / theme <span class="required">*</span></label>
+              <textarea
+                id="plot"
+                name="plot"
+                rows="3"
+                placeholder="e.g. A college student looking for a job…"
+                required
+              ></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="skillLevel">Level (<a href="https://en.wikipedia.org/wiki/Test_of_Chinese_as_a_Foreign_Language" target="_blank" rel="noopener noreferrer">TOCFL</a> band) <span class="required">*</span></label>
+                <select id="skillLevel" name="skillLevel" required>
+                  <option value="Novice 1">Novice 1</option>
+                  <option value="Novice 2">Novice 2</option>
+                  <option value="A1 (Entry)" selected>A1 (Entry)</option>
+                  <option value="A2 (Foundation)">A2 (Foundation)</option>
+                  <option value="B3 (Intermediate)">B3 (Intermediate)</option>
+                  <option value="B4 (Upper Intermediate)">B4 (Upper Intermediate)</option>
+                  <option value="C5 (Fluent)">C5 (Fluent)</option>
+                  <option value="C6 (Advanced)">C6 (Advanced)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="lengthInWords">Number of Mandarin characters <span class="required">*</span></label>
+                <select id="lengthInWords" name="lengthInWords" required>
+                  <option value="100">100</option>
+                  <option value="200">200</option>
+                  <option value="300" selected>300</option>
+                  <option value="400">400</option>
+                  <option value="500">500</option>
+                  <option value="600">600</option>
+                  <option value="700">700</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="requiredTerms">Required Mandarin vocabulary
+                <span class="label-optional">(optional)</span>
+              </label>
+              <input
+                type="text"
+                id="requiredTerms"
+                name="requiredTerms"
+                placeholder="e.g. 電腦, 學習, 朋友"
+              />
+              <small id="vocab-warning" class="input-warning" hidden>Please use Mandarin characters only (separated by commas).</small>
+            </div>
+
+            <button type="submit" id="generate-btn" class="btn-primary">
+              <span class="btn-text">✨ Generate story</span>
+            </button>
+          </form>
+        </section>
+
+        <!-- Progress section -->
+        <section id="progress-section" class="card" hidden>
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p id="progress-text">Waking up the dragon...</p>
+            </div>
+        </section>
+
+        <!-- Error display -->
+        <section id="error-section" class="error-card" hidden aria-live="assertive">
+          <p id="error-message"></p>
+        </section>
+
+        <!-- Story output -->
+        <section id="result-section" hidden aria-labelledby="story-heading">
+          <div class="card story-card">
+            <div class="story-header-row">
+              <h2 id="story-heading" class="story-heading">Generated story</h2>
+              <div class="view-options-stack">
+                <div class="toggle-switch">
+                  <input type="checkbox" id="show-translation">
+                  <label for="show-translation">Show English translation</label>
+                </div>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="study-mode">
+                  <label for="study-mode">Highlight required vocabulary</label>
+                </div>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="show-pronunciation" checked>
+                  <label for="show-pronunciation">Show pronunciation</label>
+                </div>
+              </div>
+            </div>
+            <div id="story-content" class="story-content"></div>
+            <div class="story-actions">
+              <button id="copy-btn" class="btn-secondary">
+                Copy story
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>
+      Lotus Pond Reader · Powered by Google AI Studio Gemini Flash (<span id="model-version"></span>) · 
+      <button id="about-btn" class="btn-text-only">About</button> · 
+      Made by <a href="https://sanbeiji.com" target="_blank" rel="noopener noreferrer">sanbeiji.com</a>
+    </p>
+  </footer>
+
+  <!-- Modal for History (Mobile) -->
+  <div id="history-modal" class="modal" hidden>
+      <div class="modal-content card">
+          <div class="modal-header">
+              <h3>History</h3>
+              <button id="close-history" class="btn-close">&times;</button>
+          </div>
+          <div id="history-list-mobile" class="history-list"></div>
+          <button id="clear-history-mobile" class="btn-text-only">Clear all</button>
+      </div>
+  </div>
+
+  <!-- Modal for About -->
+  <div id="about-modal" class="modal" hidden>
+      <div class="modal-content card">
+          <div class="modal-header">
+              <h3>About Lotus Pond Reader</h3>
+              <button id="close-about" class="btn-close">&times;</button>
+          </div>
+          <div class="modal-body">
+              <p><strong>Lotus Pond Reader</strong> is an interactive tool designed to help Mandarin learners master Traditional Chinese characters, with a specific focus on Taiwanese language patterns and cultural context.</p>
+              
+              <p><strong>Our Goal</strong><br>
+              The primary goal is to provide engaging, AI-generated reading material tailored to your specific skill level. By focusing on Traditional characters and Taiwanese-specific vocabulary and pronunciation, learners can better prepare for real-world interactions in Taiwan.</p>
+              
+              <p><strong>Key Features</strong><br>
+              • <strong>Adaptive Difficulty:</strong> Choose from 8 levels aligned with the <a href="https://en.wikipedia.org/wiki/Test_of_Chinese_as_a_Foreign_Language" target="_blank" rel="noopener noreferrer">TOCFL</a> bands.<br>
+              • <strong>Interlinear Assistance:</strong> Toggle between Pinyin and Zhuyin (Bopomofo) to assist with pronunciation.<br>
+              • <strong>English Translations:</strong> Show or hide natural English translations for each sentence.<br>
+              • <strong>Read Aloud (TTS):</strong> Use the built-in text-to-speech feature to hear correct pronunciations.<br>
+              • <strong>Vocabulary Practice:</strong> Input specific terms you want to practice, and the AI will naturally integrate them into the story.</p>
+              
+              <p><strong>How to Use</strong><br>
+              1. Enter a brief plot or theme.<br>
+              2. Select your current proficiency level.<br>
+              3. (Optional) Enter specific Mandarin words you want to study.<br>
+              4. Click "Generate story" and wait for your custom content.<br>
+              5. Practice by reading aloud as best you can for your level. Increase the difficulty as you become more comfortable.</p>
+          </div>
+      </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
