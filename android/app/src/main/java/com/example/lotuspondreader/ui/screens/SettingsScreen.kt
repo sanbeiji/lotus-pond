@@ -90,5 +90,40 @@ fun SettingsScreen(
             )
             Text("Zhuyin")
         }
+
+        HorizontalDivider()
+
+        var themeExpanded by remember { mutableStateOf(false) }
+        val themeOptions = listOf("system", "light", "dark")
+        val themeLabels = mapOf("system" to "System default", "light" to "Light", "dark" to "Dark")
+
+        ExposedDropdownMenuBox(
+            expanded = themeExpanded,
+            onExpandedChange = { themeExpanded = it },
+        ) {
+            OutlinedTextField(
+                value = themeLabels[settings.themePreference] ?: "System default",
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("App theme") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = themeExpanded) },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = themeExpanded,
+                onDismissRequest = { themeExpanded = false }
+            ) {
+                themeOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(themeLabels[option] ?: option) },
+                        onClick = {
+                            onSettingsChanged(settings.copy(themePreference = option))
+                            themeExpanded = false
+                        }
+                    )
+                }
+            }
+        }
     }
 }

@@ -31,5 +31,6 @@ data class UserSettings(
     val pronunciation: String = "pinyin", // "pinyin" or "zhuyin"
     val studyMode: Boolean = false,
     val showTranslation: Boolean = false,
-    val showPronunciation: Boolean = true
+    val showPronunciation: Boolean = true,
+    val themePreference: String = "system" // "system", "light", "dark"
 )

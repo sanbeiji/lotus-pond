@@ -82,80 +82,102 @@ fun HomeScreen(
             }
         }
 
-        OutlinedTextField(
-            value = plot,
-            onValueChange = onPlotChange,
-            label = { Text("Plot / theme *") },
-            placeholder = { Text("e.g. A college student looking for a job…") },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 3
-        )
-
-        ExposedDropdownMenuBox(
-            expanded = skillExpanded,
-            onExpandedChange = { skillExpanded = it },
-        ) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Plot / theme *", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
             OutlinedTextField(
-                value = skillLevel,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Level (TOCFL band) *") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = skillExpanded) },
-                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+                value = plot,
+                onValueChange = onPlotChange,
+                placeholder = { Text("e.g. A college student looking for a job…") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3
             )
-            ExposedDropdownMenu(
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Level (TOCFL band) *", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+            ExposedDropdownMenuBox(
                 expanded = skillExpanded,
-                onDismissRequest = { skillExpanded = false }
+                onExpandedChange = { skillExpanded = it },
             ) {
-                skillLevels.forEach { selectionOption ->
-                    DropdownMenuItem(
-                        text = { Text(selectionOption) },
-                        onClick = {
-                            onSkillLevelChange(selectionOption)
-                            skillExpanded = false
-                        }
-                    )
+                OutlinedTextField(
+                    value = skillLevel,
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = skillExpanded) },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = skillExpanded,
+                    onDismissRequest = { skillExpanded = false }
+                ) {
+                    skillLevels.forEach { selectionOption ->
+                        DropdownMenuItem(
+                            text = { Text(selectionOption) },
+                            onClick = {
+                                onSkillLevelChange(selectionOption)
+                                skillExpanded = false
+                            }
+                        )
+                    }
                 }
             }
         }
 
-        ExposedDropdownMenuBox(
-            expanded = lengthExpanded,
-            onExpandedChange = { lengthExpanded = it },
-        ) {
-            OutlinedTextField(
-                value = length,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Number of Mandarin characters *") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = lengthExpanded) },
-                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
-            )
-            ExposedDropdownMenu(
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Number of Mandarin characters *", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+            ExposedDropdownMenuBox(
                 expanded = lengthExpanded,
-                onDismissRequest = { lengthExpanded = false }
+                onExpandedChange = { lengthExpanded = it },
             ) {
-                lengthOptions.forEach { selectionOption ->
-                    DropdownMenuItem(
-                        text = { Text(selectionOption) },
-                        onClick = {
-                            onLengthChange(selectionOption)
-                            lengthExpanded = false
-                        }
-                    )
+                OutlinedTextField(
+                    value = length,
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = lengthExpanded) },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = lengthExpanded,
+                    onDismissRequest = { lengthExpanded = false }
+                ) {
+                    lengthOptions.forEach { selectionOption ->
+                        DropdownMenuItem(
+                            text = { Text(selectionOption) },
+                            onClick = {
+                                onLengthChange(selectionOption)
+                                lengthExpanded = false
+                            }
+                        )
+                    }
                 }
             }
         }
 
-        OutlinedTextField(
-            value = requiredTerms,
-            onValueChange = onRequiredTermsChange,
-            label = { Text("Required Mandarin vocabulary (optional)") },
-            placeholder = { Text("e.g. 電腦, 學習, 朋友") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Required Mandarin vocabulary (optional)", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+            OutlinedTextField(
+                value = requiredTerms,
+                onValueChange = onRequiredTermsChange,
+                placeholder = { Text("e.g. 電腦, 學習, 朋友") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         Button(
             onClick = onGenerate,

@@ -103,6 +103,7 @@ fun SentenceBlock(
                 Text(
                     text = annotatedString,
                     style = MaterialTheme.typography.titleLarge.copy(
+                        fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
                         fontSize = 24.sp,
                         lineHeight = 36.sp
                     ),

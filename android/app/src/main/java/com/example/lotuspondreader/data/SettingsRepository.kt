@@ -24,6 +24,7 @@ class SettingsRepository(private val context: Context) {
         val STUDY_MODE = booleanPreferencesKey("study_mode")
         val SHOW_TRANSLATION = booleanPreferencesKey("show_translation")
         val SHOW_PRONUNCIATION = booleanPreferencesKey("show_pronunciation")
+        val THEME_PREFERENCE = stringPreferencesKey("theme_preference")
     }
 
     val userSettingsFlow: Flow<UserSettings> = dataStore.data
@@ -34,7 +35,8 @@ class SettingsRepository(private val context: Context) {
                 pronunciation = preferences[PRONUNCIATION] ?: "pinyin",
                 studyMode = preferences[STUDY_MODE] ?: false,
                 showTranslation = preferences[SHOW_TRANSLATION] ?: false,
-                showPronunciation = preferences[SHOW_PRONUNCIATION] ?: true
+                showPronunciation = preferences[SHOW_PRONUNCIATION] ?: true,
+                themePreference = preferences[THEME_PREFERENCE] ?: "system"
             )
         }
 
@@ -46,6 +48,7 @@ class SettingsRepository(private val context: Context) {
             preferences[STUDY_MODE] = settings.studyMode
             preferences[SHOW_TRANSLATION] = settings.showTranslation
             preferences[SHOW_PRONUNCIATION] = settings.showPronunciation
+            preferences[THEME_PREFERENCE] = settings.themePreference
         }
     }
 }

@@ -207,6 +207,7 @@ fun MainNavigation(
                                         Text(
                                             text = story.title,
                                             style = MaterialTheme.typography.headlineMedium.copy(
+                                                fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
                                                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                                             ),
                                             color = MaterialTheme.colorScheme.primary
