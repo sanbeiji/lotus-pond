@@ -63,6 +63,18 @@ body {
   flex-direction: column;
 }
 
+a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--primary-dark);
+}
+
 /* ─── Header ─────────────────────────────────────────────────── */
 header {
   background: linear-gradient(135deg, #c96f85 0%, #8b4a5e 100%);
@@ -85,15 +97,18 @@ header {
 }
 
 .header-about-btn {
-    color: rgba(255, 255, 255, 0.9);
+    color: #fff;
     font-size: 0.95rem;
     margin-left: 0.5rem;
     text-decoration: underline;
     text-underline-offset: 2px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s;
 }
 
 .header-about-btn:hover {
-    color: #fff;
+    color: #ffd966;
 }
 
 /* ─── Main layout ────────────────────────────────────────────── */
@@ -205,7 +220,13 @@ main {
     font-size: 0.8rem;
     cursor: pointer;
     text-decoration: underline;
+    text-underline-offset: 2px;
     align-self: center;
+    transition: color 0.2s;
+}
+
+.btn-text-only:hover {
+    color: var(--primary);
 }
 
 .history-mobile-toggle {
@@ -223,16 +244,6 @@ label {
   font-size: 0.875rem;
   font-weight: 600;
   margin-bottom: 0.45rem;
-}
-
-label a {
-    color: var(--primary);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-}
-
-label a:hover {
-    color: var(--primary-dark);
 }
 
 .required {
@@ -578,18 +589,6 @@ input.invalid {
     line-height: 1.6;
 }
 
-.modal-body a,
-.form-group small a {
-    color: var(--primary);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-}
-
-.modal-body a:hover,
-.form-group small a:hover {
-    color: var(--primary-dark);
-}
-
 .btn-close {
     background: transparent;
     border: none;
@@ -616,9 +615,7 @@ footer {
 }
 
 footer a {
-    color: #888;
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    color: var(--text-muted);
 }
 
 footer a:hover {
