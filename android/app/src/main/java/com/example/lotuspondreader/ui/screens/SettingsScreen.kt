@@ -90,31 +90,5 @@ fun SettingsScreen(
             )
             Text("Zhuyin")
         }
-        
-        HorizontalDivider()
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Show English translation")
-            Switch(
-                checked = settings.showTranslation,
-                onCheckedChange = { onSettingsChanged(settings.copy(showTranslation = it)) }
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Highlight required vocabulary")
-            Switch(
-                checked = settings.studyMode,
-                onCheckedChange = { onSettingsChanged(settings.copy(studyMode = it)) }
-            )
-        }
     }
 }

@@ -30,5 +30,6 @@ data class UserSettings(
     val selectedModel: String = "gemini-2.5-flash-lite",
     val pronunciation: String = "pinyin", // "pinyin" or "zhuyin"
     val studyMode: Boolean = false,
-    val showTranslation: Boolean = false
+    val showTranslation: Boolean = false,
+    val showPronunciation: Boolean = true
 )

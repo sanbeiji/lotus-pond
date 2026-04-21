@@ -2,10 +2,12 @@ package com.example.lotuspondreader.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val LotusPrimary = Color(0xFFB85C72)
+val LotusPrimaryDark = Color(0xFF9A4860)
+val LotusAccent = Color(0xFF4E8060)
+val LotusBackground = Color(0xFFF4F0EB)
+val LotusCardBackground = Color(0xFFFFFFFF)
+val LotusText = Color(0xFF2A2A2A)
+val LotusTextMuted = Color(0xFF7A6F6A)
+val LotusGradientStart = Color(0xFFC96F85)
+val LotusGradientEnd = Color(0xFF8B4A5E)

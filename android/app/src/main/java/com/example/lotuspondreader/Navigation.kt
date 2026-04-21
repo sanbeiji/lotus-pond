@@ -1,7 +1,6 @@
 package com.example.lotuspondreader
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
@@ -147,12 +146,75 @@ fun MainNavigation(
                     if (uiState is StoryUiState.Success) {
                         val story = (uiState as StoryUiState.Success).story
                         val termsList = requiredTerms.split("[,，]".toRegex()).map { it.trim() }.filter { it.isNotEmpty() }
+                        var showBottomSheet by remember { mutableStateOf(false) }
                         
+                        @OptIn(ExperimentalMaterial3Api::class)
+                        if (showBottomSheet) {
+                            ModalBottomSheet(
+                                onDismissRequest = { showBottomSheet = false }
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    Text("Display Settings", style = MaterialTheme.typography.titleLarge)
+                                    
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                    ) {
+                                        Text("Show pronunciation")
+                                        Switch(
+                                            checked = userSettings.showPronunciation,
+                                            onCheckedChange = { viewModel.updateSettings(userSettings.copy(showPronunciation = it)) }
+                                        )
+                                    }
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                    ) {
+                                        Text("Show English translation")
+                                        Switch(
+                                            checked = userSettings.showTranslation,
+                                            onCheckedChange = { viewModel.updateSettings(userSettings.copy(showTranslation = it)) }
+                                        )
+                                    }
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                    ) {
+                                        Text("Highlight required vocabulary")
+                                        Switch(
+                                            checked = userSettings.studyMode,
+                                            onCheckedChange = { viewModel.updateSettings(userSettings.copy(studyMode = it)) }
+                                        )
+                                    }
+                                    Spacer(Modifier.height(16.dp))
+                                }
+                            }
+                        }
+
                         Scaffold(
                             topBar = {
                                 @OptIn(ExperimentalMaterial3Api::class)
                                 TopAppBar(
-                                    title = { Text("Story") },
+                                    title = { 
+                                        Text(
+                                            text = story.title,
+                                            style = MaterialTheme.typography.headlineMedium.copy(
+                                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                            ),
+                                            color = MaterialTheme.colorScheme.primary
+                                        ) 
+                                    },
+                                    colors = TopAppBarDefaults.topAppBarColors(
+                                        containerColor = MaterialTheme.colorScheme.background
+                                    ),
                                     navigationIcon = {
                                         IconButton(onClick = {
                                             backStack.removeLastOrNull()
@@ -160,13 +222,18 @@ fun MainNavigation(
                                         }) {
                                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                                         }
+                                    },
+                                    actions = {
+                                        IconButton(onClick = { showBottomSheet = true }) {
+                                            Icon(Icons.Filled.Settings, contentDescription = "Display Settings")
+                                        }
                                     }
                                 )
                             }
                         ) { innerReaderPadding ->
                             StoryView(
                                 story = story,
-                                showPronunciation = true,
+                                showPronunciation = userSettings.showPronunciation,
                                 pronunciationType = userSettings.pronunciation,
                                 showTranslation = userSettings.showTranslation,
                                 studyMode = userSettings.studyMode,

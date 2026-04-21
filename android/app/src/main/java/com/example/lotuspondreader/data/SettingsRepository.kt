@@ -23,6 +23,7 @@ class SettingsRepository(private val context: Context) {
         val PRONUNCIATION = stringPreferencesKey("pronunciation")
         val STUDY_MODE = booleanPreferencesKey("study_mode")
         val SHOW_TRANSLATION = booleanPreferencesKey("show_translation")
+        val SHOW_PRONUNCIATION = booleanPreferencesKey("show_pronunciation")
     }
 
     val userSettingsFlow: Flow<UserSettings> = dataStore.data
@@ -32,7 +33,8 @@ class SettingsRepository(private val context: Context) {
                 selectedModel = preferences[SELECTED_MODEL] ?: "gemini-2.5-flash-lite",
                 pronunciation = preferences[PRONUNCIATION] ?: "pinyin",
                 studyMode = preferences[STUDY_MODE] ?: false,
-                showTranslation = preferences[SHOW_TRANSLATION] ?: false
+                showTranslation = preferences[SHOW_TRANSLATION] ?: false,
+                showPronunciation = preferences[SHOW_PRONUNCIATION] ?: true
             )
         }
 
@@ -43,6 +45,7 @@ class SettingsRepository(private val context: Context) {
             preferences[PRONUNCIATION] = settings.pronunciation
             preferences[STUDY_MODE] = settings.studyMode
             preferences[SHOW_TRANSLATION] = settings.showTranslation
+            preferences[SHOW_PRONUNCIATION] = settings.showPronunciation
         }
     }
 }
