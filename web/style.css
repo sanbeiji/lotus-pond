@@ -566,6 +566,16 @@ input.invalid {
     line-height: 1.6;
 }
 
+.modal-body a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.modal-body a:hover {
+    color: var(--primary-dark);
+}
+
 .btn-close {
     background: transparent;
     border: none;
