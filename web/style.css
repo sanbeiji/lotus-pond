@@ -97,18 +97,21 @@ header {
 }
 
 .header-about-btn {
+    background-color: rgba(255, 255, 255, 0.15);
     color: #fff;
-    font-size: 0.95rem;
-    margin-left: 0.5rem;
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    margin-left: 0.75rem;
+    text-decoration: none;
     font-weight: 600;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .header-about-btn:hover {
-    color: #ffd966;
+    background-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
 }
 
 /* ─── Main layout ────────────────────────────────────────────── */
