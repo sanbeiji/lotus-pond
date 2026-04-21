@@ -84,6 +84,18 @@ header {
   letter-spacing: 0.02em;
 }
 
+.header-about-btn {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    margin-left: 0.5rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.header-about-btn:hover {
+    color: #fff;
+}
+
 /* ─── Main layout ────────────────────────────────────────────── */
 main {
   flex: 1;

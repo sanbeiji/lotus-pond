@@ -125,5 +125,43 @@ fun SettingsScreen(
                 }
             }
         }
+
+        HorizontalDivider()
+        
+        var showAboutDialog by remember { mutableStateOf(false) }
+
+        if (showAboutDialog) {
+            AlertDialog(
+                onDismissRequest = { showAboutDialog = false },
+                title = { Text("About Lotus Pond Reader") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("Lotus Pond Reader is an interactive tool designed to help Mandarin learners master Traditional Chinese characters, with a specific focus on Taiwanese language patterns and cultural context.")
+                        
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Key Features", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                            Text("• Adaptive Difficulty: Choose from 8 TOCFL levels.\n• Interlinear Assistance: Toggle Pinyin/Zhuyin.\n• English Translations: Read natural English translations.\n• Vocabulary Practice: AI integrates custom words.")
+                        }
+                        
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("How to Use", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                            Text("1. Get a Gemini API key and enter it in Settings.\n2. Enter a plot or theme.\n3. Select your proficiency level.\n4. (Optional) Enter vocabulary to study.\n5. Generate and wait for content.\n6. Toggle options on the story screen.\n7. Practice reading aloud.")
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showAboutDialog = false }) {
+                        Text("Close")
+                    }
+                }
+            )
+        }
+
+        OutlinedButton(
+            onClick = { showAboutDialog = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("ℹ️ About Lotus Pond Reader")
+        }
     }
 }

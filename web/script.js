@@ -78,6 +78,7 @@ const elements = {
     closeHistoryBtn: document.getElementById('close-history'),
     
     aboutBtn: document.getElementById('about-btn'),
+    headerAboutBtn: document.getElementById('header-about-btn'),
     aboutModal: document.getElementById('about-modal'),
     closeAboutBtn: document.getElementById('close-about')
 };
@@ -256,6 +257,10 @@ function setupEventListeners() {
     });
 
     elements.aboutBtn.addEventListener('click', () => {
+        elements.aboutModal.hidden = false;
+    });
+
+    elements.headerAboutBtn?.addEventListener('click', () => {
         elements.aboutModal.hidden = false;
     });
     
