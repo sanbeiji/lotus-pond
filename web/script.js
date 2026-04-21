@@ -29,7 +29,8 @@ const DEFAULT_SETTINGS = {
     pronunciation: 'pinyin',
     studyMode: false,
     showTranslation: false,
-    history: []
+    history: [],
+    themePreference: 'system'
 };
 
 // ─── App State ────────────────────────────────────────────────
@@ -48,6 +49,7 @@ const elements = {
     
     apiKeyInput: document.getElementById('api-key'),
     modelSelect: document.getElementById('model-select'),
+    themeSelect: document.getElementById('theme-select'),
     pinyinToggle: document.getElementById('pinyin-toggle'),
     zhuyinToggle: document.getElementById('zhuyin-toggle'),
     studyModeToggle: document.getElementById('study-mode'),
@@ -135,6 +137,10 @@ function loadState() {
     if (elements.modelSelect) {
         elements.modelSelect.value = state.selectedModel || 'gemini-2.5-flash-lite';
     }
+    if (elements.themeSelect) {
+        elements.themeSelect.value = state.themePreference || 'system';
+    }
+    applyTheme();
     if (state.pronunciation === 'zhuyin') {
         if (elements.zhuyinToggle) elements.zhuyinToggle.checked = true;
     } else {
@@ -148,6 +154,21 @@ function loadState() {
     // If no API key, show settings
     if (!state.apiKey && elements.settingsContent) {
         elements.settingsContent.hidden = false;
+    }
+}
+
+function applyTheme() {
+    let isDark = false;
+    if (state.themePreference === 'dark') {
+        isDark = true;
+    } else if (state.themePreference === 'system') {
+        isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    
+    if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
     }
 }
 
@@ -178,6 +199,18 @@ function setupEventListeners() {
         state.selectedModel = e.target.value;
         saveState();
         updateModelFooter();
+    });
+    
+    elements.themeSelect?.addEventListener('change', (e) => {
+        state.themePreference = e.target.value;
+        saveState();
+        applyTheme();
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (state.themePreference === 'system') {
+            applyTheme();
+        }
     });
     
     [elements.pinyinToggle, elements.zhuyinToggle].forEach(el => {

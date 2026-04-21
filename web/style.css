@@ -14,6 +14,35 @@
   --shadow:       0 2px 14px rgba(0, 0, 0, 0.08);
   --radius:       12px;
   --mandarin-font: 'Iansui', '芫荽', 'Klee One', 'Noto Serif TC', serif;
+  --history-hover: #f9f7f4;
+  --highlight-bg: #fff2cc;
+  --highlight-border: #ffd966;
+  --input-bg:     #fff;
+  --toggle-bg:    #eee;
+  --toggle-checked: #fff;
+  --switch-bg:    #ccc;
+}
+
+[data-theme="dark"] {
+  --bg:           #1e1e1e;
+  --card-bg:      #2c2c2c;
+  --primary:      #c96f85;
+  --primary-dark: #b85c72;
+  --accent:       #4e8060;
+  --text:         #e0e0e0;
+  --text-muted:   #aaaaaa;
+  --border:       #444444;
+  --error-bg:     #4a1c1c;
+  --error-border: #7a2a2a;
+  --error-text:   #ff8888;
+  --shadow:       0 2px 14px rgba(0, 0, 0, 0.5);
+  --history-hover: #3a3a3a;
+  --highlight-bg: #4d4429;
+  --highlight-border: #806b24;
+  --input-bg:     #3c3c3c;
+  --toggle-bg:    #444;
+  --toggle-checked: #2c2c2c;
+  --switch-bg:    #555;
 }
 
 /* ─── Reset / base ───────────────────────────────────────────── */
@@ -136,7 +165,7 @@ main {
 }
 
 .history-item:hover {
-    background: #f9f7f4;
+    background: var(--history-hover);
 }
 
 .history-item .history-title {
@@ -210,7 +239,7 @@ select {
   font-size: 1rem;
   font-family: inherit;
   color: var(--text);
-  background: #fff;
+  background: var(--input-bg);
   transition: border-color 0.2s, box-shadow 0.2s;
   appearance: none;
 }
@@ -232,7 +261,7 @@ select:focus {
 .toggle-group {
     display: flex;
     gap: 0.5rem;
-    background: #eee;
+    background: var(--toggle-bg);
     padding: 0.25rem;
     border-radius: 6px;
 }
@@ -253,7 +282,7 @@ select:focus {
 }
 
 .toggle-group input[type="radio"]:checked + label {
-    background: #fff;
+    background: var(--toggle-checked);
     color: var(--primary);
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
@@ -268,7 +297,7 @@ select:focus {
     width: 32px;
     height: 18px;
     appearance: none;
-    background: #ccc;
+    background: var(--switch-bg);
     border-radius: 9px;
     position: relative;
     cursor: pointer;
@@ -470,7 +499,7 @@ input.invalid {
 
 .english-translation {
     font-size: 0.85rem;
-    color: #666;
+    color: var(--text-muted);
     margin-top: 0.4rem;
     line-height: 1.5;
 }
@@ -480,8 +509,8 @@ input.invalid {
 }
 
 .vocab-highlight {
-    background-color: #fff2cc;
-    border-bottom: 2px solid #ffd966;
+    background-color: var(--highlight-bg);
+    border-bottom: 2px solid var(--highlight-border);
     font-weight: 600;
 }
 
