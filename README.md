@@ -24,3 +24,9 @@ The name of this app is inspired by **Lotus Pond (蓮池潭)**, an artificial la
 - **Project Restructure**:
   - Migrated the `lotus-pond-reader-web` project into a monorepo structure.
   - Preserved full Git history of the web project under the `web/` directory.
+
+### 2026-04-16
+- **Web App Refinements**: Added refinements to the prompt and story generation output to optimize token usage.
+
+### 2026-04-15
+- **Initial Web Prototype**: Created the initial functional web application.
