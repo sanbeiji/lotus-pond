@@ -77,6 +77,7 @@ a:hover {
 
 /* ─── Header ─────────────────────────────────────────────────── */
 header {
+  position: relative;
   background: linear-gradient(135deg, #c96f85 0%, #8b4a5e 100%);
   color: #fff;
   padding: 2.25rem 1rem;
@@ -97,12 +98,15 @@ header {
 }
 
 .header-about-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
     background-color: rgba(255, 255, 255, 0.15);
     color: #ebd7ce;
     font-size: 0.85rem;
     padding: 0.25rem 0.75rem;
     border-radius: 16px;
-    margin-left: 0.75rem;
+    margin: 0;
     text-decoration: none;
     font-weight: 600;
     cursor: pointer;
