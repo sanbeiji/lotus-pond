@@ -30,7 +30,10 @@ class MainActivity : ComponentActivity() {
           else -> isSystemInDarkTheme()
       }
 
-      MyApplicationTheme(darkTheme = isDarkTheme) { 
+      MyApplicationTheme(
+          darkTheme = isDarkTheme,
+          dynamicColor = userSettings.useDynamicColor
+      ) { 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { 
           MainNavigation() 
         } 

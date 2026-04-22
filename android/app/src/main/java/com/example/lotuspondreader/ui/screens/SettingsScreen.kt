@@ -93,37 +93,39 @@ fun SettingsScreen(
 
         HorizontalDivider()
 
-        var themeExpanded by remember { mutableStateOf(false) }
+        Text("App theme", style = MaterialTheme.typography.titleMedium)
+        
         val themeOptions = listOf("system", "light", "dark")
-        val themeLabels = mapOf("system" to "System default", "light" to "Light", "dark" to "Dark")
-
-        ExposedDropdownMenuBox(
-            expanded = themeExpanded,
-            onExpandedChange = { themeExpanded = it },
+        val themeLabels = listOf("System", "Light", "Dark")
+        
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            OutlinedTextField(
-                value = themeLabels[settings.themePreference] ?: "System default",
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("App theme") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = themeExpanded) },
-                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
-            )
-            ExposedDropdownMenu(
-                expanded = themeExpanded,
-                onDismissRequest = { themeExpanded = false }
-            ) {
-                themeOptions.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(themeLabels[option] ?: option) },
-                        onClick = {
-                            onSettingsChanged(settings.copy(themePreference = option))
-                            themeExpanded = false
-                        }
-                    )
+            themeOptions.forEachIndexed { index, option ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = themeOptions.size),
+                    onClick = { onSettingsChanged(settings.copy(themePreference = option)) },
+                    selected = settings.themePreference == option,
+                    icon = { SegmentedButtonDefaults.Icon(active = settings.themePreference == option) }
+                ) {
+                    Text(themeLabels[index])
                 }
             }
+        }
+        
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text("Dynamic Color", style = MaterialTheme.typography.titleMedium)
+                Text("Use wallpaper colors (Android 12+)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Switch(
+                checked = settings.useDynamicColor,
+                onCheckedChange = { onSettingsChanged(settings.copy(useDynamicColor = it)) }
+            )
         }
 
         HorizontalDivider()

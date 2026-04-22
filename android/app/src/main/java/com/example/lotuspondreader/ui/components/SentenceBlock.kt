@@ -43,7 +43,7 @@ fun SentenceBlock(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
@@ -130,7 +130,10 @@ fun SentenceBlock(
                 if (!pronText.isNullOrEmpty()) {
                     Text(
                         text = pronText,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
+                            fontSize = 16.sp
+                        ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     )
                 }

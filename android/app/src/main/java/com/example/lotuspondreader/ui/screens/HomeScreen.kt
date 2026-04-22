@@ -41,61 +41,32 @@ fun HomeScreen(
     var skillExpanded by remember { mutableStateOf(false) }
     var lengthExpanded by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            color = Color.Transparent,
-            shadowElevation = 4.dp
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+                // Add padding top to account for the fixed banner height + status bar
+                // We use WindowInsets.statusBars and add extra height for the banner
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(top = 140.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(LotusGradientStart, LotusGradientEnd)
-                        )
-                    )
-                    .padding(vertical = 32.dp, horizontal = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "🪷 Lotus Pond Reader",
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "蓮池故事機 (liánchí gùshìjī)\nGemini-powered Taiwanese Mandarin story generator",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.9f),
-                        textAlign = TextAlign.Center
-                    )
-                }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Plot / theme *", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                OutlinedTextField(
+                    value = plot,
+                    onValueChange = onPlotChange,
+                    placeholder = { Text("e.g. A college student looking for a job…") },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
             }
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Plot / theme *", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
-            OutlinedTextField(
-                value = plot,
-                onValueChange = onPlotChange,
-                placeholder = { Text("e.g. A college student looking for a job…") },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 3
-            )
-        }
 
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Level (TOCFL band) *", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
@@ -199,6 +170,46 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(top = 8.dp)
             )
+        }
+        } // Close the scrolling Column
+        
+        // Fixed Top Banner drawn over the scrolling content
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = Color.Transparent,
+            shadowElevation = 4.dp // Optional: adds shadow over scrolling content
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                LotusGradientStart, 
+                                LotusGradientEnd
+                            )
+                        )
+                    )
+                    // Pad top so content doesn't hit status bar
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .padding(vertical = 24.dp, horizontal = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "🪷 Lotus Pond Reader",
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "蓮池故事機 (liánchí gùshìjī)\nGemini-powered Taiwanese Mandarin story generator",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.9f),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
         }
     }
 }

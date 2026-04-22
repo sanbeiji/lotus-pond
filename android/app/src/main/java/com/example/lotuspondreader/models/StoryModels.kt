@@ -32,5 +32,6 @@ data class UserSettings(
     val studyMode: Boolean = false,
     val showTranslation: Boolean = false,
     val showPronunciation: Boolean = true,
-    val themePreference: String = "system" // "system", "light", "dark"
+    val themePreference: String = "system", // "system", "light", "dark"
+    val useDynamicColor: Boolean = true
 )

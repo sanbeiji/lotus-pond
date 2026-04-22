@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,6 +41,9 @@ fun MainNavigation(
     val skillLevel by viewModel.skillLevel.collectAsState()
     val length by viewModel.length.collectAsState()
     val requiredTerms by viewModel.requiredTerms.collectAsState()
+    
+    val configuration = LocalConfiguration.current
+    val isWideScreen = configuration.screenWidthDp > 600
 
     // Handle navigation when generation succeeds
     LaunchedEffect(uiState) {
@@ -52,10 +56,46 @@ fun MainNavigation(
         }
     }
 
-    Scaffold(
-        bottomBar = {
-            // Only show bottom bar on root screens
-            if (backStack.lastOrNull() == Home || backStack.lastOrNull() == History || backStack.lastOrNull() == Settings) {
+    Row(modifier = Modifier.fillMaxSize()) {
+        if (isWideScreen && (backStack.lastOrNull() == Home || backStack.lastOrNull() == History || backStack.lastOrNull() == Settings)) {
+            NavigationRail(modifier = Modifier.safeDrawingPadding()) {
+                items.forEachIndexed { index, item ->
+                    NavigationRailItem(
+                        icon = {
+                            when (index) {
+                                0 -> Icon(Icons.Filled.Create, contentDescription = item)
+                                1 -> Icon(Icons.AutoMirrored.Filled.List, contentDescription = item)
+                                2 -> Icon(Icons.Filled.Settings, contentDescription = item)
+                            }
+                        },
+                        label = { Text(item) },
+                        selected = selectedItem == index,
+                        onClick = {
+                            selectedItem = index
+                            when (index) {
+                                0 -> {
+                                    backStack.clear()
+                                    backStack.add(Home)
+                                }
+                                1 -> {
+                                    backStack.clear()
+                                    backStack.add(History)
+                                }
+                                2 -> {
+                                    backStack.clear()
+                                    backStack.add(Settings)
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        
+        Scaffold(
+            bottomBar = {
+                // Only show bottom bar on root screens
+                if (!isWideScreen && (backStack.lastOrNull() == Home || backStack.lastOrNull() == History || backStack.lastOrNull() == Settings)) {
                 NavigationBar {
                     items.forEachIndexed { index, item ->
                         NavigationBarItem(
@@ -100,7 +140,7 @@ fun MainNavigation(
                     viewModel.resetUiState()
                 }
             },
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
             entryProvider = entryProvider {
                 entry<Home> {
                     HomeScreen(
@@ -120,8 +160,7 @@ fun MainNavigation(
                                 length = length.toIntOrNull() ?: 300,
                                 requiredTerms = requiredTerms
                             )
-                        },
-                        modifier = Modifier.safeDrawingPadding()
+                        }
                     )
                 }
                 entry<History> {
@@ -240,7 +279,7 @@ fun MainNavigation(
                                 studyMode = userSettings.studyMode,
                                 requiredTerms = termsList,
                                 onPlayAudio = { /* TODO hook to TTS */ },
-                                modifier = Modifier.padding(innerReaderPadding).safeDrawingPadding()
+                                modifier = Modifier.padding(innerReaderPadding)
                             )
                         }
                     } else {
@@ -250,5 +289,6 @@ fun MainNavigation(
                 }
             }
         )
-    }
+      } // End Scaffold
+    } // End Row
 }
