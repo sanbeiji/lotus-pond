@@ -149,6 +149,19 @@ fun SettingsScreen(
                             Text("How to Use", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                             Text("1. Get a Gemini API key and enter it in Settings.\n2. Enter a plot or theme.\n3. Select your proficiency level.\n4. (Optional) Enter vocabulary to study.\n5. Generate and wait for content.\n6. Toggle options on the story screen.\n7. Practice reading aloud.")
                         }
+                        
+                        val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            TextButton(onClick = { uriHandler.openUri("https://en.wikipedia.org/wiki/Test_of_Chinese_as_a_Foreign_Language") }, modifier = Modifier.weight(1f)) {
+                                Text("What is TOCFL?", textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            }
+                            TextButton(onClick = { uriHandler.openUri("https://aistudio.google.com/app/apikey") }, modifier = Modifier.weight(1f)) {
+                                Text("Get API Key", textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            }
+                        }
                     }
                 },
                 confirmButton = {
