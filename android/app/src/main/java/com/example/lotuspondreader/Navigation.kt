@@ -67,8 +67,15 @@ fun MainNavigation(
             title = { Text("Quit App") },
             text = { Text("Do you really want to quit the app?") },
             confirmButton = {
-                val activity = LocalContext.current as? ComponentActivity
-                TextButton(onClick = { activity?.finish() }) {
+                val context = LocalContext.current
+                TextButton(onClick = { 
+                    var activityContext = context
+                    while (activityContext is android.content.ContextWrapper) {
+                        if (activityContext is ComponentActivity) break
+                        activityContext = activityContext.baseContext
+                    }
+                    (activityContext as? ComponentActivity)?.finish()
+                }) {
                     Text("Quit")
                 }
             },
