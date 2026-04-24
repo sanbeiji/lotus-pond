@@ -8,6 +8,8 @@ import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -53,6 +55,38 @@ fun MainNavigation(
             backStack.add(StoryReader)
             // We do NOT reset the UI state here immediately because the StoryReader will display it.
             // If we reset it, the story disappears from the screen!
+        }
+    }
+
+    val currentScreen = backStack.lastOrNull()
+    var showQuitDialog by remember { mutableStateOf(false) }
+
+    if (showQuitDialog) {
+        AlertDialog(
+            onDismissRequest = { showQuitDialog = false },
+            title = { Text("Quit App") },
+            text = { Text("Do you really want to quit the app?") },
+            confirmButton = {
+                val activity = LocalContext.current as? ComponentActivity
+                TextButton(onClick = { activity?.finish() }) {
+                    Text("Quit")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showQuitDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    BackHandler(enabled = currentScreen == Home || currentScreen == History || currentScreen == Settings) {
+        if (currentScreen == Home) {
+            showQuitDialog = true
+        } else {
+            selectedItem = 0
+            backStack.clear()
+            backStack.add(Home)
         }
     }
 
