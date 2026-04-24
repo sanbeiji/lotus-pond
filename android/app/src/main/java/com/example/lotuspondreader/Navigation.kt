@@ -18,6 +18,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import android.speech.tts.TextToSpeech
+import java.util.Locale
 import com.example.lotuspondreader.models.UserSettings
 import com.example.lotuspondreader.ui.components.StoryView
 import com.example.lotuspondreader.ui.screens.HistoryScreen
@@ -46,6 +48,21 @@ fun MainNavigation(
     
     val configuration = LocalConfiguration.current
     val isWideScreen = configuration.screenWidthDp > 600
+    val context = LocalContext.current
+    
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    DisposableEffect(context) {
+        val textToSpeech = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts?.language = Locale.TRADITIONAL_CHINESE
+            }
+        }
+        tts = textToSpeech
+        onDispose {
+            textToSpeech.stop()
+            textToSpeech.shutdown()
+        }
+    }
 
     // Handle navigation when generation succeeds
     LaunchedEffect(uiState) {
@@ -319,7 +336,9 @@ fun MainNavigation(
                                 showTranslation = userSettings.showTranslation,
                                 studyMode = userSettings.studyMode,
                                 requiredTerms = termsList,
-                                onPlayAudio = { /* TODO hook to TTS */ },
+                                onPlayAudio = { textToSpeak -> 
+                                    tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
+                                },
                                 modifier = Modifier.padding(innerReaderPadding)
                             )
                         }

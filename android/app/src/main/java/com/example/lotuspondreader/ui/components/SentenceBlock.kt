@@ -116,10 +116,9 @@ fun SentenceBlock(
                     onClick = { onPlayAudio(sentence.mandarin) },
                     modifier = Modifier.size(40.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Read aloud",
-                        tint = MaterialTheme.colorScheme.primary
+                    Text(
+                        text = "🔊",
+                        fontSize = 24.sp
                     )
                 }
             }
