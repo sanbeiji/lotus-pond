@@ -142,7 +142,10 @@ fun SettingsScreen(
                 onDismissRequest = { showAboutDialog = false },
                 title = { Text("About Lotus Pond Reader") },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(
+                        modifier = Modifier.verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         Text("Lotus Pond Reader is an interactive tool designed to help Mandarin learners master Traditional Chinese characters, with a specific focus on Taiwanese language patterns and cultural context.")
                         
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

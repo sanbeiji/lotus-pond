@@ -50,7 +50,7 @@ fun HomeScreen(
                 // Add padding top to account for the fixed banner height + status bar
                 // We use WindowInsets.statusBars and add extra height for the banner
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(top = 140.dp, bottom = 16.dp),
+                .padding(top = 160.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -191,7 +191,7 @@ fun HomeScreen(
                     )
                     // Pad top so content doesn't hit status bar
                     .windowInsetsPadding(WindowInsets.statusBars)
-                    .padding(vertical = 24.dp, horizontal = 16.dp),
+                    .padding(vertical = 16.dp, horizontal = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
