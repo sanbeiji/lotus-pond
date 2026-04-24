@@ -77,18 +77,23 @@ fun SettingsScreen(
         }
 
         Text("Pronunciation style", style = MaterialTheme.typography.titleMedium)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = settings.pronunciation == "pinyin",
-                onClick = { onSettingsChanged(settings.copy(pronunciation = "pinyin")) }
-            )
-            Text("Pinyin", modifier = Modifier.padding(end = 16.dp))
-            
-            RadioButton(
-                selected = settings.pronunciation == "zhuyin",
-                onClick = { onSettingsChanged(settings.copy(pronunciation = "zhuyin")) }
-            )
-            Text("Zhuyin")
+        
+        val pronOptions = listOf("pinyin", "zhuyin")
+        val pronLabels = listOf("Pinyin", "Zhuyin")
+        
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            pronOptions.forEachIndexed { index, option ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = pronOptions.size),
+                    onClick = { onSettingsChanged(settings.copy(pronunciation = option)) },
+                    selected = settings.pronunciation == option,
+                    icon = { SegmentedButtonDefaults.Icon(active = settings.pronunciation == option) }
+                ) {
+                    Text(pronLabels[index])
+                }
+            }
         }
 
         HorizontalDivider()
