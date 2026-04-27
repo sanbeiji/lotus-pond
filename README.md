@@ -14,7 +14,16 @@ The name of this app is inspired by **Lotus Pond (蓮池潭)**, an artificial la
 
 ## Changelog
 
-### Unreleased
+### 2026-04-27
+- **Android App Modernization**: 
+  - Implemented Material 3 Expressive UI with full edge-to-edge layouts.
+  - Added support for Android 12+ Dynamic Color with brand color fallbacks.
+  - Implemented responsive navigation (`NavigationRail` for tablets/foldables, `NavigationBar` for phones).
+  - Segregated typography using `Iansui` font strictly for Mandarin/Pinyin content and Roboto for UI elements.
+  - Upgraded Settings screen with modern `SegmentedButton` controls and external help links.
+  - Implemented Text-To-Speech (TTS) for reading Mandarin sentences aloud.
+  - Refined gesture navigation to intercept back presses and gracefully exit or return Home.
+  - Converted the web app favicon into a unified Android Adaptive Icon.
 - **Android App Initial Prototype**: 
   - Created native Android application using Jetpack Compose and Material 3.
   - Migrated core story generation logic and Gemini API integration (Ktor).
