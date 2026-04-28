@@ -458,7 +458,21 @@ select:focus {
     gap: 0.75rem;
     min-width: 260px;
     margin-top: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+.view-options-stack.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
 .view-options-stack .toggle-group {

@@ -216,14 +216,14 @@ function setupEventListeners() {
     if (elements.toggleStorySettingsBtn && elements.storySettingsPanel) {
         elements.toggleStorySettingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            elements.storySettingsPanel.hidden = !elements.storySettingsPanel.hidden;
+            elements.storySettingsPanel.classList.toggle('show');
         });
 
         document.addEventListener('click', (e) => {
-            if (!elements.storySettingsPanel.hidden && 
+            if (elements.storySettingsPanel.classList.contains('show') && 
                 !elements.storySettingsPanel.contains(e.target) && 
                 e.target !== elements.toggleStorySettingsBtn) {
-                elements.storySettingsPanel.hidden = true;
+                elements.storySettingsPanel.classList.remove('show');
             }
         });
 
