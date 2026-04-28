@@ -15,14 +15,22 @@ The name of this app is inspired by **Lotus Pond (蓮池潭)**, an artificial la
 ## Changelog
 
 ### 2026-04-27
+- **Web App Enhancements**:
+  - Added a font size preference (Normal, Larger, Largest) for improved readability.
+  - Implemented a floating, toggleable Story Settings panel (`⚙️📖`) with smooth animations to declutter the UI.
+  - Synced Text-To-Speech (TTS) speaker icon visibility with the pronunciation toggle.
+  - Renamed the top-level settings to "Global settings" to differentiate from story-specific options.
 - **Android App Modernization**: 
-  - Implemented Material 3 Expressive UI with full edge-to-edge layouts.
+  - Implemented Material 3 Expressive UI with full edge-to-edge layouts, including dynamic light/dark status bar text contrast.
   - Added support for Android 12+ Dynamic Color with brand color fallbacks.
-  - Implemented responsive navigation (`NavigationRail` for tablets/foldables, `NavigationBar` for phones).
+  - Implemented responsive navigation (`NavigationRail` for tablets/foldables, `NavigationBar` for phones) with primary color theming.
+  - Added an interactive API Key prompt dialog that appears on startup if a key is missing.
+  - Added a global font size preference (Small, Medium, Large) dynamically scaling Mandarin, Pinyin/Zhuyin, and English text.
   - Segregated typography using `Iansui` font strictly for Mandarin/Pinyin content and Roboto for UI elements.
   - Upgraded Settings screen with modern `SegmentedButton` controls and external help links.
-  - Implemented Text-To-Speech (TTS) for reading Mandarin sentences aloud.
+  - Implemented Text-To-Speech (TTS) for reading Mandarin sentences aloud, matching the web app's `🔊` icon.
   - Refined gesture navigation to intercept back presses and gracefully exit or return Home.
+  - Resolved edge-to-edge scrolling bugs in the Story view and improved layout spacing.
   - Converted the web app favicon into a unified Android Adaptive Icon.
 - **Android App Initial Prototype**: 
   - Created native Android application using Jetpack Compose and Material 3.
