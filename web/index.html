@@ -32,7 +32,7 @@
     <!-- Settings section -->
     <section class="card settings-card" aria-labelledby="settings-heading">
       <div class="settings-header">
-        <h2 id="settings-heading">Settings</h2>
+        <h2 id="settings-heading">Global settings</h2>
         <button id="toggle-settings" class="btn-icon" aria-label="Toggle settings">⚙️</button>
       </div>
       <div id="settings-content" hidden>
@@ -171,28 +171,31 @@
           <div class="card story-card">
             <div class="story-header-row">
               <h2 id="story-heading" class="story-heading">Generated story</h2>
-              <div class="view-options-stack">
-                <div class="toggle-switch">
-                  <input type="checkbox" id="show-translation">
-                  <label for="show-translation">Show English translation</label>
-                </div>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="study-mode">
-                  <label for="study-mode">Highlight required vocabulary</label>
-                </div>
-                <div class="toggle-switch">
-                  <input type="checkbox" id="show-pronunciation" checked>
-                  <label for="show-pronunciation">Show pronunciation</label>
-                </div>
-                <div class="font-size-controls">
-                  <label>Font size:</label>
-                  <div class="toggle-group">
-                    <input type="radio" id="font-normal" name="font-size" value="normal" checked>
-                    <label for="font-normal">Normal</label>
-                    <input type="radio" id="font-larger" name="font-size" value="larger">
-                    <label for="font-larger">Larger</label>
-                    <input type="radio" id="font-largest" name="font-size" value="largest">
-                    <label for="font-largest">Largest</label>
+              <div class="story-settings-container">
+                <button id="toggle-story-settings" class="btn-icon" aria-label="Toggle story settings" title="Display Settings">⚙️📖</button>
+                <div id="story-settings-panel" class="view-options-stack card" hidden>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="show-translation">
+                    <label for="show-translation">Show English translation</label>
+                  </div>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="study-mode">
+                    <label for="study-mode">Highlight required vocabulary</label>
+                  </div>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="show-pronunciation" checked>
+                    <label for="show-pronunciation">Show pronunciation</label>
+                  </div>
+                  <div class="font-size-controls">
+                    <label>Font size:</label>
+                    <div class="toggle-group">
+                      <input type="radio" id="font-normal" name="font-size" value="normal" checked>
+                      <label for="font-normal">Normal</label>
+                      <input type="radio" id="font-larger" name="font-size" value="larger">
+                      <label for="font-larger">Larger</label>
+                      <input type="radio" id="font-largest" name="font-size" value="largest">
+                      <label for="font-largest">Largest</label>
+                    </div>
                   </div>
                 </div>
               </div>

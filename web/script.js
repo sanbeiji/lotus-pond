@@ -66,6 +66,8 @@ const elements = {
     resultSection: document.getElementById('result-section'),
     storyContent: document.getElementById('story-content'),
     storyHeading: document.getElementById('story-heading'),
+    toggleStorySettingsBtn: document.getElementById('toggle-story-settings'),
+    storySettingsPanel: document.getElementById('story-settings-panel'),
     showPronunciationToggle: document.getElementById('show-pronunciation'),
     showTranslationToggle: document.getElementById('show-translation'),
     fontSizeRadios: document.querySelectorAll('input[name="font-size"]'),
@@ -210,6 +212,26 @@ function setupEventListeners() {
     elements.toggleSettingsBtn.addEventListener('click', () => {
         elements.settingsContent.hidden = !elements.settingsContent.hidden;
     });
+
+    if (elements.toggleStorySettingsBtn && elements.storySettingsPanel) {
+        elements.toggleStorySettingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            elements.storySettingsPanel.hidden = !elements.storySettingsPanel.hidden;
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!elements.storySettingsPanel.hidden && 
+                !elements.storySettingsPanel.contains(e.target) && 
+                e.target !== elements.toggleStorySettingsBtn) {
+                elements.storySettingsPanel.hidden = true;
+            }
+        });
+
+        // Prevent clicks inside the panel from closing it
+        elements.storySettingsPanel.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
     
     elements.apiKeyInput.addEventListener('change', (e) => {
         state.apiKey = e.target.value.trim();
