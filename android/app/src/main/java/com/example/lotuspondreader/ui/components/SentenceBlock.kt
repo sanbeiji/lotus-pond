@@ -110,16 +110,18 @@ fun SentenceBlock(
                     modifier = Modifier.weight(1f)
                 )
                 
-                Spacer(modifier = Modifier.width(8.dp))
-                
-                IconButton(
-                    onClick = { onPlayAudio(sentence.mandarin) },
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Text(
-                        text = "🔊",
-                        fontSize = 24.sp
-                    )
+                if (showPronunciation) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    IconButton(
+                        onClick = { onPlayAudio(sentence.mandarin) },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Text(
+                            text = "🔊",
+                            fontSize = 24.sp
+                        )
+                    }
                 }
             }
             
