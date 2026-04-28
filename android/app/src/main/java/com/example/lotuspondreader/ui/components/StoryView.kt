@@ -27,11 +27,12 @@ fun StoryView(
     fontSizePreference: String,
     requiredTerms: List<String>,
     onPlayAudio: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(16.dp)
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(story.sentences) { sentence ->

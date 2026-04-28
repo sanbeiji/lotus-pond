@@ -266,7 +266,6 @@ fun MainNavigation(
                     viewModel.resetUiState()
                 }
             },
-            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
             entryProvider = entryProvider {
                 entry<Home> {
                     HomeScreen(
@@ -286,7 +285,8 @@ fun MainNavigation(
                                 length = length.toIntOrNull() ?: 300,
                                 requiredTerms = requiredTerms
                             )
-                        }
+                        },
+                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
                     )
                 }
                 entry<History> {
@@ -297,14 +297,14 @@ fun MainNavigation(
                             viewModel.loadStoryFromHistory(storyEntity.storyData)
                         },
                         onClearHistory = { viewModel.clearHistory() },
-                        modifier = Modifier.safeDrawingPadding()
+                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()).windowInsetsPadding(WindowInsets.statusBars)
                     )
                 }
                 entry<Settings> {
                     SettingsScreen(
                         settings = userSettings,
                         onSettingsChanged = { viewModel.updateSettings(it) },
-                        modifier = Modifier.safeDrawingPadding()
+                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()).windowInsetsPadding(WindowInsets.statusBars)
                     )
                 }
                 entry<StoryReader> {
@@ -428,7 +428,12 @@ fun MainNavigation(
                                 onPlayAudio = { textToSpeak -> 
                                     tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
                                 },
-                                modifier = Modifier.padding(innerReaderPadding)
+                                contentPadding = PaddingValues(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    top = innerReaderPadding.calculateTopPadding() + 16.dp,
+                                    bottom = innerReaderPadding.calculateBottomPadding() + 16.dp
+                                )
                             )
                         }
                     } else {
