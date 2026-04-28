@@ -470,6 +470,21 @@ select:focus {
     white-space: nowrap;
 }
 
+.view-options-stack .font-size-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    width: 100%;
+}
+
+.view-options-stack .font-size-controls label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
 .story-card .story-heading {
   font-size: 2.4rem !important;
   font-weight: 700;
@@ -537,6 +552,32 @@ input.invalid {
 
 .english-translation[hidden] {
     display: none;
+}
+
+.story-content.font-size-larger .mandarin {
+    font-size: 1.75rem;
+    line-height: 1.7;
+}
+
+.story-content.font-size-larger .pronunciation {
+    font-size: 1.05rem;
+}
+
+.story-content.font-size-larger .english-translation {
+    font-size: 1rem;
+}
+
+.story-content.font-size-largest .mandarin {
+    font-size: 2rem;
+    line-height: 1.8;
+}
+
+.story-content.font-size-largest .pronunciation {
+    font-size: 1.2rem;
+}
+
+.story-content.font-size-largest .english-translation {
+    font-size: 1.15rem;
 }
 
 .vocab-highlight {
