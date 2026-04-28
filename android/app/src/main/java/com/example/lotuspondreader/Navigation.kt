@@ -291,6 +291,26 @@ fun MainNavigation(
                                             onCheckedChange = { viewModel.updateSettings(userSettings.copy(studyMode = it)) }
                                         )
                                     }
+                                    
+                                    Spacer(Modifier.height(8.dp))
+                                    Text("Font size", style = MaterialTheme.typography.titleMedium)
+                                    val fontOptions = listOf("normal", "larger", "largest")
+                                    val fontLabels = listOf("Normal", "Larger", "Largest")
+                                    SingleChoiceSegmentedButtonRow(
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        fontOptions.forEachIndexed { index, option ->
+                                            SegmentedButton(
+                                                shape = SegmentedButtonDefaults.itemShape(index = index, count = fontOptions.size),
+                                                onClick = { viewModel.updateSettings(userSettings.copy(fontSizePreference = option)) },
+                                                selected = userSettings.fontSizePreference == option,
+                                                icon = { SegmentedButtonDefaults.Icon(active = userSettings.fontSizePreference == option) }
+                                            ) {
+                                                Text(fontLabels[index])
+                                            }
+                                        }
+                                    }
+
                                     Spacer(Modifier.height(16.dp))
                                 }
                             }
@@ -335,6 +355,7 @@ fun MainNavigation(
                                 pronunciationType = userSettings.pronunciation,
                                 showTranslation = userSettings.showTranslation,
                                 studyMode = userSettings.studyMode,
+                                fontSizePreference = userSettings.fontSizePreference,
                                 requiredTerms = termsList,
                                 onPlayAudio = { textToSpeak -> 
                                     tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)

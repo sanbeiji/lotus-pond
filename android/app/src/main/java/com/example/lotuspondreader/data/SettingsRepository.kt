@@ -26,6 +26,7 @@ class SettingsRepository(private val context: Context) {
         val SHOW_PRONUNCIATION = booleanPreferencesKey("show_pronunciation")
         val THEME_PREFERENCE = stringPreferencesKey("theme_preference")
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+        val FONT_SIZE_PREFERENCE = stringPreferencesKey("font_size_preference")
     }
 
     val userSettingsFlow: Flow<UserSettings> = dataStore.data
@@ -38,7 +39,8 @@ class SettingsRepository(private val context: Context) {
                 showTranslation = preferences[SHOW_TRANSLATION] ?: false,
                 showPronunciation = preferences[SHOW_PRONUNCIATION] ?: true,
                 themePreference = preferences[THEME_PREFERENCE] ?: "system",
-                useDynamicColor = preferences[DYNAMIC_COLOR] ?: true
+                useDynamicColor = preferences[DYNAMIC_COLOR] ?: true,
+                fontSizePreference = preferences[FONT_SIZE_PREFERENCE] ?: "normal"
             )
         }
 
@@ -52,6 +54,7 @@ class SettingsRepository(private val context: Context) {
             preferences[SHOW_PRONUNCIATION] = settings.showPronunciation
             preferences[THEME_PREFERENCE] = settings.themePreference
             preferences[DYNAMIC_COLOR] = settings.useDynamicColor
+            preferences[FONT_SIZE_PREFERENCE] = settings.fontSizePreference
         }
     }
 }

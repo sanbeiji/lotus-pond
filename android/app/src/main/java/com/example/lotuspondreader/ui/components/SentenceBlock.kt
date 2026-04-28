@@ -37,10 +37,35 @@ fun SentenceBlock(
     pronunciationType: String, // "pinyin" or "zhuyin"
     showTranslation: Boolean,
     studyMode: Boolean,
+    fontSizePreference: String,
     requiredTerms: List<String>,
     onPlayAudio: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val mandarinFontSize = when (fontSizePreference) {
+        "larger" -> 28.sp
+        "largest" -> 32.sp
+        else -> 24.sp
+    }
+    
+    val mandarinLineHeight = when (fontSizePreference) {
+        "larger" -> 42.sp
+        "largest" -> 48.sp
+        else -> 36.sp
+    }
+    
+    val pinyinFontSize = when (fontSizePreference) {
+        "larger" -> 18.sp
+        "largest" -> 20.sp
+        else -> 16.sp
+    }
+    
+    val englishStyle = when (fontSizePreference) {
+        "larger" -> MaterialTheme.typography.titleMedium
+        "largest" -> MaterialTheme.typography.titleLarge
+        else -> MaterialTheme.typography.bodyLarge
+    }
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -104,8 +129,8 @@ fun SentenceBlock(
                     text = annotatedString,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
-                        fontSize = 24.sp,
-                        lineHeight = 36.sp
+                        fontSize = mandarinFontSize,
+                        lineHeight = mandarinLineHeight
                     ),
                     modifier = Modifier.weight(1f)
                 )
@@ -133,7 +158,7 @@ fun SentenceBlock(
                         text = pronText,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
-                            fontSize = 16.sp
+                            fontSize = pinyinFontSize
                         ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     )
@@ -144,7 +169,7 @@ fun SentenceBlock(
             if (showTranslation) {
                 Text(
                     text = sentence.english,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = englishStyle,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

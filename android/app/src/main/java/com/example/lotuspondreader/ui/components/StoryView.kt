@@ -24,6 +24,7 @@ fun StoryView(
     pronunciationType: String,
     showTranslation: Boolean,
     studyMode: Boolean,
+    fontSizePreference: String,
     requiredTerms: List<String>,
     onPlayAudio: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -40,6 +41,7 @@ fun StoryView(
                 pronunciationType = pronunciationType,
                 showTranslation = showTranslation,
                 studyMode = studyMode,
+                fontSizePreference = fontSizePreference,
                 requiredTerms = requiredTerms,
                 onPlayAudio = onPlayAudio
             )
@@ -72,6 +74,7 @@ fun StoryViewPreview() {
             pronunciationType = "pinyin",
             showTranslation = true,
             studyMode = true,
+            fontSizePreference = "normal",
             requiredTerms = listOf("夜市", "朋友"),
             onPlayAudio = {}
         )

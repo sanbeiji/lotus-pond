@@ -33,5 +33,6 @@ data class UserSettings(
     val showTranslation: Boolean = false,
     val showPronunciation: Boolean = true,
     val themePreference: String = "system", // "system", "light", "dark"
-    val useDynamicColor: Boolean = true
+    val useDynamicColor: Boolean = true,
+    val fontSizePreference: String = "normal" // "normal", "larger", "largest"
 )
