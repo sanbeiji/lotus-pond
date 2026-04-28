@@ -10,9 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
@@ -99,6 +104,48 @@ fun MainNavigation(
             dismissButton = {
                 TextButton(onClick = { showQuitDialog = false }) {
                     Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (userSettings.apiKey.isBlank()) {
+        var tempApiKey by remember { mutableStateOf("") }
+        val uriHandler = LocalUriHandler.current
+        AlertDialog(
+            onDismissRequest = { /* Force user to enter key or quit */ },
+            title = { Text("API Key Required") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Lotus Pond Reader requires that you supply your own Gemini API Key.")
+                    Text(
+                        text = "Get your Gemini API key here.",
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable {
+                            uriHandler.openUri("https://aistudio.google.com/app/apikey")
+                        }
+                    )
+                    OutlinedTextField(
+                        value = tempApiKey,
+                        onValueChange = { tempApiKey = it },
+                        label = { Text("Gemini API key") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (tempApiKey.isNotBlank()) {
+                            viewModel.updateSettings(userSettings.copy(apiKey = tempApiKey))
+                        }
+                    },
+                    enabled = tempApiKey.isNotBlank()
+                ) {
+                    Text("Save")
                 }
             }
         )
