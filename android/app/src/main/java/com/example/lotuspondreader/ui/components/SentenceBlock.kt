@@ -43,27 +43,27 @@ fun SentenceBlock(
     modifier: Modifier = Modifier
 ) {
     val mandarinFontSize = when (fontSizePreference) {
-        "larger" -> 28.sp
-        "largest" -> 32.sp
-        else -> 24.sp
+        "medium" -> 28.sp
+        "large" -> 36.sp
+        else -> 20.sp
     }
     
     val mandarinLineHeight = when (fontSizePreference) {
-        "larger" -> 42.sp
-        "largest" -> 48.sp
-        else -> 36.sp
+        "medium" -> 42.sp
+        "large" -> 54.sp
+        else -> 30.sp
     }
     
     val pinyinFontSize = when (fontSizePreference) {
-        "larger" -> 18.sp
-        "largest" -> 20.sp
-        else -> 16.sp
+        "medium" -> 18.sp
+        "large" -> 22.sp
+        else -> 14.sp
     }
     
     val englishStyle = when (fontSizePreference) {
-        "larger" -> MaterialTheme.typography.titleMedium
-        "largest" -> MaterialTheme.typography.titleLarge
-        else -> MaterialTheme.typography.bodyLarge
+        "medium" -> MaterialTheme.typography.titleMedium
+        "large" -> MaterialTheme.typography.headlineSmall
+        else -> MaterialTheme.typography.bodyMedium
     }
 
     Card(

@@ -362,8 +362,8 @@ fun MainNavigation(
                                     
                                     Spacer(Modifier.height(8.dp))
                                     Text("Font size", style = MaterialTheme.typography.titleMedium)
-                                    val fontOptions = listOf("normal", "larger", "largest")
-                                    val fontLabels = listOf("Normal", "Larger", "Largest")
+                                    val fontOptions = listOf("small", "medium", "large")
+                                    val fontLabels = listOf("Small", "Medium", "Large")
                                     SingleChoiceSegmentedButtonRow(
                                         modifier = Modifier.fillMaxWidth()
                                     ) {

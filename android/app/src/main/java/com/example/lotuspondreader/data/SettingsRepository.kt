@@ -40,7 +40,7 @@ class SettingsRepository(private val context: Context) {
                 showPronunciation = preferences[SHOW_PRONUNCIATION] ?: true,
                 themePreference = preferences[THEME_PREFERENCE] ?: "system",
                 useDynamicColor = preferences[DYNAMIC_COLOR] ?: true,
-                fontSizePreference = preferences[FONT_SIZE_PREFERENCE] ?: "normal"
+                fontSizePreference = preferences[FONT_SIZE_PREFERENCE] ?: "small"
             )
         }
 

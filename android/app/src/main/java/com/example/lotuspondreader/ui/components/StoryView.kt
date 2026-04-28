@@ -74,7 +74,7 @@ fun StoryViewPreview() {
             pronunciationType = "pinyin",
             showTranslation = true,
             studyMode = true,
-            fontSizePreference = "normal",
+            fontSizePreference = "small",
             requiredTerms = listOf("夜市", "朋友"),
             onPlayAudio = {}
         )
