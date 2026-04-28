@@ -158,9 +158,9 @@ fun HomeScreen(
             if (uiState is StoryUiState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Generating...")
+                Text("✨ Generating...")
             } else {
-                Text("Generate story")
+                Text("✨ Generate story")
             }
         }
         

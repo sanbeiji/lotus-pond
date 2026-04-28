@@ -163,7 +163,11 @@ fun MainNavigation(
 
     Row(modifier = Modifier.fillMaxSize()) {
         if (isWideScreen && (backStack.lastOrNull() == Home || backStack.lastOrNull() == History || backStack.lastOrNull() == Settings)) {
-            NavigationRail(modifier = Modifier.safeDrawingPadding()) {
+            NavigationRail(
+                modifier = Modifier.safeDrawingPadding(),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
                 items.forEachIndexed { index, item ->
                     NavigationRailItem(
                         icon = {
@@ -175,6 +179,13 @@ fun MainNavigation(
                         },
                         label = { Text(item) },
                         selected = selectedItem == index,
+                        colors = NavigationRailItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                            unselectedTextColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                            indicatorColor = MaterialTheme.colorScheme.onPrimary
+                        ),
                         onClick = {
                             selectedItem = index
                             when (index) {
@@ -201,7 +212,10 @@ fun MainNavigation(
             bottomBar = {
                 // Only show bottom bar on root screens
                 if (!isWideScreen && (backStack.lastOrNull() == Home || backStack.lastOrNull() == History || backStack.lastOrNull() == Settings)) {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
                     items.forEachIndexed { index, item ->
                         NavigationBarItem(
                             icon = {
@@ -213,6 +227,13 @@ fun MainNavigation(
                             },
                             label = { Text(item) },
                             selected = selectedItem == index,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                                selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                unselectedTextColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                                indicatorColor = MaterialTheme.colorScheme.onPrimary
+                            ),
                             onClick = {
                                 selectedItem = index
                                 when (index) {
