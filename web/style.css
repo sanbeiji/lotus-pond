@@ -172,10 +172,38 @@ main {
     font-size: 1.5rem;
     cursor: pointer;
     transition: transform 0.2s;
+    position: relative;
 }
 
 .btn-icon:hover {
     transform: rotate(45deg);
+}
+
+.btn-icon[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--text);
+    color: var(--card-bg);
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s, visibility 0.15s;
+    pointer-events: none;
+    z-index: 100;
+    margin-bottom: 0.5rem;
+    font-family: system-ui, -apple-system, sans-serif;
+    box-shadow: var(--shadow);
+}
+
+.btn-icon[data-tooltip]:hover::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* ─── History sidebar ───────────────────────────────────────── */

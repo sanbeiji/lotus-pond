@@ -210,23 +210,26 @@ function setupEventListeners() {
     elements.storyForm.addEventListener('submit', handleGenerate);
     
     elements.toggleSettingsBtn.addEventListener('click', () => {
-        elements.settingsContent.hidden = !elements.settingsContent.hidden;
+        const isHidden = !elements.settingsContent.hidden;
+        elements.settingsContent.hidden = isHidden;
+        elements.toggleSettingsBtn.dataset.tooltip = isHidden ? "Edit global settings" : "Close global settings";
     });
 
     if (elements.toggleStorySettingsBtn && elements.storySettingsPanel) {
         elements.toggleStorySettingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            elements.storySettingsPanel.classList.toggle('show');
+            const isShowing = elements.storySettingsPanel.classList.toggle('show');
+            elements.toggleStorySettingsBtn.dataset.tooltip = isShowing ? "Close reading settings" : "Edit reading settings";
         });
 
         document.addEventListener('click', (e) => {
-            if (elements.storySettingsPanel.classList.contains('show') && 
-                !elements.storySettingsPanel.contains(e.target) && 
+            if (elements.storySettingsPanel.classList.contains('show') &&
+                !elements.storySettingsPanel.contains(e.target) &&
                 e.target !== elements.toggleStorySettingsBtn) {
                 elements.storySettingsPanel.classList.remove('show');
+                elements.toggleStorySettingsBtn.dataset.tooltip = "Edit reading settings";
             }
         });
-
         // Prevent clicks inside the panel from closing it
         elements.storySettingsPanel.addEventListener('click', (e) => {
             e.stopPropagation();
