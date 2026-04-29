@@ -171,11 +171,18 @@ main {
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    transition: transform 0.2s;
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.btn-icon:hover {
+.btn-icon span {
+    display: inline-block;
+    transition: transform 0.2s;
+}
+
+.btn-icon:hover span {
     transform: rotate(45deg);
 }
 
