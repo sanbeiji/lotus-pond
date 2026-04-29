@@ -30,6 +30,7 @@ import com.example.lotuspondreader.ui.components.StoryView
 import com.example.lotuspondreader.ui.screens.HistoryScreen
 import com.example.lotuspondreader.ui.screens.HomeScreen
 import com.example.lotuspondreader.ui.screens.SettingsScreen
+import com.example.lotuspondreader.ui.screens.SplashScreen
 import com.example.lotuspondreader.viewmodel.StoryUiState
 import com.example.lotuspondreader.viewmodel.StoryViewModel
 import com.example.lotuspondreader.viewmodel.StoryViewModelFactory
@@ -39,7 +40,7 @@ import com.example.lotuspondreader.viewmodel.StoryViewModelFactory
 fun MainNavigation(
     viewModel: StoryViewModel = viewModel(factory = StoryViewModelFactory(LocalContext.current))
 ) {
-    val backStack = rememberNavBackStack(Home)
+    val backStack = rememberNavBackStack(Splash)
     var selectedItem by remember { mutableIntStateOf(0) }
     val items = listOf("Generate", "History", "Settings")
     
@@ -267,6 +268,14 @@ fun MainNavigation(
                 }
             },
             entryProvider = entryProvider {
+                entry<Splash> {
+                    SplashScreen(
+                        onSplashFinished = {
+                            backStack.clear()
+                            backStack.add(Home)
+                        }
+                    )
+                }
                 entry<Home> {
                     HomeScreen(
                         plot = plot,

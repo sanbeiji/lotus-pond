@@ -47,10 +47,8 @@ fun HomeScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                // Add padding top to account for the fixed banner height + status bar
-                // We use WindowInsets.statusBars and add extra height for the banner
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(top = 160.dp, bottom = 16.dp),
+                .padding(top = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -172,44 +170,5 @@ fun HomeScreen(
             )
         }
         } // Close the scrolling Column
-        
-        // Fixed Top Banner drawn over the scrolling content
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = Color.Transparent,
-            shadowElevation = 4.dp // Optional: adds shadow over scrolling content
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                LotusGradientStart, 
-                                LotusGradientEnd
-                            )
-                        )
-                    )
-                    // Pad top so content doesn't hit status bar
-                    .windowInsetsPadding(WindowInsets.statusBars)
-                    .padding(vertical = 16.dp, horizontal = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "🪷 Lotus Pond Reader",
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "蓮池故事機 (liánchí gùshìjī)\nGemini-powered Taiwanese Mandarin story generator",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.9f),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
     }
 }
