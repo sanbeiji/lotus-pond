@@ -57,8 +57,7 @@ fun SplashScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "蓮池故事機 (liánchí gùshìjī)
-Gemini-powered Taiwanese Mandarin story generator",
+                    text = "蓮池故事機 (liánchí gùshìjī)\nGemini-powered Taiwanese Mandarin story generator",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White.copy(alpha = 0.9f),
                     textAlign = TextAlign.Center
