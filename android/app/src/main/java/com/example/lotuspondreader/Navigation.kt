@@ -164,11 +164,21 @@ fun MainNavigation(
         }
     }
 
-    Row(modifier = Modifier.fillMaxSize()) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                    0.0f to MaterialTheme.colorScheme.primary,
+                    0.2f to androidx.compose.ui.graphics.Color.Transparent,
+                    1.0f to androidx.compose.ui.graphics.Color.Transparent
+                )
+            )
+    ) {
         if (isWideScreen && (backStack.lastOrNull() == Home || backStack.lastOrNull() == History || backStack.lastOrNull() == Settings)) {
             NavigationRail(
                 modifier = Modifier.safeDrawingPadding(),
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = androidx.compose.ui.graphics.Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 items.forEachIndexed { index, item ->
@@ -212,15 +222,7 @@ fun MainNavigation(
         }
         
         Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                        0.0f to MaterialTheme.colorScheme.primary,
-                        0.2f to androidx.compose.ui.graphics.Color.Transparent,
-                        1.0f to androidx.compose.ui.graphics.Color.Transparent
-                    )
-                ),
+            modifier = Modifier.fillMaxSize(),
             containerColor = androidx.compose.ui.graphics.Color.Transparent,
             topBar = {
                 val currentScreen = backStack.lastOrNull()
