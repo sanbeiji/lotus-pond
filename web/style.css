@@ -200,7 +200,6 @@ main {
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.15s, visibility 0.15s;
     pointer-events: none;
     z-index: 100;
     margin-bottom: 0.5rem;
@@ -208,9 +207,15 @@ main {
     box-shadow: var(--shadow);
 }
 
+@keyframes tooltipFade {
+    0% { opacity: 0; visibility: hidden; }
+    6% { opacity: 1; visibility: visible; }
+    85% { opacity: 1; visibility: visible; }
+    100% { opacity: 0; visibility: hidden; }
+}
+
 .btn-icon[data-tooltip]:hover::after {
-    opacity: 1;
-    visibility: visible;
+    animation: tooltipFade 2.5s forwards;
 }
 
 /* ─── History sidebar ───────────────────────────────────────── */
