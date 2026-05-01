@@ -181,6 +181,7 @@ fun MainNavigation(
                 containerColor = androidx.compose.ui.graphics.Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
+                Spacer(Modifier.weight(1f))
                 items.forEachIndexed { index, item ->
                     NavigationRailItem(
                         icon = {
@@ -218,6 +219,7 @@ fun MainNavigation(
                         }
                     )
                 }
+                Spacer(Modifier.weight(1f))
             }
         }
         
