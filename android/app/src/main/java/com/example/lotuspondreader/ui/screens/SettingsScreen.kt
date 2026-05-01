@@ -27,8 +27,6 @@ fun SettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Settings", style = MaterialTheme.typography.headlineMedium)
-
         OutlinedTextField(
             value = settings.apiKey,
             onValueChange = { onSettingsChanged(settings.copy(apiKey = it)) },

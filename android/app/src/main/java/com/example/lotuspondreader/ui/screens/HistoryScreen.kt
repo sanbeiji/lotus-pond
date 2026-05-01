@@ -54,10 +54,9 @@ fun HistoryScreen(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("History", style = MaterialTheme.typography.headlineMedium)
             if (history.isNotEmpty()) {
                 TextButton(onClick = { showClearDialog = true }) {
                     Icon(Icons.Filled.Delete, contentDescription = "Clear History", modifier = Modifier.size(18.dp))
