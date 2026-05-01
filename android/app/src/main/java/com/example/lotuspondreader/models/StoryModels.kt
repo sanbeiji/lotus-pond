@@ -29,8 +29,8 @@ data class UserSettings(
     val apiKey: String = "",
     val selectedModel: String = "gemini-2.5-flash-lite",
     val pronunciation: String = "pinyin", // "pinyin" or "zhuyin"
-    val studyMode: Boolean = false,
-    val showTranslation: Boolean = false,
+    val studyMode: Boolean = true,
+    val showTranslation: Boolean = true,
     val showPronunciation: Boolean = true,
     val themePreference: String = "system", // "system", "light", "dark"
     val useDynamicColor: Boolean = false,

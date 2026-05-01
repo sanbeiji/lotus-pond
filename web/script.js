@@ -27,8 +27,8 @@ const DEFAULT_SETTINGS = {
     apiKey: '',
     selectedModel: 'gemini-2.5-flash-lite',
     pronunciation: 'pinyin',
-    studyMode: false,
-    showTranslation: false,
+    studyMode: true,
+    showTranslation: true,
     history: [],
     themePreference: 'system',
     fontSizePreference: 'small'
