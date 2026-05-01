@@ -240,8 +240,7 @@ fun MainNavigation(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxHeight()
+                            horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
                                 text = "Lotus Pond Reader",
