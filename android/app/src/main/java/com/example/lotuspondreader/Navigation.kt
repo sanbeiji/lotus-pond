@@ -44,7 +44,7 @@ fun MainNavigation(
 ) {
     val backStack = rememberNavBackStack(Splash)
     var selectedItem by remember { mutableIntStateOf(0) }
-    val items = listOf("Generate", "History", "Settings")
+    val items = listOf("Create", "History", "Settings")
     
     val userSettings by viewModel.userSettings.collectAsState(initial = UserSettings())
     val uiState by viewModel.uiState.collectAsState()
@@ -226,7 +226,7 @@ fun MainNavigation(
                 val currentScreen = backStack.lastOrNull()
                 if (currentScreen == Home || currentScreen == History || currentScreen == Settings) {
                     val viewName = when (currentScreen) {
-                        Home -> "Generate"
+                        Home -> "Create"
                         History -> "History"
                         Settings -> "Settings"
                         else -> ""
