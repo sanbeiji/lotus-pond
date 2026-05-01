@@ -11,7 +11,9 @@ import androidx.compose.runtime.*
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -210,6 +212,52 @@ fun MainNavigation(
         }
         
         Scaffold(
+            topBar = {
+                val currentScreen = backStack.lastOrNull()
+                if (currentScreen == Home || currentScreen == History || currentScreen == Settings) {
+                    val viewName = when (currentScreen) {
+                        Home -> "Generate"
+                        History -> "History"
+                        Settings -> "Settings"
+                        else -> ""
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primary,
+                                        androidx.compose.ui.graphics.Color.Transparent
+                                    )
+                                )
+                            )
+                            .windowInsetsPadding(WindowInsets.statusBars)
+                            .height(24.dp),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxHeight()
+                        ) {
+                            Text(
+                                text = "Lotus Pond Reader",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(text = "🪷", style = MaterialTheme.typography.labelSmall)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = viewName,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+                }
+            },
             bottomBar = {
                 // Only show bottom bar on root screens
                 if (!isWideScreen && (backStack.lastOrNull() == Home || backStack.lastOrNull() == History || backStack.lastOrNull() == Settings)) {
@@ -295,7 +343,7 @@ fun MainNavigation(
                                 requiredTerms = requiredTerms
                             )
                         },
-                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+                        modifier = Modifier.padding(innerPadding)
                     )
                 }
                 entry<History> {
@@ -306,14 +354,14 @@ fun MainNavigation(
                             viewModel.loadStoryFromHistory(storyEntity.storyData)
                         },
                         onClearHistory = { viewModel.clearHistory() },
-                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()).windowInsetsPadding(WindowInsets.statusBars)
+                        modifier = Modifier.padding(innerPadding)
                     )
                 }
                 entry<Settings> {
                     SettingsScreen(
                         settings = userSettings,
                         onSettingsChanged = { viewModel.updateSettings(it) },
-                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()).windowInsetsPadding(WindowInsets.statusBars)
+                        modifier = Modifier.padding(innerPadding)
                     )
                 }
                 entry<StoryReader> {
