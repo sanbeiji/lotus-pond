@@ -31,7 +31,7 @@ const DEFAULT_SETTINGS = {
     showTranslation: false,
     history: [],
     themePreference: 'system',
-    fontSizePreference: 'normal'
+    fontSizePreference: 'small'
 };
 
 // ─── App State ────────────────────────────────────────────────
@@ -156,7 +156,7 @@ function loadState() {
     
     if (elements.fontSizeRadios) {
         elements.fontSizeRadios.forEach(radio => {
-            if (radio.value === (state.fontSizePreference || 'normal')) {
+            if (radio.value === (state.fontSizePreference || 'small')) {
                 radio.checked = true;
             }
         });
@@ -188,10 +188,10 @@ function applyTheme() {
 
 function applyFontSize() {
     elements.storyContent.className = 'story-content';
-    if (state.fontSizePreference === 'larger') {
-        elements.storyContent.classList.add('font-size-larger');
-    } else if (state.fontSizePreference === 'largest') {
-        elements.storyContent.classList.add('font-size-largest');
+    if (state.fontSizePreference === 'medium') {
+        elements.storyContent.classList.add('font-size-medium');
+    } else if (state.fontSizePreference === 'large') {
+        elements.storyContent.classList.add('font-size-large');
     }
 }
 

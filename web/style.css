@@ -598,19 +598,19 @@ input.invalid {
 
 .mandarin {
     font-family: var(--mandarin-font);
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     line-height: 1.6;
 }
 
 .pronunciation {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
     font-style: italic;
     margin-top: 0.25rem;
 }
 
 .english-translation {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     margin-top: 0.4rem;
     line-height: 1.5;
@@ -620,30 +620,30 @@ input.invalid {
     display: none;
 }
 
-.story-content.font-size-larger .mandarin {
+.story-content.font-size-medium .mandarin {
+    font-size: 1.5rem;
+    line-height: 1.6;
+}
+
+.story-content.font-size-medium .pronunciation {
+    font-size: 0.9rem;
+}
+
+.story-content.font-size-medium .english-translation {
+    font-size: 0.85rem;
+}
+
+.story-content.font-size-large .mandarin {
     font-size: 1.75rem;
     line-height: 1.7;
 }
 
-.story-content.font-size-larger .pronunciation {
+.story-content.font-size-large .pronunciation {
     font-size: 1.05rem;
 }
 
-.story-content.font-size-larger .english-translation {
+.story-content.font-size-large .english-translation {
     font-size: 1rem;
-}
-
-.story-content.font-size-largest .mandarin {
-    font-size: 2rem;
-    line-height: 1.8;
-}
-
-.story-content.font-size-largest .pronunciation {
-    font-size: 1.2rem;
-}
-
-.story-content.font-size-largest .english-translation {
-    font-size: 1.15rem;
 }
 
 .vocab-highlight {
@@ -780,6 +780,6 @@ footer a:hover {
   }
 
   .mandarin {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
   }
 }
