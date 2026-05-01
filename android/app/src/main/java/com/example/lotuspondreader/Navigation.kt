@@ -212,6 +212,16 @@ fun MainNavigation(
         }
         
         Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        0.0f to MaterialTheme.colorScheme.primary,
+                        0.3f to androidx.compose.ui.graphics.Color.Transparent,
+                        1.0f to androidx.compose.ui.graphics.Color.Transparent
+                    )
+                ),
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
             topBar = {
                 val currentScreen = backStack.lastOrNull()
                 if (currentScreen == Home || currentScreen == History || currentScreen == Settings) {
@@ -224,16 +234,8 @@ fun MainNavigation(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(
-                                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.primary,
-                                        androidx.compose.ui.graphics.Color.Transparent
-                                    )
-                                )
-                            )
                             .windowInsetsPadding(WindowInsets.statusBars)
-                            .height(24.dp),
+                            .padding(top = 8.dp, bottom = 8.dp),
                         contentAlignment = Alignment.TopCenter
                     ) {
                         Row(
