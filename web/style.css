@@ -621,29 +621,29 @@ input.invalid {
 }
 
 .story-content.font-size-medium .mandarin {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
     line-height: 1.6;
 }
 
 .story-content.font-size-medium .pronunciation {
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .story-content.font-size-medium .english-translation {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
 }
 
 .story-content.font-size-large .mandarin {
-    font-size: 1.75rem;
+    font-size: 2.1rem;
     line-height: 1.7;
 }
 
 .story-content.font-size-large .pronunciation {
-    font-size: 1.05rem;
+    font-size: 1.2rem;
 }
 
 .story-content.font-size-large .english-translation {
-    font-size: 1rem;
+    font-size: 1.15rem;
 }
 
 .vocab-highlight {
