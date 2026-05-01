@@ -652,10 +652,14 @@ function speak(text) {
     
     // Try to find a Chinese voice (preferably Traditional/Taiwanese)
     const voices = window.speechSynthesis.getVoices();
-    const zhVoice = voices.find(v => v.lang === 'zh-TW') || 
+
+    // Prioritize high-quality Chrome/Google voices over OS defaults
+    const zhVoice = voices.find(v => v.name === 'Google 國語（臺灣）') ||
+                   voices.find(v => v.name === 'Google 國語（臺灣）') || // Sometimes listed twice
+                   voices.find(v => v.name.includes('Taiwan')) ||
+                   voices.find(v => v.lang === 'zh-TW') ||
                    voices.find(v => v.lang.startsWith('zh')) ||
-                   voices[0];
-    
+                   voices[0];    
     if (zhVoice) {
         utterance.voice = zhVoice;
         utterance.lang = zhVoice.lang;
