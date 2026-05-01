@@ -244,15 +244,15 @@ fun MainNavigation(
                         ) {
                             Text(
                                 text = "Lotus Pond Reader",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.titleLarge,
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                             Spacer(Modifier.width(8.dp))
-                            Text(text = "🪷", style = MaterialTheme.typography.labelSmall)
+                            Text(text = "🪷", style = MaterialTheme.typography.titleLarge)
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 text = viewName,
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.titleLarge,
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
