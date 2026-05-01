@@ -14,6 +14,19 @@ The name of this app is inspired by **Lotus Pond (蓮池潭)**, an artificial la
 
 ## Changelog
 
+### 2026-04-28
+- **Web App Enhancements**:
+  - Updated the reading settings button to use a uniform gear icon with a custom hover animation.
+  - Replaced native tooltips on the settings buttons with fast, custom CSS-animated tooltips that automatically fade out after 2.5 seconds.
+  - Improved Text-To-Speech (TTS) quality by prioritizing the high-quality Google voice for Taiwanese Mandarin on supported browsers.
+- **Android App Enhancements**:
+  - Added a dedicated Splash Screen featuring the Lotus Pond Reader branding on app startup.
+  - Replaced the home screen banner with a persistent top status bar banner across all main screens.
+  - Improved layout across device orientations, including a full-width background gradient and a vertically centered navigation rail in landscape mode.
+  - Disabled dynamic color theming by default to prioritize the custom brand gradient.
+  - Streamlined the UI by removing redundant screen titles from the History and Settings views.
+  - Updated terminology globally from "Generate" to "Create" for a more natural user experience.
+
 ### 2026-04-27
 - **Web App Enhancements**:
   - Added a font size preference (Normal, Larger, Largest) for improved readability.
