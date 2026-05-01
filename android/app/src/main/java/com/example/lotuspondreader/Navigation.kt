@@ -217,7 +217,7 @@ fun MainNavigation(
                 .background(
                     brush = androidx.compose.ui.graphics.Brush.verticalGradient(
                         0.0f to MaterialTheme.colorScheme.primary,
-                        0.3f to androidx.compose.ui.graphics.Color.Transparent,
+                        0.2f to androidx.compose.ui.graphics.Color.Transparent,
                         1.0f to androidx.compose.ui.graphics.Color.Transparent
                     )
                 ),
