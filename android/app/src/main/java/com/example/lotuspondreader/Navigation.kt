@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
@@ -244,12 +245,16 @@ fun MainNavigation(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.padding(horizontal = 8.dp)
                         ) {
                             Text(
                                 text = "Lotus Pond Reader",
                                 style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false)
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(text = "🪷", style = MaterialTheme.typography.titleLarge)
@@ -257,7 +262,8 @@ fun MainNavigation(
                             Text(
                                 text = viewName,
                                 style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                maxLines = 1
                             )
                         }
                     }
