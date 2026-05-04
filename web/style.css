@@ -156,6 +156,35 @@ main {
     padding: 1rem 1.5rem;
 }
 
+.api-key-container {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.storage-option {
+    margin-bottom: 0.75rem;
+}
+
+.security-info {
+    line-height: 1.4;
+    color: var(--text-muted);
+}
+
+.security-info code {
+    background: #eee;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .security-info code {
+        background: #444;
+        color: #eee;
+    }
+}
+
 .settings-header {
     display: flex;
     justify-content: space-between;

@@ -57,6 +57,7 @@ dependencies {
   // Arch Components
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
+  implementation(libs.androidx.security.crypto)
 
   // Compose
   implementation(libs.androidx.compose.ui)

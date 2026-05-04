@@ -38,13 +38,32 @@
       <div id="settings-content" hidden>
         <div class="form-group">
           <label for="api-key">Gemini API key <span class="required">*</span></label>
-          <input
-            type="password"
-            id="api-key"
-            placeholder="Enter your Google AI Studio API key"
-          />
-          <small>Your key is stored locally in your browser. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Get a Gemini API key</a></small>
-        </div>
+          <div class="api-key-container">
+            <input 
+              type="password" 
+              id="api-key" 
+              placeholder="Enter your Google AI Studio API key"
+            >
+            <button type="button" id="clear-api-key" class="btn-text-only" title="Delete key from storage">Clear</button>
+          </div>
+          <div class="storage-option">
+            <label class="toggle-switch">
+              <input type="checkbox" id="persist-key" checked>
+              <span>Remember key on this device</span>
+            </label>
+          </div>
+          <div class="security-info">
+            <small>
+              <strong>Security Note:</strong> 
+              If "Remember key" is enabled, your key is stored in your browser's <code>localStorage</code>. 
+              While convenient, this can be vulnerable if your device is shared or if a malicious script (XSS) 
+              runs on this page. If disabled, the key is kept only in <code>sessionStorage</code> and is 
+              wiped when you close this tab.
+            </small>
+            <br>
+            <small><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Get a Gemini API key</a></small>
+          </div>
+          </div>
         <div class="form-group">
           <label for="model-select">Gemini model</label>
           <select id="model-select">

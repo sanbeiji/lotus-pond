@@ -1,62 +1,95 @@
-# Lotus Pond
+# Lotus Pond (蓮池故事機)
 
-This is the root repository for the Lotus Pond projects, containing the web application and native apps.
+**Lotus Pond Reader** is an AI-powered Mandarin story generator designed for language learners, with a focus on **Traditional Chinese** and **Taiwanese Mandarin**.
 
-## About Lotus Pond Reader
+It uses the Google Gemini API to create personalized reading material tailored to your proficiency level, complete with interlinear Pinyin/Zhuyin pronunciation and Text-To-Speech (TTS) support.
 
-**蓮池故事機 (liánchí gùshìjī)** — AI-powered Mandarin story generator for language learners.
+## 🪷 Inspiration
 
-Lotus Pond Reader uses the Google AI Studio Gemini API to generate short stories in Taiwanese Mandarin, complete with traditional Chinese characters and interlinear Pinyin/Zhuyin pronunciation. It features multiple TOCFL-aligned levels, text-to-speech, and study modes to assist language learners.
+The name is inspired by **Lotus Pond (蓮池潭)** in Kaohsiung, Taiwan—a place famous for its temples, pagodas, and vibrant traditional culture. This app aims to provide a similarly immersive experience for mastering the beauty of Taiwanese Mandarin.
 
-## The Inspiration
+## 📱 Features
 
-The name of this app is inspired by **Lotus Pond (蓮池潭)**, an artificial lake located in Zuoying District, Kaohsiung City, Taiwan. Famous for its beautiful lotus plants and the numerous temples that line its shores—including the iconic Dragon and Tiger Pagodas, the Spring and Autumn Pavilions, and the Kaohsiung Confucian Temple—Lotus Pond is a vibrant symbol of traditional Taiwanese culture, history, and spirituality. Much like the serene yet culturally rich atmosphere of the pond, this app aims to provide language learners with an immersive and authentic experience on their journey to master Taiwanese Mandarin.
+- **Custom Story Generation**: Provide a plot or theme, and Gemini creates a unique story.
+- **TOCFL-Aligned Levels**: Choose from levels 1 to 8 (aligned with Taiwan's TOCFL standards).
+- **Interlinear Pronunciation**: Toggle between **Pinyin** or **Zhuyin (Bopomofo)**.
+- **Study Mode**: Highlight specific vocabulary within the generated story.
+- **Text-To-Speech**: Listen to sentences read aloud using high-quality Taiwanese Mandarin voices.
+- **Offline History**: Save your generated stories to read again later.
+- **Cross-Platform**: Available as a modern Web App and a native Android App.
 
-## Changelog
+---
 
-### 2026-04-28
-- **Web App Enhancements**:
-  - Updated the reading settings button to use a uniform gear icon with a custom hover animation.
-  - Replaced native tooltips on the settings buttons with fast, custom CSS-animated tooltips that automatically fade out after 2.5 seconds.
-  - Improved Text-To-Speech (TTS) quality by prioritizing the high-quality Google voice for Taiwanese Mandarin on supported browsers.
-- **Android App Enhancements**:
-  - Added a dedicated Splash Screen featuring the Lotus Pond Reader branding on app startup.
-  - Replaced the home screen banner with a persistent top status bar banner across all main screens.
-  - Improved layout across device orientations, including a full-width background gradient and a vertically centered navigation rail in landscape mode.
-  - Disabled dynamic color theming by default to prioritize the custom brand gradient.
-  - Streamlined the UI by removing redundant screen titles from the History and Settings views.
-  - Updated terminology globally from "Generate" to "Create" for a more natural user experience.
+## 🚀 Getting Started
 
-### 2026-04-27
-- **Web App Enhancements**:
-  - Added a font size preference (Normal, Larger, Largest) for improved readability.
-  - Implemented a floating, toggleable Story Settings panel (`⚙️📖`) with smooth animations to declutter the UI.
-  - Synced Text-To-Speech (TTS) speaker icon visibility with the pronunciation toggle.
-  - Renamed the top-level settings to "Global settings" to differentiate from story-specific options.
-- **Android App Modernization**: 
-  - Implemented Material 3 Expressive UI with full edge-to-edge layouts, including dynamic light/dark status bar text contrast.
-  - Added support for Android 12+ Dynamic Color with brand color fallbacks.
-  - Implemented responsive navigation (`NavigationRail` for tablets/foldables, `NavigationBar` for phones) with primary color theming.
-  - Added an interactive API Key prompt dialog that appears on startup if a key is missing.
-  - Added a global font size preference (Small, Medium, Large) dynamically scaling Mandarin, Pinyin/Zhuyin, and English text.
-  - Segregated typography using `Iansui` font strictly for Mandarin/Pinyin content and Roboto for UI elements.
-  - Upgraded Settings screen with modern `SegmentedButton` controls and external help links.
-  - Implemented Text-To-Speech (TTS) for reading Mandarin sentences aloud, matching the web app's `🔊` icon.
-  - Refined gesture navigation to intercept back presses and gracefully exit or return Home.
-  - Resolved edge-to-edge scrolling bugs in the Story view and improved layout spacing.
-  - Converted the web app favicon into a unified Android Adaptive Icon.
-- **Android App Initial Prototype**: 
-  - Created native Android application using Jetpack Compose and Material 3.
-  - Migrated core story generation logic and Gemini API integration (Ktor).
-  - Added Room Database for offline story history caching.
-  - Added Jetpack DataStore for securely persisting user preferences.
-  - Implemented Home, History, and Settings screens with native navigation.
-- **Project Restructure**:
-  - Migrated the `lotus-pond-reader-web` project into a monorepo structure.
-  - Preserved full Git history of the web project under the `web/` directory.
+To use Lotus Pond Reader, you need a **Gemini API Key** from [Google AI Studio](https://aistudio.google.com/app/apikey). The key is free for individual use (within certain limits).
 
-### 2026-04-16
-- **Web App Refinements**: Added refinements to the prompt and story generation output to optimize token usage.
+### 🖥️ Web Version
+1. Open `web/index.html` in any modern browser.
+2. Click the **Settings (⚙️)** icon.
+3. Enter your Gemini API Key.
+4. Your key is stored locally in your browser's `localStorage`.
 
-### 2026-04-15
-- **Initial Web Prototype**: Created the initial functional web application.
+### 🤖 Android Version
+1. Build the project using Android Studio.
+2. On first launch, the app will prompt you for your API Key.
+3. Your key is stored securely on your device using **EncryptedSharedPreferences**.
+
+---
+
+## 🛠️ Architecture & Tech Stack
+
+### Android App
+- **Language**: Kotlin
+- **UI**: Jetpack Compose (Material 3 Expressive)
+- **Networking**: Ktor Client
+- **Database**: Room (for story history)
+- **Storage**: 
+    - **Jetpack DataStore**: For general user preferences.
+    - **EncryptedSharedPreferences**: For sensitive data (API Key).
+- **Architecture**: MVVM with Repository pattern.
+
+### Web App
+- **Language**: Vanilla JavaScript / HTML5 / CSS3
+- **Styling**: Modern CSS with custom properties and animations.
+- **Storage**: `localStorage` for both settings and history.
+
+---
+
+## 🔒 Security & Privacy
+
+- **API Keys**: Your API key is **never** sent to any server except directly to Google's Gemini API endpoints.
+- **Local Storage**: 
+    - On **Android**, the key is encrypted at rest using the Android Keystore.
+    - On **Web**, the key is stored in `localStorage`. Users should be aware that `localStorage` is accessible to scripts on the same origin (XSS risk).
+- **No Tracking**: This app does not include any analytics or tracking scripts.
+
+---
+
+## 🏗️ Building from Source
+
+### Android
+- Requires **Android Studio Ladybug** or newer.
+- **Min SDK**: 31 (Android 12)
+- **Target SDK**: 36
+
+```bash
+cd android
+./gradlew assembleDebug
+```
+
+---
+
+## 📜 License & Credits
+
+- **License**: This project is licensed under the [GNU AGPLv3](LICENSE).
+- **Font**: Uses the [Iansui (芫荽)](CREDITS.md) font (SIL Open Font License 1.1).
+- **Author**: Joseph R. Lewis
+
+---
+
+## ⚠️ Disclaimer for Developers
+
+If you fork this repository:
+1. **Do not hard-code API keys.** Always use a secure method for secret storage.
+2. **License Compliance**: As this is an AGPL-licensed project, any modifications you make and host publicly must also be open-sourced under the same license.

@@ -5,8 +5,11 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.example.lotuspondreader.models.UserSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -17,8 +20,21 @@ class SettingsRepository(private val context: Context) {
 
     private val dataStore = context.dataStore
 
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    private val encryptedPrefs = EncryptedSharedPreferences.create(
+        context,
+        "secure_settings",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
     companion object {
-        val API_KEY = stringPreferencesKey("api_key")
+        private const val SECURE_API_KEY = "secure_api_key"
+        val LAST_UPDATED = longPreferencesKey("last_updated")
         val SELECTED_MODEL = stringPreferencesKey("selected_model")
         val PRONUNCIATION = stringPreferencesKey("pronunciation")
         val STUDY_MODE = booleanPreferencesKey("study_mode")
@@ -32,7 +48,7 @@ class SettingsRepository(private val context: Context) {
     val userSettingsFlow: Flow<UserSettings> = dataStore.data
         .map { preferences ->
             UserSettings(
-                apiKey = preferences[API_KEY] ?: "",
+                apiKey = encryptedPrefs.getString(SECURE_API_KEY, "") ?: "",
                 selectedModel = preferences[SELECTED_MODEL] ?: "gemini-2.5-flash-lite",
                 pronunciation = preferences[PRONUNCIATION] ?: "pinyin",
                 studyMode = preferences[STUDY_MODE] ?: true,
@@ -45,8 +61,12 @@ class SettingsRepository(private val context: Context) {
         }
 
     suspend fun saveSettings(settings: UserSettings) {
+        // Save sensitive info to EncryptedSharedPreferences
+        encryptedPrefs.edit().putString(SECURE_API_KEY, settings.apiKey).apply()
+
+        // Save non-sensitive info to DataStore
         dataStore.edit { preferences ->
-            preferences[API_KEY] = settings.apiKey
+            preferences[LAST_UPDATED] = System.currentTimeMillis()
             preferences[SELECTED_MODEL] = settings.selectedModel
             preferences[PRONUNCIATION] = settings.pronunciation
             preferences[STUDY_MODE] = settings.studyMode

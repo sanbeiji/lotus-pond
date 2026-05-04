@@ -25,6 +25,7 @@ const LOADING_QUOTES = [
 
 const DEFAULT_SETTINGS = {
     apiKey: '',
+    persistKey: true,
     selectedModel: 'gemini-2.5-flash-lite',
     pronunciation: 'pinyin',
     studyMode: true,
@@ -49,6 +50,8 @@ const elements = {
     generateBtn: document.getElementById('generate-btn'),
     
     apiKeyInput: document.getElementById('api-key'),
+    persistKeyToggle: document.getElementById('persist-key'),
+    clearApiKeyBtn: document.getElementById('clear-api-key'),
     modelSelect: document.getElementById('model-select'),
     themeSelect: document.getElementById('theme-select'),
     pinyinToggle: document.getElementById('pinyin-toggle'),
@@ -127,11 +130,25 @@ function init() {
 // ─── State Management ─────────────────────────────────────────
 
 function loadState() {
-    const saved = localStorage.getItem('lotusPondState');
+    // 1. Try persistent storage
+    let saved = localStorage.getItem('lotusPondState');
+    
+    // 2. If not found or if session-only was preferred, try session storage
+    if (!saved) {
+        saved = sessionStorage.getItem('lotusPondState');
+    }
+
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
             state = { ...state, ...parsed };
+            
+            // Clean up other storage if preference changed
+            if (!state.persistKey) {
+                localStorage.removeItem('lotusPondState');
+            } else {
+                sessionStorage.removeItem('lotusPondState');
+            }
         } catch (e) {
             console.error('Failed to parse saved state', e);
         }
@@ -139,6 +156,7 @@ function loadState() {
     
     // Apply state to UI
     if (elements.apiKeyInput) elements.apiKeyInput.value = state.apiKey;
+    if (elements.persistKeyToggle) elements.persistKeyToggle.checked = state.persistKey;
     if (elements.modelSelect) {
         elements.modelSelect.value = state.selectedModel || 'gemini-2.5-flash-lite';
     }
@@ -201,7 +219,14 @@ function updateModelFooter() {
 }
 
 function saveState() {
-    localStorage.setItem('lotusPondState', JSON.stringify(state));
+    const data = JSON.stringify(state);
+    if (state.persistKey) {
+        localStorage.setItem('lotusPondState', data);
+        sessionStorage.removeItem('lotusPondState');
+    } else {
+        sessionStorage.setItem('lotusPondState', data);
+        localStorage.removeItem('lotusPondState');
+    }
 }
 
 // ─── Event Listeners ──────────────────────────────────────────
@@ -239,6 +264,19 @@ function setupEventListeners() {
     elements.apiKeyInput.addEventListener('change', (e) => {
         state.apiKey = e.target.value.trim();
         saveState();
+    });
+
+    elements.persistKeyToggle?.addEventListener('change', (e) => {
+        state.persistKey = e.target.checked;
+        saveState();
+    });
+
+    elements.clearApiKeyBtn?.addEventListener('click', () => {
+        if (confirm('Delete your API Key from this browser?')) {
+            state.apiKey = '';
+            elements.apiKeyInput.value = '';
+            saveState();
+        }
     });
     
     elements.modelSelect.addEventListener('change', (e) => {
