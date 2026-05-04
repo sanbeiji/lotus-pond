@@ -1,12 +1,12 @@
 # Lotus Pond Reader (蓮池故事機)
 
-**Lotus Pond Reader** is an AI-powered Mandarin story generator designed for language learners, with a focus on **Traditional Chinese** and **Taiwanese Mandarin**.
+**Lotus Pond Reader** is an AI-powered Mandarin story generator designed for Mandarin Chinese language learners, with a focus on Taiwanese Mandarin pronunciation, vocabulary, and style.
 
 It uses the Google Gemini API to create personalized reading material tailored to your proficiency level, complete with interlinear Pinyin/Zhuyin pronunciation and Text-To-Speech (TTS) support.
 
 ## 🪷 Inspiration
 
-The name is inspired by **Lotus Pond (蓮池潭)** in Kaohsiung, Taiwan—a place famous for its temples, pagodas, and vibrant traditional culture. This app aims to provide a similarly immersive experience for mastering the beauty of Taiwanese Mandarin.
+The name is inspired by the **Lotus Pond (蓮池潭)** in Kaohsiung, Taiwan—a place famous for its temples, pagodas, and vibrant traditional culture. This app aims to provide a similarly immersive experience for mastering the beauty of Taiwanese Mandarin.
 
 ## 📱 Features
 
