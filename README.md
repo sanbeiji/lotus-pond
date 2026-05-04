@@ -31,7 +31,10 @@ To use Lotus Pond Reader, you need a **Gemini API Key** from [Google AI Studio](
 4. Your key is stored locally in your browser's `localStorage`.
 
 ### 🤖 Android Version
-1. Build the project using Android Studio.
+1. Build the project using [Android Studio](https://developer.android.com/studio) or the [Android CLI](https://developer.android.com/tools/agents).
+    - Requires **Android Studio Ladybug** or newer.
+    - **Min SDK**: 31 (Android 12)
+    - **Target SDK**: 36
 2. On first launch, the app will prompt you for your API Key.
 3. Your key is stored securely on your device using **EncryptedSharedPreferences**.
 
@@ -64,21 +67,6 @@ To use Lotus Pond Reader, you need a **Gemini API Key** from [Google AI Studio](
     - On **Web**, the key is stored in `localStorage`. Users should be aware that `localStorage` is accessible to scripts on the same origin (XSS risk).
 - **No Tracking**: This app does not include any analytics or tracking scripts.
 
----
-
-## 🏗️ Building from Source
-
-### Android
-- Requires **Android Studio Ladybug** or newer.
-- **Min SDK**: 31 (Android 12)
-- **Target SDK**: 36
-
-```bash
-cd android
-./gradlew assembleDebug
-```
-
----
 
 ## 📜 License & Credits
 
