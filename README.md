@@ -1,4 +1,4 @@
-# Lotus Pond (蓮池故事機)
+# Lotus Pond Reader (蓮池故事機)
 
 **Lotus Pond Reader** is an AI-powered Mandarin story generator designed for language learners, with a focus on **Traditional Chinese** and **Taiwanese Mandarin**.
 
