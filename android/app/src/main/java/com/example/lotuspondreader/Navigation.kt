@@ -388,7 +388,7 @@ fun MainNavigation(
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     Text("Display Settings", style = MaterialTheme.typography.titleLarge)
                                     
@@ -428,55 +428,71 @@ fun MainNavigation(
                                         )
                                     }
                                     
-                                    Spacer(Modifier.height(8.dp))
-                                    Text("Font size", style = MaterialTheme.typography.titleMedium)
-                                    val fontOptions = listOf("small", "medium", "large")
-                                    val fontLabels = listOf("Small", "Medium", "Large")
-                                    SingleChoiceSegmentedButtonRow(
-                                        modifier = Modifier.fillMaxWidth()
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                                     ) {
-                                        fontOptions.forEachIndexed { index, option ->
-                                            SegmentedButton(
-                                                shape = SegmentedButtonDefaults.itemShape(index = index, count = fontOptions.size),
-                                                onClick = { viewModel.updateSettings(userSettings.copy(fontSizePreference = option)) },
-                                                selected = userSettings.fontSizePreference == option,
-                                                icon = { SegmentedButtonDefaults.Icon(active = userSettings.fontSizePreference == option) }
+                                        Text("Font size")
+                                        var fontExpanded by remember { mutableStateOf(false) }
+                                        val fontOptions = listOf("small", "medium", "large")
+                                        val fontLabels = listOf("Small", "Medium", "Large")
+                                        Box {
+                                            OutlinedButton(
+                                                onClick = { fontExpanded = true }
                                             ) {
-                                                Text(fontLabels[index])
+                                                val currentLabel = fontLabels[fontOptions.indexOf(userSettings.fontSizePreference).coerceAtLeast(0)]
+                                                Text(currentLabel)
+                                            }
+                                            DropdownMenu(
+                                                expanded = fontExpanded,
+                                                onDismissRequest = { fontExpanded = false }
+                                            ) {
+                                                fontOptions.forEachIndexed { index, option ->
+                                                    DropdownMenuItem(
+                                                        text = { Text(fontLabels[index]) },
+                                                        onClick = {
+                                                            viewModel.updateSettings(userSettings.copy(fontSizePreference = option))
+                                                            fontExpanded = false
+                                                        }
+                                                    )
+                                                }
                                             }
                                         }
                                     }
 
-                                    Spacer(Modifier.height(8.dp))
-                                    Text("Speech speed", style = MaterialTheme.typography.titleMedium)
-                                    var expanded by remember { mutableStateOf(false) }
-                                    val rates = listOf(1.0f, 0.9f, 0.8f, 0.7f, 0.6f, 0.5f)
-                                    val rateLabels = listOf("100%", "90%", "80%", "70%", "60%", "50%")
-                                    Box {
-                                        OutlinedButton(
-                                            onClick = { expanded = true },
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            val currentLabel = rateLabels[rates.indexOf(userSettings.speechRatePreference).coerceAtLeast(0)]
-                                            Text("Speed: $currentLabel")
-                                        }
-                                        DropdownMenu(
-                                            expanded = expanded,
-                                            onDismissRequest = { expanded = false }
-                                        ) {
-                                            rates.forEachIndexed { index, rate ->
-                                                DropdownMenuItem(
-                                                    text = { Text(rateLabels[index]) },
-                                                    onClick = {
-                                                        viewModel.updateSettings(userSettings.copy(speechRatePreference = rate))
-                                                        expanded = false
-                                                    }
-                                                )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                    ) {
+                                        Text("Speech speed")
+                                        var expanded by remember { mutableStateOf(false) }
+                                        val rates = listOf(1.0f, 0.9f, 0.8f, 0.7f, 0.6f, 0.5f)
+                                        val rateLabels = listOf("100%", "90%", "80%", "70%", "60%", "50%")
+                                        Box {
+                                            OutlinedButton(
+                                                onClick = { expanded = true }
+                                            ) {
+                                                val currentLabel = rateLabels[rates.indexOf(userSettings.speechRatePreference).coerceAtLeast(0)]
+                                                Text(currentLabel)
+                                            }
+                                            DropdownMenu(
+                                                expanded = expanded,
+                                                onDismissRequest = { expanded = false }
+                                            ) {
+                                                rates.forEachIndexed { index, rate ->
+                                                    DropdownMenuItem(
+                                                        text = { Text(rateLabels[index]) },
+                                                        onClick = {
+                                                            viewModel.updateSettings(userSettings.copy(speechRatePreference = rate))
+                                                            expanded = false
+                                                        }
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-
-                                    Spacer(Modifier.height(16.dp))
                                 }
                             }
                         }
