@@ -447,6 +447,35 @@ fun MainNavigation(
                                         }
                                     }
 
+                                    Spacer(Modifier.height(8.dp))
+                                    Text("Speech speed", style = MaterialTheme.typography.titleMedium)
+                                    var expanded by remember { mutableStateOf(false) }
+                                    val rates = listOf(1.0f, 0.9f, 0.8f, 0.7f, 0.6f, 0.5f)
+                                    val rateLabels = listOf("100%", "90%", "80%", "70%", "60%", "50%")
+                                    Box {
+                                        OutlinedButton(
+                                            onClick = { expanded = true },
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            val currentLabel = rateLabels[rates.indexOf(userSettings.speechRatePreference).coerceAtLeast(0)]
+                                            Text("Speed: $currentLabel")
+                                        }
+                                        DropdownMenu(
+                                            expanded = expanded,
+                                            onDismissRequest = { expanded = false }
+                                        ) {
+                                            rates.forEachIndexed { index, rate ->
+                                                DropdownMenuItem(
+                                                    text = { Text(rateLabels[index]) },
+                                                    onClick = {
+                                                        viewModel.updateSettings(userSettings.copy(speechRatePreference = rate))
+                                                        expanded = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+
                                     Spacer(Modifier.height(16.dp))
                                 }
                             }
@@ -494,6 +523,7 @@ fun MainNavigation(
                                 fontSizePreference = userSettings.fontSizePreference,
                                 requiredTerms = termsList,
                                 onPlayAudio = { textToSpeak -> 
+                                    tts?.setSpeechRate(userSettings.speechRatePreference)
                                     tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
                                 },
                                 contentPadding = PaddingValues(

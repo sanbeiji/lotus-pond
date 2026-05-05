@@ -34,5 +34,6 @@ data class UserSettings(
     val showPronunciation: Boolean = true,
     val themePreference: String = "system", // "system", "light", "dark"
     val useDynamicColor: Boolean = false,
-    val fontSizePreference: String = "small" // "small", "medium", "large"
+    val fontSizePreference: String = "small", // "small", "medium", "large"
+    val speechRatePreference: Float = 0.9f
 )

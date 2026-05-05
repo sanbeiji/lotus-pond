@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -43,6 +44,7 @@ class SettingsRepository(private val context: Context) {
         val THEME_PREFERENCE = stringPreferencesKey("theme_preference")
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val FONT_SIZE_PREFERENCE = stringPreferencesKey("font_size_preference")
+        val SPEECH_RATE_PREFERENCE = floatPreferencesKey("speech_rate_preference")
     }
 
     val userSettingsFlow: Flow<UserSettings> = dataStore.data
@@ -56,7 +58,8 @@ class SettingsRepository(private val context: Context) {
                 showPronunciation = preferences[SHOW_PRONUNCIATION] ?: true,
                 themePreference = preferences[THEME_PREFERENCE] ?: "system",
                 useDynamicColor = preferences[DYNAMIC_COLOR] ?: false,
-                fontSizePreference = preferences[FONT_SIZE_PREFERENCE] ?: "small"
+                fontSizePreference = preferences[FONT_SIZE_PREFERENCE] ?: "small",
+                speechRatePreference = preferences[SPEECH_RATE_PREFERENCE] ?: 0.9f
             )
         }
 
@@ -75,6 +78,7 @@ class SettingsRepository(private val context: Context) {
             preferences[THEME_PREFERENCE] = settings.themePreference
             preferences[DYNAMIC_COLOR] = settings.useDynamicColor
             preferences[FONT_SIZE_PREFERENCE] = settings.fontSizePreference
+            preferences[SPEECH_RATE_PREFERENCE] = settings.speechRatePreference
         }
     }
 }
