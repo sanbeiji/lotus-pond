@@ -580,6 +580,32 @@ select:focus {
     margin-bottom: 0;
 }
 
+.view-options-stack .speech-rate-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    width: 100%;
+}
+
+.view-options-stack .speech-rate-controls label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+.view-options-stack .speech-rate-controls select {
+    width: 100%;
+    padding: 0.4rem 0.75rem;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    background: var(--input-bg);
+    color: var(--text);
+    cursor: pointer;
+}
+
 .story-card .story-heading {
   font-size: 2.4rem !important;
   font-weight: 700;
@@ -649,6 +675,15 @@ input.invalid {
     display: none;
 }
 
+.story-content.font-size-medium .sentence-block {
+    padding-left: 2.8rem;
+}
+
+.story-content.font-size-medium .sentence-play-btn {
+    font-size: 1.5rem;
+    top: 0.5rem;
+}
+
 .story-content.font-size-medium .mandarin {
     font-size: 1.7rem;
     line-height: 1.6;
@@ -660,6 +695,15 @@ input.invalid {
 
 .story-content.font-size-medium .english-translation {
     font-size: 0.95rem;
+}
+
+.story-content.font-size-large .sentence-block {
+    padding-left: 3.2rem;
+}
+
+.story-content.font-size-large .sentence-play-btn {
+    font-size: 1.8rem;
+    top: 0.6rem;
 }
 
 .story-content.font-size-large .mandarin {

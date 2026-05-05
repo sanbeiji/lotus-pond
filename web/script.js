@@ -32,7 +32,8 @@ const DEFAULT_SETTINGS = {
     showTranslation: true,
     history: [],
     themePreference: 'system',
-    fontSizePreference: 'small'
+    fontSizePreference: 'small',
+    speechRatePreference: '0.9'
 };
 
 // ─── App State ────────────────────────────────────────────────
@@ -74,6 +75,7 @@ const elements = {
     showPronunciationToggle: document.getElementById('show-pronunciation'),
     showTranslationToggle: document.getElementById('show-translation'),
     fontSizeRadios: document.querySelectorAll('input[name="font-size"]'),
+    speechRateSelect: document.getElementById('speech-rate'),
     copyBtn: document.getElementById('copy-btn'),
     
     historyList: document.getElementById('history-list'),
@@ -180,6 +182,10 @@ function loadState() {
         });
     }
     applyFontSize();
+    
+    if (elements.speechRateSelect) {
+        elements.speechRateSelect.value = state.speechRatePreference || '0.9';
+    }
     
     updateModelFooter();
     
@@ -329,6 +335,11 @@ function setupEventListeners() {
             });
         });
     }
+    
+    elements.speechRateSelect?.addEventListener('change', (e) => {
+        state.speechRatePreference = e.target.value;
+        saveState();
+    });
 
     if (elements.showPronunciationToggle) {
         elements.showPronunciationToggle.addEventListener('change', updatePronunciationVisibility);
@@ -703,7 +714,7 @@ function speak(text) {
         utterance.lang = zhVoice.lang;
     }
     
-    utterance.rate = 0.9; // Slightly slower for learners
+    utterance.rate = parseFloat(state.speechRatePreference || '0.9');
     window.speechSynthesis.speak(utterance);
 }
 
