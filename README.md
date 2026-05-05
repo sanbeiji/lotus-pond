@@ -25,7 +25,7 @@ The name is inspired by the **Lotus Pond (蓮池潭)** in Kaohsiung, Taiwan—a 
 To use Lotus Pond Reader, you need a **Gemini API Key** from [Google AI Studio](https://aistudio.google.com/app/apikey). The key is free for individual use (within certain limits).
 
 ### 🖥️ Web Version
-1. Open `web/index.html` in any modern browser.
+1. Open `web/index.html` in any modern browser, or check out the [hosted version](https://sanbeiji.com/lotus).
 2. Click the **Settings (⚙️)** icon.
 3. Enter your Gemini API Key.
 4. Your key is stored locally in your browser's `localStorage`.
