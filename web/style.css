@@ -21,6 +21,8 @@
   --toggle-bg:    #eee;
   --toggle-checked: #fff;
   --switch-bg:    #ccc;
+  --badge-bg:     rgba(184, 92, 114, 0.15);
+  --badge-text:   #9a4860;
 }
 
 [data-theme="dark"] {
@@ -43,6 +45,8 @@
   --toggle-bg:    #444;
   --toggle-checked: #2c2c2c;
   --switch-bg:    #555;
+  --badge-bg:     rgba(201, 111, 133, 0.25);
+  --badge-text:   #ebd7ce;
 }
 
 /* ─── Reset / base ───────────────────────────────────────────── */
@@ -278,9 +282,25 @@ main {
     margin-bottom: 0.25rem;
 }
 
+.history-item .history-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.1rem;
+}
+
 .history-item .history-date {
     font-size: 0.75rem;
     color: var(--text-muted);
+}
+
+.history-item .history-level {
+    background-color: var(--badge-bg);
+    color: var(--badge-text);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px 4px 12px 4px;
 }
 
 .empty-msg {

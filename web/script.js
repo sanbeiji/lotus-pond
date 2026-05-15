@@ -418,7 +418,7 @@ async function handleGenerate(e) {
         
         lastStoryData = storyData;
         renderStory(storyData);
-        addToHistory(storyData);
+        addToHistory(storyData, skillLevel);
         
         elements.resultSection.hidden = false;
         elements.resultSection.scrollIntoView({ behavior: 'smooth' });
@@ -603,7 +603,6 @@ function renderStory(storyData) {
         playBtn.className = 'sentence-play-btn';
         playBtn.innerHTML = '🔊';
         playBtn.title = 'Read aloud';
-        playBtn.hidden = !elements.showPronunciationToggle.checked;
         playBtn.onclick = () => speak(s.mandarin);
         
         const mandarin = document.createElement('div');
@@ -641,8 +640,6 @@ function updatePronunciationVisibility() {
     const show = elements.showPronunciationToggle.checked;
     const prons = elements.storyContent.querySelectorAll('.pronunciation');
     prons.forEach(p => p.hidden = !show);
-    const playBtns = elements.storyContent.querySelectorAll('.sentence-play-btn');
-    playBtns.forEach(btn => btn.hidden = !show);
 }
 
 function updateTranslationVisibility() {
@@ -720,12 +717,21 @@ function speak(text) {
 
 // ─── History Management ───────────────────────────────────────
 
-function addToHistory(storyData) {
+function addToHistory(storyData, skillLevel) {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const formattedDate = `${yyyy}-${mm}-${dd}  ${hh}:${min}`;
+
     const historyItem = {
         id: Date.now(),
         title: storyData.title,
         data: storyData,
-        date: new Date().toLocaleString()
+        date: formattedDate,
+        level: skillLevel
     };
     
     state.history.unshift(historyItem);
@@ -752,9 +758,13 @@ function renderHistory() {
         state.history.forEach(item => {
             const el = document.createElement('div');
             el.className = 'history-item';
+            let levelHtml = item.level ? `<div class="history-level">${item.level}</div>` : '';
             el.innerHTML = `
                 <div class="history-title">${item.title}</div>
-                <div class="history-date">${item.date}</div>
+                <div class="history-meta">
+                    <div class="history-date">${item.date}</div>
+                    ${levelHtml}
+                </div>
             `;
             el.onclick = () => {
                 lastStoryData = item.data;
