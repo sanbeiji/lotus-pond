@@ -376,8 +376,12 @@ fun MainNavigation(
                     )
                 }
                 entry<StoryReader> {
+                    var lastStory by remember { mutableStateOf<com.example.lotuspondreader.models.StoryResponse?>(null) }
                     if (uiState is StoryUiState.Success) {
-                        val story = (uiState as StoryUiState.Success).story
+                        lastStory = (uiState as StoryUiState.Success).story
+                    }
+                    val story = lastStory
+                    if (story != null) {
                         val termsList = requiredTerms.split("[,，]".toRegex()).map { it.trim() }.filter { it.isNotEmpty() }
                         var showBottomSheet by remember { mutableStateOf(false) }
                         
