@@ -10,5 +10,6 @@ data class StoryEntity(
     val id: Long = 0,
     val title: String,
     val storyData: StoryResponse,
-    val date: String
+    val date: String,
+    val level: String? = null
 )

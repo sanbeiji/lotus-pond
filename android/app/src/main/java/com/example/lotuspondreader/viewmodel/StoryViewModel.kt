@@ -83,14 +83,15 @@ class StoryViewModel(
                 _uiState.value = StoryUiState.Success(response)
 
                 // Save to history
-                val dateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault())
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
                 val currentDate = dateFormat.format(Date())
 
                 storyDao.insertStory(
                     StoryEntity(
                         title = response.title,
                         storyData = response,
-                        date = currentDate
+                        date = currentDate,
+                        level = skillLevel
                     )
                 )
             } catch (e: Exception) {

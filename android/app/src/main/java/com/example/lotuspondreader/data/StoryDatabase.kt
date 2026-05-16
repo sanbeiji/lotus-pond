@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [StoryEntity::class], version = 1, exportSchema = false)
+@Database(entities = [StoryEntity::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class StoryDatabase : RoomDatabase() {
     abstract fun storyDao(): StoryDao
@@ -21,7 +21,9 @@ abstract class StoryDatabase : RoomDatabase() {
                     context.applicationContext,
                     StoryDatabase::class.java,
                     "story_database"
-                ).build()
+                )
+                .fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }
