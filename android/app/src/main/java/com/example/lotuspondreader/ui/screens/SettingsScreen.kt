@@ -153,7 +153,7 @@ fun SettingsScreen(
                         
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("How to Use", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                            Text("1. Get a Gemini API key and enter it in Settings.\n2. Enter a plot or theme.\n3. Select your proficiency level.\n4. (Optional) Enter vocabulary to study.\n5. Create and wait for content.\n6. Toggle options on the story screen.\n7. Practice reading aloud.")
+                            Text("1. Get a Gemini API key and enter it in Settings.\n2. Enter a plot or theme.\n3. Select your proficiency level.\n4. (Optional) Enter vocabulary to study.\n5. Create and wait for content.\n6. Toggle options on the story screen.\n7. Practice reading aloud.\n8. Your generated stories are automatically saved to your device's local database. You can access them anytime from the History tab and tap on any entry to read it again.")
                         }
                         
                         val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
