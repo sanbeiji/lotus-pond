@@ -40,8 +40,11 @@ Install the standalone Android application for a dedicated mobile experience:
 
 ## 🚀 Setup & Getting Started
 
-### Prerequisites
-- A **Gemini API key** from [Google AI Studio](https://aistudio.google.com/). The key is free for individual use (within certain limits).
+### 🔑 Mandatory API Key
+Lotus Pond Reader operates entirely client-side and **requires your own Gemini API key** to generate stories. 
+* 🔗 **[Get your free Gemini API key from Google AI Studio](https://aistudio.google.com/app/apikey)**. 
+
+The key is completely free for individual developer use within standard rate limits.
 
 ### 🖥️ Web Version
 1. Open `web/index.html` in any modern browser, or visit the [hosted version](https://sanbeiji.github.io/lotus/).
