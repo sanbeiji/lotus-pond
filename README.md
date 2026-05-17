@@ -104,7 +104,7 @@ All web logic is contained within `/web/script.js` and styling is in `/web/style
 
 - **License**: This project is licensed under the [GNU AGPLv3](LICENSE).
 - **Font**: Uses the [Iansui (芫荽)](CREDITS.md) font (SIL Open Font License 1.1).
-- **Author**: Joseph R. Lewis
+- **Author**: [Joseph R. Lewis](https://sanbeiji.com) ([@sanbeiji](https://github.com/sanbeiji/))
 
 ---
 
