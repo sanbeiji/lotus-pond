@@ -77,7 +77,7 @@ jobs:
           destination-github-username: 'sanbeiji'
           destination-repository-name: 'sanbeiji.github.io'
           target-directory: 'lotus-pond'
-          user-email: 'joseph.r.lewis@gmail.com'
+          user-email: '30529+sanbeiji@users.noreply.github.com'
           target-branch: 'main'
 
   # JOB 3: Generate the official GitHub Release
