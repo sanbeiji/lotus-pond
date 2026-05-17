@@ -3,10 +3,10 @@ name: Deploy Lotus Pond Reader
 on:
   push:
     tags:
-      - 'v*' # Triggers the workflow whenever you push a tag starting with 'v' (e.g., v1.0.0)
+      - 'v*'
 
 jobs:
-  # JOB 1: Build the Android App (Forcing it for debug)
+  # JOB 1: Build the Android App (Forced)
   build-android:
     runs-on: ubuntu-latest
     steps:
@@ -33,25 +33,14 @@ jobs:
           name: lotus-pond-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
-  # JOB 2: Deploy Web Files if /web has changes
+  # JOB 2: Deploy Web Files (Forced & Path Corrected)
   deploy-web:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Smart Check: Did files in /web change?
-      - name: Check for Web Changes
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            web:
-              - 'web/**'
-
-      # Deploy directly to your website repository using the security token
-      - name: Pushing Web Assets to Personal Website Repo
-        if: steps.filter.outputs.web == 'true'
+      - name: Pushing Web Assets to Website Repo
         uses: cpina/github-action-push-to-another-repository@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.WEB_DEPLOY_TOKEN }}
@@ -59,7 +48,8 @@ jobs:
           source-directory: 'web'
           destination-github-username: 'sanbeiji'
           destination-repository-name: 'sanbeiji.github.io'
-          target-directory: 'lotus-pond'
+          # UPDATED: Pointing exactly to your docs/lotus folder
+          target-directory: 'docs/lotus'
           user-email: '30529+sanbeiji@users.noreply.github.com'
           target-branch: 'main'
 
@@ -71,15 +61,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Download the APK generated in Job 1 (if it exists)
       - name: Download APK Artifact
         uses: actions/download-artifact@v4
         with:
           name: lotus-pond-apk
           path: ./downloaded-apk
-        continue-on-error: true # Safe fail if Android wasn't built
+        continue-on-error: true
 
-      # Creates the release, groups the notes, and attaches the APK binary
       - name: Create Official GitHub Release
         uses: softprops/action-gh-release@v2
         with:
