@@ -87,7 +87,8 @@ const elements = {
     closeHistoryBtn: document.getElementById('close-history'),
     
     aboutBtn: document.getElementById('about-btn'),
-    headerAboutBtn: document.getElementById('header-about-btn'),
+    aboutCardBox: document.getElementById('about-card-box'),
+    showAboutBtnMobile: document.getElementById('show-about-btn-mobile'),
     aboutModal: document.getElementById('about-modal'),
     closeAboutBtn: document.getElementById('close-about')
 };
@@ -366,7 +367,18 @@ function setupEventListeners() {
         elements.aboutModal.hidden = false;
     });
 
-    elements.headerAboutBtn?.addEventListener('click', () => {
+    elements.aboutCardBox?.addEventListener('click', () => {
+        elements.aboutModal.hidden = false;
+    });
+
+    elements.aboutCardBox?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            elements.aboutModal.hidden = false;
+        }
+    });
+
+    elements.showAboutBtnMobile?.addEventListener('click', () => {
         elements.aboutModal.hidden = false;
     });
     

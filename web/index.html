@@ -20,7 +20,6 @@
 <body>
   <header>
     <div class="header-inner">
-      <button id="header-about-btn" class="header-about-btn">About</button>
       <h1>🪷 Lotus Pond Reader</h1>
       <p class="header-subtitle">
         蓮池故事機 (liánchí gùshìjī) · Gemini-powered Taiwanese Mandarin story generator
@@ -29,85 +28,97 @@
   </header>
 
   <main>
-    <!-- Settings section -->
-    <section class="card settings-card" aria-labelledby="settings-heading">
-      <div class="settings-header">
-        <h2 id="settings-heading">Global settings</h2>
-        <button id="toggle-settings" class="btn-icon" aria-label="Toggle settings" data-tooltip="Edit global settings"><span>⚙️</span></button>
-      </div>
-      <div id="settings-content" hidden>
-        <div class="form-group">
-          <label for="api-key">Gemini API key <span class="required">*</span></label>
-          <div class="api-key-container">
-            <input 
-              type="password" 
-              id="api-key" 
-              placeholder="Enter your Google AI Studio API key"
-            >
-            <button type="button" id="clear-api-key" class="btn-text-only" title="Delete key from storage">Clear</button>
-          </div>
-          <div class="storage-option">
-            <label class="toggle-switch">
-              <input type="checkbox" id="persist-key" checked>
-              <span>Remember key on this device</span>
-            </label>
-          </div>
-          <div class="security-info">
-            <small>
-              <strong>Security Note:</strong> 
-              If "Remember key" is enabled, your key is stored in your browser's <code>localStorage</code>. 
-              While convenient, this can be vulnerable if your device is shared or if a malicious script (XSS) 
-              runs on this page. If disabled, the key is kept only in <code>sessionStorage</code> and is 
-              wiped when you close this tab.
-            </small>
-            <br>
-            <small><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Get a Gemini API key</a></small>
-          </div>
-          </div>
-        <div class="form-group">
-          <label for="model-select">Gemini model</label>
-          <select id="model-select">
-            <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite</option>
-            <option value="gemini-2.5-pro">gemini-2.5-pro (Best for long stories)</option>
-            <option value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Pronunciation style</label>
-          <div class="toggle-group">
-            <input type="radio" id="pinyin-toggle" name="pronunciation" value="pinyin" checked>
-            <label for="pinyin-toggle">Pinyin</label>
-            <input type="radio" id="zhuyin-toggle" name="pronunciation" value="zhuyin">
-            <label for="zhuyin-toggle">Zhuyin</label>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="theme-select">App theme</label>
-          <select id="theme-select">
-            <option value="system" selected>System default</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <!-- History section (Mobile view) -->
-    <div class="history-mobile-toggle">
-        <button id="show-history-btn" class="btn-secondary">📜 View history</button>
+    <!-- Mobile toggle buttons -->
+    <div class="mobile-navigation-row">
+        <button id="show-about-btn-mobile" class="btn-secondary">ℹ️ About</button>
+        <button id="show-history-btn" class="btn-secondary">📜 History</button>
     </div>
 
     <div class="main-layout">
-      <!-- Sidebar History (Desktop) -->
-      <aside class="history-sidebar card">
-        <h3>History</h3>
-        <div id="history-list" class="history-list">
-          <p class="empty-msg">No stories yet.</p>
+      <!-- Sidebar (Desktop) -->
+      <aside class="desktop-sidebar">
+        <!-- About box -->
+        <section id="about-card-box" class="card about-card" aria-labelledby="about-heading" role="button" tabindex="0">
+          <div class="about-card-header">
+            <h2 id="about-heading">About</h2>
+            <div class="about-icon"><span>ℹ️</span></div>
+          </div>
+        </section>
+
+        <!-- History box -->
+        <div class="history-sidebar card">
+          <h3>History</h3>
+          <div id="history-list" class="history-list">
+            <p class="empty-msg">No stories yet.</p>
+          </div>
+          <button id="clear-history" class="btn-text-only">Clear all</button>
         </div>
-        <button id="clear-history" class="btn-text-only">Clear all</button>
       </aside>
 
       <div class="content-area">
+        <!-- Settings section -->
+        <section class="card settings-card" aria-labelledby="settings-heading">
+          <div class="settings-header">
+            <h2 id="settings-heading">Global settings</h2>
+            <button id="toggle-settings" class="btn-icon" aria-label="Toggle settings" data-tooltip="Edit global settings"><span>⚙️</span></button>
+          </div>
+          <div id="settings-content" hidden>
+            <div class="form-group">
+              <label for="api-key">Gemini API key <span class="required">*</span></label>
+              <div class="api-key-container">
+                <input 
+                  type="password" 
+                  id="api-key" 
+                  placeholder="Enter your Google AI Studio API key"
+                >
+                <button type="button" id="clear-api-key" class="btn-text-only" title="Delete key from storage">Clear</button>
+              </div>
+              <div class="storage-option">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="persist-key" checked>
+                  <span>Remember key on this device</span>
+                </label>
+              </div>
+              <div class="security-info">
+                <small>
+                  <strong>Security Note:</strong> 
+                  If "Remember key" is enabled, your key is stored in your browser's <code>localStorage</code>. 
+                  While convenient, this can be vulnerable if your device is shared or if a malicious script (XSS) 
+                  runs on this page. If disabled, the key is kept only in <code>sessionStorage</code> and is 
+                  wiped when you close this tab.
+                </small>
+                <br>
+                <small><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Get a Gemini API key</a></small>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="model-select">Gemini model</label>
+              <select id="model-select">
+                <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite</option>
+                <option value="gemini-2.5-pro">gemini-2.5-pro (Best for long stories)</option>
+                <option value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Pronunciation style</label>
+              <div class="toggle-group">
+                <input type="radio" id="pinyin-toggle" name="pronunciation" value="pinyin" checked>
+                <label for="pinyin-toggle">Pinyin</label>
+                <input type="radio" id="zhuyin-toggle" name="pronunciation" value="zhuyin">
+                <label for="zhuyin-toggle">Zhuyin</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="theme-select">App theme</label>
+              <select id="theme-select">
+                <option value="system" selected>System default</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
         <!-- Input form -->
         <section class="card" aria-labelledby="generator-heading">
           <h2 id="generator-heading">Generate a story</h2>
