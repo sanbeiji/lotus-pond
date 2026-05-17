@@ -18,7 +18,7 @@ The key is completely free for individual developer use within standard rate lim
 
 ### 🌐 Web version
 The latest web version is always available and up-to-date at:
-**[https://sanbeiji.github.io/lotus/](https://sanbeiji.github.io/lotus/)**
+**[https://sanbeiji.com/lotus/](https://sanbeiji.com/lotus/)**
 
 ### 📱 Android app
 Install the standalone Android application for a dedicated mobile experience:
