@@ -735,7 +735,7 @@ function addToHistory(storyData, skillLevel) {
     };
     
     state.history.unshift(historyItem);
-    if (state.history.length > 10) {
+    if (state.history.length > 20) {
         state.history.pop();
     }
     
