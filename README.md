@@ -8,7 +8,13 @@ Lotus Pond Reader is an AI-powered tool that uses the Google Gemini API to gener
 
 The name is inspired by the **Lotus Pond (蓮池潭)** in Kaohsiung, Taiwan—a place famous for its temples, pagodas, and vibrant traditional culture. This app aims to provide a similarly immersive experience for mastering the beauty of Taiwanese Mandarin.
 
-## 📥 Access & Download
+## 🚀 Try It Out
+
+### 🔑 Mandatory API Key
+Lotus Pond Reader operates entirely client-side and **requires your own Gemini API key** to generate stories. 
+* 🔗 **[Get your free Gemini API key from Google AI Studio](https://aistudio.google.com/app/apikey)**. 
+
+The key is completely free for individual developer use within standard rate limits. Once open (Web or Android), click the **Settings (⚙️)** icon to securely save your key locally on your device.
 
 ### 🌐 Web Version
 The latest web version is always available and up-to-date at:
@@ -38,20 +44,13 @@ Install the standalone Android application for a dedicated mobile experience:
 
 ---
 
-## 🚀 Setup & Getting Started
+## 🛠️ Building & Running Locally
 
-### 🔑 Mandatory API Key
-Lotus Pond Reader operates entirely client-side and **requires your own Gemini API key** to generate stories. 
-* 🔗 **[Get your free Gemini API key from Google AI Studio](https://aistudio.google.com/app/apikey)**. 
+### 🖥️ Web Development
+1. Open `web/index.html` directly in any modern browser, or launch a simple local development server (e.g., `python3 -m http.server 8081`).
+2. All logic is self-contained in `web/script.js` with zero build steps or package managers required.
 
-The key is completely free for individual developer use within standard rate limits.
-
-### 🖥️ Web Version
-1. Open `web/index.html` in any modern browser, or visit the [hosted version](https://sanbeiji.github.io/lotus/).
-2. Click the **Settings (⚙️)** icon and enter your Gemini API Key.
-3. Your key is stored locally in your browser's `localStorage`.
-
-### 🤖 Android Version
+### 🤖 Android App Development
 1. Build the project using [Android Studio](https://developer.android.com/studio) or the [Android CLI](https://developer.android.com/tools/agents).
     - Requires **Android Studio Ladybug** or newer.
     - **Min SDK**: 31 (Android 12)
