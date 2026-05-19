@@ -382,7 +382,7 @@ fun MainNavigation(
                     }
                     val story = lastStory
                     if (story != null) {
-                        val termsList = requiredTerms.split("[,，]".toRegex()).map { it.trim() }.filter { it.isNotEmpty() }
+                        val termsList = story.requiredTerms.split("[,，]".toRegex()).map { it.trim() }.filter { it.isNotEmpty() }
                         var showBottomSheet by remember { mutableStateOf(false) }
                         
                         @OptIn(ExperimentalMaterial3Api::class)

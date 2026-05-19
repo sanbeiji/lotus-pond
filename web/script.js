@@ -427,6 +427,7 @@ async function handleGenerate(e) {
         const prompt = buildPrompt(plot, skillLevel, length, requiredTerms);
         const result = await callGemini(prompt);
         const storyData = parseResponse(result);
+        storyData.requiredTerms = requiredTerms;
         
         lastStoryData = storyData;
         renderStory(storyData);
@@ -605,7 +606,8 @@ function renderStory(storyData) {
     elements.storyHeading.textContent = storyData.title;
     elements.storyContent.innerHTML = '';
     
-    const requiredTerms = elements.requiredTermsInput.value.split(/[ ,，]+/).filter(t => t.length > 0);
+    const requiredTermsStr = storyData.requiredTerms || '';
+    const requiredTerms = requiredTermsStr.split(/[ ,，]+/).filter(t => t.length > 0);
     
     storyData.sentences.forEach((s, index) => {
         const block = document.createElement('div');

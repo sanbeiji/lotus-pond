@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class StoryResponse(
     val title: String,
-    val sentences: List<Sentence>
+    val sentences: List<Sentence>,
+    val requiredTerms: String = ""
 )
 
 @Serializable

@@ -57,7 +57,8 @@ class StoryRepository {
         val responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
             ?: throw Exception("No content returned from Gemini API")
 
-        return parseResponse(responseText, pronunciation)
+        val parsedStory = parseResponse(responseText, pronunciation)
+        return parsedStory.copy(requiredTerms = requiredTerms)
     }
 
     private fun parseResponse(text: String, pronunciationField: String): StoryResponse {
