@@ -104,7 +104,7 @@ All web logic is contained within `/web/script.js` and styling is in `/web/style
 
 ## 💬 Feedback and issues
 
-Have feedback, discovered a bug, or want to suggest a feature? We welcome your input! Please open an issue using the **[GitHub Issues](https://github.com/sanbeiji/lotus-pond/issues)** tracker.
+Have feedback, discovered a bug, or want to suggest a feature? I welcome your input! Please open an issue using the **[GitHub Issues](https://github.com/sanbeiji/lotus-pond/issues)** tracker.
 
 ---
 
