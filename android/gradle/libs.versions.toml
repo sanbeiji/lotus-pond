@@ -18,7 +18,7 @@ securityCrypto = "1.1.0-alpha06"
 dataStore = "1.1.1"
 serializationJson = "1.6.3"
 ksp = "2.0.20-1.0.25"
-ktor = "2.3.12"
+ktor = "3.4.3"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
