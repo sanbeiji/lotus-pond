@@ -35,7 +35,8 @@ data class GeminiResponse(
 
 @Serializable
 data class Candidate(
-    val content: Content
+    val content: Content? = null,
+    val finishReason: String? = null
 )
 
 @Serializable

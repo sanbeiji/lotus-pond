@@ -19,4 +19,7 @@ interface StoryDao {
 
     @Query("DELETE FROM history_items")
     suspend fun clearHistory(): Int
+
+    @androidx.room.Update
+    suspend fun updateStory(story: StoryEntity): Int
 }

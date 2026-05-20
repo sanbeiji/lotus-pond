@@ -76,11 +76,9 @@ fun MainNavigation(
     // Handle navigation when generation succeeds
     LaunchedEffect(uiState) {
         if (uiState is StoryUiState.Success) {
-            // Push the reader onto the backstack. Since we are using standard Compose navigation3,
-            // we use the enum or data class key.
-            backStack.add(StoryReader)
-            // We do NOT reset the UI state here immediately because the StoryReader will display it.
-            // If we reset it, the story disappears from the screen!
+            if (backStack.lastOrNull() != StoryReader) {
+                backStack.add(StoryReader)
+            }
         }
     }
 
@@ -362,7 +360,7 @@ fun MainNavigation(
                     HistoryScreen(
                         history = historyList,
                         onStoryClick = { storyEntity ->
-                            viewModel.loadStoryFromHistory(storyEntity.storyData)
+                            viewModel.loadStoryFromHistory(storyEntity)
                         },
                         onClearHistory = { viewModel.clearHistory() },
                         modifier = Modifier.padding(innerPadding)
@@ -384,6 +382,20 @@ fun MainNavigation(
                     if (story != null) {
                         val termsList = story.requiredTerms.split("[,，]".toRegex()).map { it.trim() }.filter { it.isNotEmpty() }
                         var showBottomSheet by remember { mutableStateOf(false) }
+                        val activeFetches by viewModel.activeFetches.collectAsState()
+                        val errorEvent by viewModel.errorEvent.collectAsState()
+                        val snackbarHostState = remember { SnackbarHostState() }
+
+                        LaunchedEffect(errorEvent) {
+                            errorEvent?.let {
+                                snackbarHostState.showSnackbar(
+                                    message = it,
+                                    actionLabel = "OK",
+                                    duration = SnackbarDuration.Long
+                                )
+                                viewModel.clearErrorEvent()
+                            }
+                        }
                         
                         @OptIn(ExperimentalMaterial3Api::class)
                         if (showBottomSheet) {
@@ -401,10 +413,30 @@ fun MainNavigation(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                                     ) {
-                                        Text("Show pronunciation")
+                                        Text("Show Pinyin")
                                         Switch(
-                                            checked = userSettings.showPronunciation,
-                                            onCheckedChange = { viewModel.updateSettings(userSettings.copy(showPronunciation = it)) }
+                                            checked = userSettings.showPinyin,
+                                            enabled = !activeFetches.contains("pinyin"),
+                                            onCheckedChange = { 
+                                                viewModel.updateSettings(userSettings.copy(showPinyin = it))
+                                                if (it) viewModel.checkAndFetchMissing("pinyin")
+                                            }
+                                        )
+                                    }
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                    ) {
+                                        Text("Show Zhuyin")
+                                        Switch(
+                                            checked = userSettings.showZhuyin,
+                                            enabled = !activeFetches.contains("zhuyin"),
+                                            onCheckedChange = { 
+                                                viewModel.updateSettings(userSettings.copy(showZhuyin = it))
+                                                if (it) viewModel.checkAndFetchMissing("zhuyin")
+                                            }
                                         )
                                     }
 
@@ -416,7 +448,11 @@ fun MainNavigation(
                                         Text("Show English translation")
                                         Switch(
                                             checked = userSettings.showTranslation,
-                                            onCheckedChange = { viewModel.updateSettings(userSettings.copy(showTranslation = it)) }
+                                            enabled = !activeFetches.contains("english"),
+                                            onCheckedChange = { 
+                                                viewModel.updateSettings(userSettings.copy(showTranslation = it))
+                                                if (it) viewModel.checkAndFetchMissing("english")
+                                            }
                                         )
                                     }
 
@@ -502,6 +538,7 @@ fun MainNavigation(
                         }
 
                         Scaffold(
+                            snackbarHost = { SnackbarHost(snackbarHostState) },
                             topBar = {
                                 @OptIn(ExperimentalMaterial3Api::class)
                                 TopAppBar(
@@ -536,8 +573,8 @@ fun MainNavigation(
                         ) { innerReaderPadding ->
                             StoryView(
                                 story = story,
-                                showPronunciation = userSettings.showPronunciation,
-                                pronunciationType = userSettings.pronunciation,
+                                showPinyin = userSettings.showPinyin,
+                                showZhuyin = userSettings.showZhuyin,
                                 showTranslation = userSettings.showTranslation,
                                 studyMode = userSettings.studyMode,
                                 fontSizePreference = userSettings.fontSizePreference,

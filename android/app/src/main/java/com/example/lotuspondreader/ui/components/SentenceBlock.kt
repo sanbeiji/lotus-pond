@@ -33,8 +33,8 @@ import com.example.lotuspondreader.models.Sentence
 @Composable
 fun SentenceBlock(
     sentence: Sentence,
-    showPronunciation: Boolean,
-    pronunciationType: String, // "pinyin" or "zhuyin"
+    showPinyin: Boolean,
+    showZhuyin: Boolean,
     showTranslation: Boolean,
     studyMode: Boolean,
     fontSizePreference: String,
@@ -148,28 +148,71 @@ fun SentenceBlock(
                 }
             }
             
-            // Pronunciation
-            if (showPronunciation) {
-                val pronText = if (pronunciationType == "zhuyin") sentence.zhuyin else sentence.pinyin
-                if (!pronText.isNullOrEmpty()) {
+            // Pinyin
+            if (showPinyin) {
+                val pinyinText = sentence.pinyin
+                if (pinyinText != null) {
                     Text(
-                        text = pronText,
+                        text = pinyinText,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
+                            fontSize = pinyinFontSize,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+                } else {
+                    Text(
+                        text = "Loading...",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
+                            fontSize = pinyinFontSize
+                        ),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            // Zhuyin
+            if (showZhuyin) {
+                val zhuyinText = sentence.zhuyin
+                if (zhuyinText != null) {
+                    Text(
+                        text = zhuyinText,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
                             fontSize = pinyinFontSize
                         ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     )
+                } else {
+                    Text(
+                        text = "Loading...",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
+                            fontSize = pinyinFontSize
+                        ),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
             
             // English Translation
             if (showTranslation) {
-                Text(
-                    text = sentence.english,
-                    style = englishStyle,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                val englishText = sentence.english
+                if (englishText != null) {
+                    Text(
+                        text = englishText,
+                        style = englishStyle,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = "Loading...",
+                        style = englishStyle,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }

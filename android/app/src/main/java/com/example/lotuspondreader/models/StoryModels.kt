@@ -14,7 +14,7 @@ data class Sentence(
     val mandarin: String,
     val pinyin: String? = null,
     val zhuyin: String? = null,
-    val english: String
+    val english: String? = null
 )
 
 @Serializable
@@ -29,10 +29,10 @@ data class HistoryItem(
 data class UserSettings(
     val apiKey: String = "",
     val selectedModel: String = "gemini-2.5-flash-lite",
-    val pronunciation: String = "pinyin", // "pinyin" or "zhuyin"
+    val showPinyin: Boolean = true,
+    val showZhuyin: Boolean = false,
     val studyMode: Boolean = true,
     val showTranslation: Boolean = true,
-    val showPronunciation: Boolean = true,
     val themePreference: String = "system", // "system", "light", "dark"
     val useDynamicColor: Boolean = false,
     val fontSizePreference: String = "small", // "small", "medium", "large"

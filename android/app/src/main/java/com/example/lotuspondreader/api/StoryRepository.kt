@@ -14,6 +14,9 @@ import kotlinx.serialization.json.Json
 import kotlin.math.ceil
 import kotlin.math.max
 
+@kotlinx.serialization.Serializable
+private data class DynamicFetchResult(val result: List<String>)
+
 class StoryRepository {
 
     private val jsonConfig = Json {
@@ -22,6 +25,13 @@ class StoryRepository {
     }
 
     private val client = HttpClient(OkHttp) {
+        engine {
+            config {
+                connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            }
+        }
         install(ContentNegotiation) {
             json(jsonConfig)
         }
@@ -33,10 +43,9 @@ class StoryRepository {
         plot: String,
         skillLevel: String,
         length: Int,
-        requiredTerms: String,
-        pronunciation: String
+        requiredTerms: String
     ): StoryResponse {
-        val prompt = buildPrompt(plot, skillLevel, length, requiredTerms, pronunciation)
+        val prompt = buildPrompt(plot, skillLevel, length, requiredTerms)
         
         val requestBody = GeminiRequest(
             contents = listOf(Content(parts = listOf(Part(text = prompt)))),
@@ -57,11 +66,60 @@ class StoryRepository {
         val responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
             ?: throw Exception("No content returned from Gemini API")
 
-        val parsedStory = parseResponse(responseText, pronunciation)
+        val parsedStory = parseResponse(responseText)
         return parsedStory.copy(requiredTerms = requiredTerms)
     }
 
-    private fun parseResponse(text: String, pronunciationField: String): StoryResponse {
+    suspend fun fetchDynamicContent(
+        apiKey: String,
+        model: String,
+        type: String,
+        sentences: List<String>
+    ): List<String> {
+        val prompt = when (type) {
+            "pinyin" -> "Generate Pinyin pronunciation (Taiwanese style, e.g. '和' as 'hàn') for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a \"result\" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${sentences.joinToString(";")}"
+            "zhuyin" -> "Generate Zhuyin/Bopomofo pronunciation for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a \"result\" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${sentences.joinToString(";")}"
+            else -> "Generate natural English translations for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a \"result\" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${sentences.joinToString(";")}"
+        }
+
+        val requestBody = GeminiRequest(
+            contents = listOf(Content(parts = listOf(Part(text = prompt)))),
+            generationConfig = GenerationConfig()
+        )
+
+        val url = "https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}"
+        
+        val response: GeminiResponse = client.post(url) {
+            contentType(ContentType.Application.Json)
+            setBody(requestBody)
+        }.body()
+
+        if (response.error != null) {
+            throw Exception(response.error.message)
+        }
+
+        val responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            ?: throw Exception("No content returned from Gemini API")
+
+        val cleanedText = responseText.replace("```json", "").replace("```", "").trim()
+        val start = cleanedText.indexOf('{')
+        val end = cleanedText.lastIndexOf('}')
+        if (start != -1 && end != -1 && end > start) {
+            val cleanJson = cleanedText.substring(start, end + 1)
+            try {
+                val res: DynamicFetchResult = jsonConfig.decodeFromString(cleanJson)
+                if (res.result.size != sentences.size) {
+                    throw Exception("Length mismatch in dynamic content fetch")
+                }
+                return res.result
+            } catch (e: Exception) {
+                throw Exception("Failed to parse dynamic content response: ${e.message}")
+            }
+        }
+        throw Exception("Invalid response structure from Gemini API")
+    }
+
+    private fun parseResponse(text: String): StoryResponse {
         try {
             // 1. Try clean parse
             val start = text.indexOf('{')
@@ -71,25 +129,16 @@ class StoryRepository {
                 try {
                     return jsonConfig.decodeFromString(cleanJson)
                 } catch (e: Exception) {
-                    // Fallthrough to recovery
                 }
             }
 
-            // 2. Recovery mode using robust Regex for incomplete JSON
-            val sentenceRegex = Regex("""\{\s*"mandarin"\s*:\s*"(.*?)"\s*,\s*"$pronunciationField"\s*:\s*"(.*?)"\s*,\s*"english"\s*:\s*"(.*?)"\s*\}""", RegexOption.DOT_MATCHES_ALL)
+            // 2. Recovery mode
+            val sentenceRegex = Regex("""\{\s*"mandarin"\s*:\s*"(.*?)"\s*\}""", RegexOption.DOT_MATCHES_ALL)
             val sentences = mutableListOf<com.example.lotuspondreader.models.Sentence>()
             
             sentenceRegex.findAll(text).forEach { matchResult ->
                 val mandarin = matchResult.groupValues[1].replace("\\\"", "\"").replace("\\n", "\n")
-                val pron = matchResult.groupValues[2].replace("\\\"", "\"").replace("\\n", "\n")
-                val english = matchResult.groupValues[3].replace("\\\"", "\"").replace("\\n", "\n")
-                
-                val sentence = if (pronunciationField == "zhuyin") {
-                    com.example.lotuspondreader.models.Sentence(mandarin = mandarin, zhuyin = pron, english = english)
-                } else {
-                    com.example.lotuspondreader.models.Sentence(mandarin = mandarin, pinyin = pron, english = english)
-                }
-                sentences.add(sentence)
+                sentences.add(com.example.lotuspondreader.models.Sentence(mandarin = mandarin))
             }
 
             if (sentences.isNotEmpty()) {
@@ -107,8 +156,7 @@ class StoryRepository {
         plot: String,
         skillLevel: String,
         length: Int,
-        requiredTerms: String,
-        pronunciation: String
+        requiredTerms: String
     ): String {
         val levelGuide = """
             SKILL LEVEL DEFINITIONS (TOCFL BANDS):
@@ -135,9 +183,6 @@ class StoryRepository {
         val lengthPriority = if (length > 1000) "ABSOLUTE HIGHEST priority" else "important target"
         val lengthAdjective = if (length > 1000) "AT LEAST" else "approximately"
 
-        val pronLabel = if (pronunciation == "zhuyin") "zhuyin" else "pinyin"
-        val pronInstruction = if (pronunciation == "zhuyin") "Zhuyin/Bopomofo pronunciation here" else "Pinyin pronunciation here (Taiwanese style, e.g. 'hàn')"
-
         return """
             You are teaching Mandarin to an English speaker. Generate a story in Mandarin to be used for the purposes of learning to read, write, and speak Mandarin. 
 
@@ -146,16 +191,13 @@ class StoryRepository {
             CRITICAL LINGUISTIC REQUIREMENTS:
             1. TRADITIONAL CHARACTERS: Use traditional Mandarin characters only.
             2. TAIWANESE STYLE: Use grammar, slang, and idioms common to Taiwan (e.g., use 影片 instead of 視頻, 捷運 instead of 地鐵, 腳踏車 instead of 自行車).
-            3. TAIWANESE PRONUNCIATION: The ${pronunciation.uppercase()} MUST reflect local Taiwanese pronunciation. 
-               - CRUCIAL: '和' must be pronounced 'hàn' (not 'hé').
-               - Use other Taiwanese variations where applicable (e.g., 垃圾 as 'lèsè').
-            4. CULTURAL & GEOGRAPHICAL BREADTH: Explore the full diversity of Taiwan. Do not over-rely on Taipei or common tropes. 
+            3. CULTURAL & GEOGRAPHICAL BREADTH: Explore the full diversity of Taiwan. Do not over-rely on Taipei or common tropes. 
                - GEOGRAPHY: Vary the settings across different cities (e.g., Taichung, Tainan, Hualien, Keelung), counties (e.g., Yilan, Pingtung, Nantou), and landscapes (high mountain tea farms, coastal fishing villages, bustling night markets, quiet rural towns).
                - CULTURE: Incorporate a wide range of Taiwanese life, such as temple festivals, traditional arts (like glove puppetry), tea ceremonies, hiking culture, family dynamics, local snacks (小吃), and historical landmarks.
                - SOCIAL NORMS: Reflect authentic Taiwanese social etiquette and daily interactions.
-            5. SKILL LEVEL: Adhere strictly to the $skillLevel level requirements defined above.
-            6. VOCABULARY INTEGRATION: If specific vocabulary terms are provided ("$requiredTerms"), you MUST include EVERY term at least TWICE in the story. Ensure they are used naturally but frequently enough for the reader to practice them. Integrate them into both narrative and dialogue where appropriate.
-            7. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
+            4. SKILL LEVEL: Adhere strictly to the $skillLevel level requirements defined above.
+            5. VOCABULARY INTEGRATION: If specific vocabulary terms are provided ("$requiredTerms"), you MUST include EVERY term at least TWICE in the story. Ensure they are used naturally but frequently enough for the reader to practice them. Integrate them into both narrative and dialogue where appropriate.
+            6. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
 
             OUTPUT FORMAT:
             You must return a valid JSON object with NO OTHER TEXT before or after the JSON. DO NOT include markdown code blocks.
@@ -164,9 +206,7 @@ class StoryRepository {
               "title": "Story Title in Traditional Mandarin",
               "sentences": [
                 {
-                  "mandarin": "Mandarin sentence here",
-                  "$pronLabel": "$pronInstruction",
-                  "english": "Natural English translation here"
+                  "mandarin": "Mandarin sentence here"
                 }
               ]
             }

@@ -100,15 +100,6 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Pronunciation style</label>
-              <div class="toggle-group">
-                <input type="radio" id="pinyin-toggle" name="pronunciation" value="pinyin" checked>
-                <label for="pinyin-toggle">Pinyin</label>
-                <input type="radio" id="zhuyin-toggle" name="pronunciation" value="zhuyin">
-                <label for="zhuyin-toggle">Zhuyin</label>
-              </div>
-            </div>
-            <div class="form-group">
               <label for="theme-select">App theme</label>
               <select id="theme-select">
                 <option value="system" selected>System default</option>
@@ -213,8 +204,12 @@
                     <label for="study-mode">Highlight required vocabulary</label>
                   </div>
                   <div class="toggle-switch">
-                    <input type="checkbox" id="show-pronunciation" checked>
-                    <label for="show-pronunciation">Show pronunciation</label>
+                    <input type="checkbox" id="show-pinyin" checked>
+                    <label for="show-pinyin">Show Pinyin</label>
+                  </div>
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="show-zhuyin">
+                    <label for="show-zhuyin">Show Zhuyin</label>
                   </div>
                   <div class="font-size-controls">
                     <label>Font size:</label>
@@ -302,6 +297,9 @@
           </div>
       </div>
   </div>
+
+  <!-- Toast message -->
+  <div id="toast" class="toast" hidden></div>
 
   <script src="script.js"></script>
 </body>
