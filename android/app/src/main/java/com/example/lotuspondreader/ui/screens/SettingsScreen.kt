@@ -74,26 +74,6 @@ fun SettingsScreen(
             }
         }
 
-        Text("Pronunciation style", style = MaterialTheme.typography.titleMedium)
-        
-        val pronOptions = listOf("pinyin", "zhuyin")
-        val pronLabels = listOf("Pinyin", "Zhuyin")
-        
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            pronOptions.forEachIndexed { index, option ->
-                SegmentedButton(
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = pronOptions.size),
-                    onClick = { onSettingsChanged(settings.copy(pronunciation = option)) },
-                    selected = settings.pronunciation == option,
-                    icon = { SegmentedButtonDefaults.Icon(active = settings.pronunciation == option) }
-                ) {
-                    Text(pronLabels[index])
-                }
-            }
-        }
-
         HorizontalDivider()
 
         Text("App theme", style = MaterialTheme.typography.titleMedium)

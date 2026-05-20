@@ -703,11 +703,29 @@ input.invalid {
     line-height: 1.6;
 }
 
-.pronunciation {
+.pronunciation, .pinyin-text, .zhuyin-text {
     font-size: 0.8rem;
     color: var(--text-muted);
     font-style: italic;
     margin-top: 0.25rem;
+}
+
+.zhuyin-text {
+    font-style: normal;
+}
+
+.inline-loading {
+    font-size: 0.8rem;
+    color: var(--primary);
+    font-weight: 500;
+    margin-top: 0.25rem;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
 }
 
 .english-translation {
@@ -717,7 +735,7 @@ input.invalid {
     line-height: 1.5;
 }
 
-.english-translation[hidden] {
+.english-translation[hidden], .pinyin-text[hidden], .zhuyin-text[hidden], .inline-loading[hidden] {
     display: none;
 }
 
@@ -735,7 +753,7 @@ input.invalid {
     line-height: 1.6;
 }
 
-.story-content.font-size-medium .pronunciation {
+.story-content.font-size-medium .pronunciation, .story-content.font-size-medium .pinyin-text, .story-content.font-size-medium .zhuyin-text {
     font-size: 1rem;
 }
 
@@ -757,7 +775,7 @@ input.invalid {
     line-height: 1.7;
 }
 
-.story-content.font-size-large .pronunciation {
+.story-content.font-size-large .pronunciation, .story-content.font-size-large .pinyin-text, .story-content.font-size-large .zhuyin-text {
     font-size: 1.2rem;
 }
 
@@ -854,6 +872,33 @@ footer a {
 
 footer a:hover {
     color: var(--primary);
+}
+
+/* ─── Toast Notification ─────────────────────────────────────── */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-dark);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    font-size: 0.9rem;
+    font-weight: 600;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+.toast[hidden] {
+    display: none;
 }
 
 /* ─── Responsive ─────────────────────────────────────────────── */

@@ -33,6 +33,12 @@ class StoryViewModel(
     private val _uiState = MutableStateFlow<StoryUiState>(StoryUiState.Idle)
     val uiState: StateFlow<StoryUiState> = _uiState.asStateFlow()
 
+    private val _activeFetches = MutableStateFlow<Set<String>>(emptySet())
+    val activeFetches: StateFlow<Set<String>> = _activeFetches.asStateFlow()
+
+    private val _errorEvent = MutableStateFlow<String?>(null)
+    val errorEvent: StateFlow<String?> = _errorEvent.asStateFlow()
+
     val userSettings = settingsRepository.userSettingsFlow
     val history = storyDao.getAllHistory()
 
@@ -41,8 +47,14 @@ class StoryViewModel(
     val length = MutableStateFlow("300")
     val requiredTerms = MutableStateFlow("")
 
+    private var currentEntity: StoryEntity? = null
+
     fun resetUiState() {
         _uiState.value = StoryUiState.Idle
+    }
+
+    fun clearErrorEvent() {
+        _errorEvent.value = null
     }
 
     fun updateSettings(settings: UserSettings) {
@@ -51,8 +63,9 @@ class StoryViewModel(
         }
     }
 
-    fun loadStoryFromHistory(story: StoryResponse) {
-        _uiState.value = StoryUiState.Success(story)
+    fun loadStoryFromHistory(storyEntity: StoryEntity) {
+        currentEntity = storyEntity
+        _uiState.value = StoryUiState.Success(storyEntity.storyData)
     }
 
     fun generateStory(
@@ -76,26 +89,89 @@ class StoryViewModel(
                     plot = plot,
                     skillLevel = skillLevel,
                     length = length,
-                    requiredTerms = requiredTerms,
-                    pronunciation = currentSettings.pronunciation
+                    requiredTerms = requiredTerms
                 )
 
                 _uiState.value = StoryUiState.Success(response)
 
-                // Save to history
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
                 val currentDate = dateFormat.format(Date())
 
-                storyDao.insertStory(
-                    StoryEntity(
-                        title = response.title,
-                        storyData = response,
-                        date = currentDate,
-                        level = skillLevel
-                    )
+                val newEntity = StoryEntity(
+                    title = response.title,
+                    storyData = response,
+                    date = currentDate,
+                    level = skillLevel
                 )
+                val insertedId = storyDao.insertStory(newEntity)
+                currentEntity = newEntity.copy(id = insertedId)
+
+                if (currentSettings.showPinyin) checkAndFetchMissing("pinyin")
+                if (currentSettings.showZhuyin) checkAndFetchMissing("zhuyin")
+                if (currentSettings.showTranslation) checkAndFetchMissing("english")
             } catch (e: Exception) {
                 _uiState.value = StoryUiState.Error(e.message ?: "An unexpected error occurred")
+            }
+        }
+    }
+
+    fun checkAndFetchMissing(type: String) {
+        val currentState = _uiState.value
+        if (currentState !is StoryUiState.Success) return
+        val story = currentState.story
+
+        val isMissing = story.sentences.any {
+            when (type) {
+                "pinyin" -> it.pinyin.isNullOrEmpty()
+                "zhuyin" -> it.zhuyin.isNullOrEmpty()
+                else -> it.english.isNullOrEmpty()
+            }
+        }
+        if (!isMissing) return
+
+        viewModelScope.launch {
+            val currentSettings = userSettings.first()
+            if (currentSettings.apiKey.isBlank()) return@launch
+
+            _activeFetches.value = _activeFetches.value + type
+            try {
+                val sentencesList = story.sentences.map { it.mandarin }
+                val fetched = storyRepository.fetchDynamicContent(
+                    apiKey = currentSettings.apiKey,
+                    model = currentSettings.selectedModel,
+                    type = type,
+                    sentences = sentencesList
+                )
+
+                val latestState = _uiState.value
+                if (latestState is StoryUiState.Success) {
+                    val currentStory = latestState.story
+                    val updatedSentences = currentStory.sentences.mapIndexed { index, sentence ->
+                        when (type) {
+                            "pinyin" -> sentence.copy(pinyin = fetched[index])
+                            "zhuyin" -> sentence.copy(zhuyin = fetched[index])
+                            else -> sentence.copy(english = fetched[index])
+                        }
+                    }
+                    val updatedStory = currentStory.copy(sentences = updatedSentences)
+                    _uiState.value = StoryUiState.Success(updatedStory)
+
+                    currentEntity?.let { entity ->
+                        val updatedEntity = entity.copy(storyData = updatedStory)
+                        storyDao.updateStory(updatedEntity)
+                        currentEntity = updatedEntity
+                    }
+                }
+            } catch (e: Exception) {
+                _errorEvent.value = "Failed to load $type: ${e.message}"
+                val revertedSettings = when (type) {
+                    "pinyin" -> currentSettings.copy(showPinyin = false)
+                    "zhuyin" -> currentSettings.copy(showZhuyin = false)
+                    else -> currentSettings.copy(showTranslation = false)
+                }
+                settingsRepository.saveSettings(revertedSettings)
+            } finally {
+                _activeFetches.value = _activeFetches.value - type
             }
         }
     }

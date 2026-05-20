@@ -37,10 +37,10 @@ class SettingsRepository(private val context: Context) {
         private const val SECURE_API_KEY = "secure_api_key"
         val LAST_UPDATED = longPreferencesKey("last_updated")
         val SELECTED_MODEL = stringPreferencesKey("selected_model")
-        val PRONUNCIATION = stringPreferencesKey("pronunciation")
+        val SHOW_PINYIN = booleanPreferencesKey("show_pinyin")
+        val SHOW_ZHUYIN = booleanPreferencesKey("show_zhuyin")
         val STUDY_MODE = booleanPreferencesKey("study_mode")
         val SHOW_TRANSLATION = booleanPreferencesKey("show_translation")
-        val SHOW_PRONUNCIATION = booleanPreferencesKey("show_pronunciation")
         val THEME_PREFERENCE = stringPreferencesKey("theme_preference")
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val FONT_SIZE_PREFERENCE = stringPreferencesKey("font_size_preference")
@@ -52,10 +52,10 @@ class SettingsRepository(private val context: Context) {
             UserSettings(
                 apiKey = encryptedPrefs.getString(SECURE_API_KEY, "") ?: "",
                 selectedModel = preferences[SELECTED_MODEL] ?: "gemini-2.5-flash-lite",
-                pronunciation = preferences[PRONUNCIATION] ?: "pinyin",
+                showPinyin = preferences[SHOW_PINYIN] ?: true,
+                showZhuyin = preferences[SHOW_ZHUYIN] ?: false,
                 studyMode = preferences[STUDY_MODE] ?: true,
                 showTranslation = preferences[SHOW_TRANSLATION] ?: true,
-                showPronunciation = preferences[SHOW_PRONUNCIATION] ?: true,
                 themePreference = preferences[THEME_PREFERENCE] ?: "system",
                 useDynamicColor = preferences[DYNAMIC_COLOR] ?: false,
                 fontSizePreference = preferences[FONT_SIZE_PREFERENCE] ?: "small",
@@ -71,10 +71,10 @@ class SettingsRepository(private val context: Context) {
         dataStore.edit { preferences ->
             preferences[LAST_UPDATED] = System.currentTimeMillis()
             preferences[SELECTED_MODEL] = settings.selectedModel
-            preferences[PRONUNCIATION] = settings.pronunciation
+            preferences[SHOW_PINYIN] = settings.showPinyin
+            preferences[SHOW_ZHUYIN] = settings.showZhuyin
             preferences[STUDY_MODE] = settings.studyMode
             preferences[SHOW_TRANSLATION] = settings.showTranslation
-            preferences[SHOW_PRONUNCIATION] = settings.showPronunciation
             preferences[THEME_PREFERENCE] = settings.themePreference
             preferences[DYNAMIC_COLOR] = settings.useDynamicColor
             preferences[FONT_SIZE_PREFERENCE] = settings.fontSizePreference

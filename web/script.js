@@ -27,7 +27,8 @@ const DEFAULT_SETTINGS = {
     apiKey: '',
     persistKey: true,
     selectedModel: 'gemini-2.5-flash-lite',
-    pronunciation: 'pinyin',
+    showPinyin: true,
+    showZhuyin: false,
     studyMode: true,
     showTranslation: true,
     history: [],
@@ -55,8 +56,8 @@ const elements = {
     clearApiKeyBtn: document.getElementById('clear-api-key'),
     modelSelect: document.getElementById('model-select'),
     themeSelect: document.getElementById('theme-select'),
-    pinyinToggle: document.getElementById('pinyin-toggle'),
-    zhuyinToggle: document.getElementById('zhuyin-toggle'),
+    showPinyinToggle: document.getElementById('show-pinyin'),
+    showZhuyinToggle: document.getElementById('show-zhuyin'),
     studyModeToggle: document.getElementById('study-mode'),
     toggleSettingsBtn: document.getElementById('toggle-settings'),
     settingsContent: document.getElementById('settings-content'),
@@ -72,7 +73,6 @@ const elements = {
     storyHeading: document.getElementById('story-heading'),
     toggleStorySettingsBtn: document.getElementById('toggle-story-settings'),
     storySettingsPanel: document.getElementById('story-settings-panel'),
-    showPronunciationToggle: document.getElementById('show-pronunciation'),
     showTranslationToggle: document.getElementById('show-translation'),
     fontSizeRadios: document.querySelectorAll('input[name="font-size"]'),
     speechRateSelect: document.getElementById('speech-rate'),
@@ -144,6 +144,11 @@ function loadState() {
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
+            if (parsed.showPinyin === undefined) {
+                parsed.showPinyin = true;
+                parsed.showZhuyin = false;
+                delete parsed.pronunciation;
+            }
             state = { ...state, ...parsed };
             
             // Clean up other storage if preference changed
@@ -167,11 +172,8 @@ function loadState() {
         elements.themeSelect.value = state.themePreference || 'system';
     }
     applyTheme();
-    if (state.pronunciation === 'zhuyin') {
-        if (elements.zhuyinToggle) elements.zhuyinToggle.checked = true;
-    } else {
-        if (elements.pinyinToggle) elements.pinyinToggle.checked = true;
-    }
+    if (elements.showPinyinToggle) elements.showPinyinToggle.checked = state.showPinyin;
+    if (elements.showZhuyinToggle) elements.showZhuyinToggle.checked = state.showZhuyin;
     if (elements.studyModeToggle) elements.studyModeToggle.checked = state.studyMode;
     if (elements.showTranslationToggle) elements.showTranslationToggle.checked = state.showTranslation;
     
@@ -304,11 +306,22 @@ function setupEventListeners() {
         }
     });
     
-    [elements.pinyinToggle, elements.zhuyinToggle].forEach(el => {
-        el?.addEventListener('change', (e) => {
-            state.pronunciation = e.target.value;
-            saveState();
-        });
+    elements.showPinyinToggle?.addEventListener('change', async (e) => {
+        state.showPinyin = e.target.checked;
+        saveState();
+        updatePinyinVisibility();
+        if (state.showPinyin && lastStoryData) {
+            await checkAndFetchMissing('pinyin');
+        }
+    });
+
+    elements.showZhuyinToggle?.addEventListener('change', async (e) => {
+        state.showZhuyin = e.target.checked;
+        saveState();
+        updateZhuyinVisibility();
+        if (state.showZhuyin && lastStoryData) {
+            await checkAndFetchMissing('zhuyin');
+        }
     });
     
     elements.studyModeToggle?.addEventListener('change', (e) => {
@@ -319,10 +332,13 @@ function setupEventListeners() {
         }
     });
 
-    elements.showTranslationToggle?.addEventListener('change', (e) => {
+    elements.showTranslationToggle?.addEventListener('change', async (e) => {
         state.showTranslation = e.target.checked;
         saveState();
         updateTranslationVisibility();
+        if (state.showTranslation && lastStoryData) {
+            await checkAndFetchMissing('english');
+        }
     });
     
     if (elements.fontSizeRadios) {
@@ -341,10 +357,6 @@ function setupEventListeners() {
         state.speechRatePreference = e.target.value;
         saveState();
     });
-
-    if (elements.showPronunciationToggle) {
-        elements.showPronunciationToggle.addEventListener('change', updatePronunciationVisibility);
-    }
 
     if (elements.copyBtn) {
         elements.copyBtn.addEventListener('click', copyToClipboard);
@@ -427,6 +439,7 @@ async function handleGenerate(e) {
         const prompt = buildPrompt(plot, skillLevel, length, requiredTerms);
         const result = await callGemini(prompt);
         const storyData = parseResponse(result);
+        storyData.requiredTerms = requiredTerms;
         
         lastStoryData = storyData;
         renderStory(storyData);
@@ -434,6 +447,10 @@ async function handleGenerate(e) {
         
         elements.resultSection.hidden = false;
         elements.resultSection.scrollIntoView({ behavior: 'smooth' });
+
+        if (state.showPinyin) checkAndFetchMissing('pinyin');
+        if (state.showZhuyin) checkAndFetchMissing('zhuyin');
+        if (state.showTranslation) checkAndFetchMissing('english');
     } catch (err) {
         console.error(err);
         showError(err.message || 'An unexpected error occurred during generation.');
@@ -467,9 +484,6 @@ DO NOT SUMMARIZE. Write as if you are a professional author.
     const lengthPriority = length > 1000 ? "ABSOLUTE HIGHEST priority" : "important target";
     const lengthAdjective = length > 1000 ? "AT LEAST" : "approximately";
 
-    const pronLabel = state.pronunciation === 'zhuyin' ? 'zhuyin' : 'pinyin';
-    const pronInstruction = state.pronunciation === 'zhuyin' ? 'Zhuyin/Bopomofo pronunciation here' : 'Pinyin pronunciation here (Taiwanese style, e.g. \'hàn\')';
-
     return `You are teaching Mandarin to an English speaker. Generate a story in Mandarin to be used for the purposes of learning to read, write, and speak Mandarin. 
 
 ${levelGuide}
@@ -477,16 +491,13 @@ ${levelGuide}
 CRITICAL LINGUISTIC REQUIREMENTS:
 1. TRADITIONAL CHARACTERS: Use traditional Mandarin characters only.
 2. TAIWANESE STYLE: Use grammar, slang, and idioms common to Taiwan (e.g., use 影片 instead of 視頻, 捷運 instead of 地鐵, 腳踏車 instead of 自行車).
-3. TAIWANESE PRONUNCIATION: The ${state.pronunciation.toUpperCase()} MUST reflect local Taiwanese pronunciation. 
-   - CRUCIAL: '和' must be pronounced 'hàn' (not 'hé').
-   - Use other Taiwanese variations where applicable (e.g., 垃圾 as 'lèsè').
-4. CULTURAL & GEOGRAPHICAL BREADTH: Explore the full diversity of Taiwan. Do not over-rely on Taipei or common tropes. 
+3. CULTURAL & GEOGRAPHICAL BREADTH: Explore the full diversity of Taiwan. Do not over-rely on Taipei or common tropes. 
    - GEOGRAPHY: Vary the settings across different cities (e.g., Taichung, Tainan, Hualien, Keelung), counties (e.g., Yilan, Pingtung, Nantou), and landscapes (high mountain tea farms, coastal fishing villages, bustling night markets, quiet rural towns).
    - CULTURE: Incorporate a wide range of Taiwanese life, such as temple festivals, traditional arts (like glove puppetry), tea ceremonies, hiking culture, family dynamics, local snacks (小吃), and historical landmarks.
    - SOCIAL NORMS: Reflect authentic Taiwanese social etiquette and daily interactions.
-5. SKILL LEVEL: Adhere strictly to the ${skillLevel} level requirements defined above.
-6. VOCABULARY INTEGRATION: If specific vocabulary terms are provided ("${requiredTerms}"), you MUST include EVERY term at least TWICE in the story. Ensure they are used naturally but frequently enough for the reader to practice them. Integrate them into both narrative and dialogue where appropriate.
-7. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
+4. SKILL LEVEL: Adhere strictly to the ${skillLevel} level requirements defined above.
+5. VOCABULARY INTEGRATION: If specific vocabulary terms are provided ("${requiredTerms}"), you MUST include EVERY term at least TWICE in the story. Ensure they are used naturally but frequently enough for the reader to practice them. Integrate them into both narrative and dialogue where appropriate.
+6. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
 
 OUTPUT FORMAT:
 You must return a valid JSON object with NO OTHER TEXT before or after the JSON. DO NOT include markdown code blocks.
@@ -495,11 +506,8 @@ The JSON must follow this exact structure:
   "title": "Story Title in Traditional Mandarin",
   "sentences": [
     {
-      "mandarin": "Mandarin sentence here",
-      "${pronLabel}": "${pronInstruction}",
-      "english": "Natural English translation here"
-    },
-    ...
+      "mandarin": "Mandarin sentence here"
+    }
   ]
 }
 
@@ -539,12 +547,18 @@ async function callGemini(prompt) {
     }
     
     const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
+    if (!data.candidates || data.candidates.length === 0) {
+        throw new Error('API returned no candidates. Please verify content safety and API limits.');
+    }
+    const candidate = data.candidates[0];
+    if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+        throw new Error(`API returned empty content. Finish reason: ${candidate.finishReason || 'Unknown'}`);
+    }
+    return candidate.content.parts[0].text;
 }
 
 function parseResponse(text) {
     try {
-        // 1. Try a standard clean parse first
         let start = text.indexOf('{');
         let end = text.lastIndexOf('}');
         
@@ -553,34 +567,19 @@ function parseResponse(text) {
             try {
                 return JSON.parse(cleanJSON);
             } catch (e) {
-                // If standard parse fails, fall through to recovery
             }
         }
 
-        // 2. Recovery Mode: The response was likely truncated due to token limits or contains invalid characters
         console.warn("Response appears truncated or invalid. Attempting partial recovery...");
-        console.log("Raw text for recovery:", text);
-        
-        // Find all complete sentence objects using a more robust regex that handles potential internal quotes/noise
-        // This looks for: { "mandarin": "...", "[pinyin/zhuyin]": "...", "english": "..." }
-        const pronField = state.pronunciation === 'zhuyin' ? 'zhuyin' : 'pinyin';
-        
-        // Improved regex: matches the keys and values while allowing for escaped characters or different whitespace
-        const sentenceRegex = new RegExp(`\\{\\s*"mandarin"\\s*:\\s*"(.*?)"\\s*,\\s*"${pronField}"\\s*:\\s*"(.*?)"\\s*,\\s*"english"\\s*:\\s*"(.*?)"\\s*\\}`, 'gs');
+        const sentenceRegex = /\{\s*"mandarin"\s*:\s*"(.*?)"/gs;
         
         const sentences = [];
         let match;
         while ((match = sentenceRegex.exec(text)) !== null) {
-            const sentence = {
-                mandarin: match[1],
-                english: match[3]
-            };
-            sentence[pronField] = match[2];
-            sentences.push(sentence);
+            sentences.push({ mandarin: match[1] });
         }
 
         if (sentences.length > 0) {
-            // Extract title if possible
             const titleMatch = /"title"\s*:\s*"([^"]*)"/.exec(text);
             const title = titleMatch ? titleMatch[1] : "Recovered Story (Incomplete)";
             
@@ -605,7 +604,8 @@ function renderStory(storyData) {
     elements.storyHeading.textContent = storyData.title;
     elements.storyContent.innerHTML = '';
     
-    const requiredTerms = elements.requiredTermsInput.value.split(/[ ,，]+/).filter(t => t.length > 0);
+    const requiredTermsStr = storyData.requiredTerms || '';
+    const requiredTerms = requiredTermsStr.split(/[ ,，]+/).filter(t => t.length > 0);
     
     storyData.sentences.forEach((s, index) => {
         const block = document.createElement('div');
@@ -629,35 +629,145 @@ function renderStory(storyData) {
         }
         mandarin.innerHTML = html;
         
-        const pron = document.createElement('div');
-        pron.className = 'pronunciation';
-        pron.textContent = s[state.pronunciation]; // Use the selected pronunciation directly
-        pron.hidden = !elements.showPronunciationToggle.checked;
+        const pinyin = document.createElement('div');
+        if (s.pinyin) {
+            pinyin.className = 'pinyin-text';
+            pinyin.textContent = s.pinyin;
+        } else if (state.showPinyin) {
+            pinyin.className = 'inline-loading loading-pinyin';
+            pinyin.textContent = 'Loading...';
+        } else {
+            pinyin.className = 'pinyin-text';
+        }
+        pinyin.hidden = !state.showPinyin;
+
+        const zhuyin = document.createElement('div');
+        if (s.zhuyin) {
+            zhuyin.className = 'zhuyin-text';
+            zhuyin.textContent = s.zhuyin;
+        } else if (state.showZhuyin) {
+            zhuyin.className = 'inline-loading loading-zhuyin';
+            zhuyin.textContent = 'Loading...';
+        } else {
+            zhuyin.className = 'zhuyin-text';
+        }
+        zhuyin.hidden = !state.showZhuyin;
 
         const english = document.createElement('div');
-        english.className = 'english-translation';
-        english.textContent = s.english;
-        english.hidden = !elements.showTranslationToggle.checked;
+        if (s.english) {
+            english.className = 'english-translation';
+            english.textContent = s.english;
+        } else if (state.showTranslation) {
+            english.className = 'inline-loading loading-english';
+            english.textContent = 'Loading...';
+        } else {
+            english.className = 'english-translation';
+        }
+        english.hidden = !state.showTranslation;
 
-        
         block.appendChild(playBtn);
         block.appendChild(mandarin);
-        block.appendChild(pron);
+        block.appendChild(pinyin);
+        block.appendChild(zhuyin);
         block.appendChild(english);
         elements.storyContent.appendChild(block);
     });
 }
 
-function updatePronunciationVisibility() {
-    const show = elements.showPronunciationToggle.checked;
-    const prons = elements.storyContent.querySelectorAll('.pronunciation');
-    prons.forEach(p => p.hidden = !show);
+function updatePinyinVisibility() {
+    const show = elements.showPinyinToggle ? elements.showPinyinToggle.checked : state.showPinyin;
+    const items = elements.storyContent.querySelectorAll('.pinyin-text, .loading-pinyin');
+    items.forEach(p => p.hidden = !show);
+}
+
+function updateZhuyinVisibility() {
+    const show = elements.showZhuyinToggle ? elements.showZhuyinToggle.checked : state.showZhuyin;
+    const items = elements.storyContent.querySelectorAll('.zhuyin-text, .loading-zhuyin');
+    items.forEach(p => p.hidden = !show);
 }
 
 function updateTranslationVisibility() {
-    const show = elements.showTranslationToggle.checked;
-    const translations = elements.storyContent.querySelectorAll('.english-translation');
-    translations.forEach(t => t.hidden = !show);
+    const show = elements.showTranslationToggle ? elements.showTranslationToggle.checked : state.showTranslation;
+    const items = elements.storyContent.querySelectorAll('.english-translation, .loading-english');
+    items.forEach(t => t.hidden = !show);
+}
+
+let toastTimeout = null;
+
+function showToast(msg) {
+    const toastEl = document.getElementById('toast');
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.hidden = false;
+    toastEl.classList.add('show');
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toastEl.classList.remove('show');
+        setTimeout(() => toastEl.hidden = true, 300);
+    }, 3000);
+}
+
+async function checkAndFetchMissing(type) {
+    if (!lastStoryData || !lastStoryData.sentences || lastStoryData.sentences.length === 0) return;
+    
+    const isMissing = lastStoryData.sentences.some(s => !s[type]);
+    if (!isMissing) return;
+
+    const toggleEl = type === 'pinyin' ? elements.showPinyinToggle : 
+                     type === 'zhuyin' ? elements.showZhuyinToggle : 
+                     elements.showTranslationToggle;
+
+    if (toggleEl) toggleEl.disabled = true;
+
+    renderStory(lastStoryData);
+    const typeLabel = type === 'pinyin' ? 'Pinyin' : type === 'zhuyin' ? 'Zhuyin' : 'English translation';
+    showToast(`${typeLabel} loading, please stand by...`);
+
+    try {
+        const sentencesArr = lastStoryData.sentences.map(s => s.mandarin);
+        let prompt = '';
+        if (type === 'pinyin') {
+            prompt = `Generate Pinyin pronunciation (Taiwanese style, e.g. '和' as 'hàn') for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a "result" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${JSON.stringify(sentencesArr)}`;
+        } else if (type === 'zhuyin') {
+            prompt = `Generate Zhuyin/Bopomofo pronunciation for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a "result" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${JSON.stringify(sentencesArr)}`;
+        } else {
+            prompt = `Generate natural English translations for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a "result" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${JSON.stringify(sentencesArr)}`;
+        }
+
+        const rawResult = await callGemini(prompt);
+        let cleaned = rawResult.replace(/```json/g, '').replace(/```/g, '').trim();
+        let start = cleaned.indexOf('{');
+        let end = cleaned.lastIndexOf('}');
+        if (start === -1 || end === -1) throw new Error("Invalid API response structure");
+        const parsed = JSON.parse(cleaned.substring(start, end + 1));
+        const resArray = parsed.result;
+        if (!Array.isArray(resArray) || resArray.length !== lastStoryData.sentences.length) {
+            throw new Error("Length mismatch in dynamic content fetch");
+        }
+
+        lastStoryData.sentences.forEach((s, idx) => {
+            s[type] = resArray[idx];
+        });
+
+        const histObj = state.history.find(h => h.data && h.data.title === lastStoryData.title);
+        if (histObj) histObj.data = lastStoryData;
+        saveState();
+
+        if (lastStoryData) renderStory(lastStoryData);
+        showToast(`${typeLabel} loaded successfully!`);
+    } catch (err) {
+        console.error("Dynamic fetch failed:", err);
+        showError(`Failed to retrieve ${type}. ${err.message}`);
+        
+        if (type === 'pinyin') state.showPinyin = false;
+        if (type === 'zhuyin') state.showZhuyin = false;
+        if (type === 'english') state.showTranslation = false;
+        if (toggleEl) toggleEl.checked = false;
+        saveState();
+        if (lastStoryData) renderStory(lastStoryData);
+    } finally {
+        if (toggleEl) toggleEl.disabled = false;
+    }
 }
 
 let loadingInterval = null;
@@ -780,6 +890,26 @@ function renderHistory() {
             `;
             el.onclick = () => {
                 lastStoryData = item.data;
+
+                if (lastStoryData && lastStoryData.sentences && lastStoryData.sentences.length > 0) {
+                    const hasPinyin = lastStoryData.sentences.some(s => !!s.pinyin);
+                    if (!hasPinyin) {
+                        state.showPinyin = false;
+                        if (elements.showPinyinToggle) elements.showPinyinToggle.checked = false;
+                    }
+                    const hasZhuyin = lastStoryData.sentences.some(s => !!s.zhuyin);
+                    if (!hasZhuyin) {
+                        state.showZhuyin = false;
+                        if (elements.showZhuyinToggle) elements.showZhuyinToggle.checked = false;
+                    }
+                    const hasEnglish = lastStoryData.sentences.some(s => !!s.english);
+                    if (!hasEnglish) {
+                        state.showTranslation = false;
+                        if (elements.showTranslationToggle) elements.showTranslationToggle.checked = false;
+                    }
+                    saveState();
+                }
+
                 renderStory(item.data);
                 elements.resultSection.hidden = false;
                 elements.resultSection.scrollIntoView({ behavior: 'smooth' });
@@ -806,10 +936,13 @@ function copyToClipboard() {
     let text = `${lastStoryData.title}\n\n`;
     lastStoryData.sentences.forEach(s => {
         text += `${s.mandarin}\n`;
-        if (elements.showPronunciationToggle && elements.showPronunciationToggle.checked) {
-            text += `${s[state.pronunciation]}\n`; // Use the dynamically accessed pronunciation
+        if (state.showPinyin && s.pinyin) {
+            text += `${s.pinyin}\n`;
         }
-        if (elements.showTranslationToggle && elements.showTranslationToggle.checked) {
+        if (state.showZhuyin && s.zhuyin) {
+            text += `${s.zhuyin}\n`;
+        }
+        if (state.showTranslation && s.english) {
             text += `${s.english}\n`;
         }
         text += `\n`;

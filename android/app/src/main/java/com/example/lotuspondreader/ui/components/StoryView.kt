@@ -33,8 +33,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun StoryView(
     story: StoryResponse,
-    showPronunciation: Boolean,
-    pronunciationType: String,
+    showPinyin: Boolean,
+    showZhuyin: Boolean,
     showTranslation: Boolean,
     studyMode: Boolean,
     fontSizePreference: String,
@@ -55,8 +55,8 @@ fun StoryView(
         items(story.sentences) { sentence ->
             SentenceBlock(
                 sentence = sentence,
-                showPronunciation = showPronunciation,
-                pronunciationType = pronunciationType,
+                showPinyin = showPinyin,
+                showZhuyin = showZhuyin,
                 showTranslation = showTranslation,
                 studyMode = studyMode,
                 fontSizePreference = fontSizePreference,
@@ -76,13 +76,13 @@ fun StoryView(
                         sb.append(story.title).append("\n\n")
                         story.sentences.forEach { s ->
                             sb.append(s.mandarin).append("\n")
-                            if (showPronunciation) {
-                                val pron = if (pronunciationType == "zhuyin") s.zhuyin else s.pinyin
-                                if (!pron.isNullOrEmpty()) {
-                                    sb.append(pron).append("\n")
-                                }
+                            if (showPinyin && s.pinyin != null) {
+                                sb.append(s.pinyin).append("\n")
                             }
-                            if (showTranslation) {
+                            if (showZhuyin && s.zhuyin != null) {
+                                sb.append(s.zhuyin).append("\n")
+                            }
+                            if (showTranslation && s.english != null) {
                                 sb.append(s.english).append("\n")
                             }
                             sb.append("\n")
@@ -123,8 +123,8 @@ fun StoryViewPreview() {
         )
         StoryView(
             story = dummyStory,
-            showPronunciation = true,
-            pronunciationType = "pinyin",
+            showPinyin = true,
+            showZhuyin = false,
             showTranslation = true,
             studyMode = true,
             fontSizePreference = "small",
