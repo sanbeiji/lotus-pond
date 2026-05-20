@@ -14,33 +14,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for Android Changes
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            android:
-              - 'android/**'
-
       - name: Set up JDK 17
-        if: steps.filter.outputs.android == 'true'
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Grant Execute Permission to Gradlew
-        if: steps.filter.outputs.android == 'true'
         run: chmod +x android/gradlew
 
       - name: Build APK
-        if: steps.filter.outputs.android == 'true'
         run: |
           cd android
           ./gradlew assembleDebug
 
       - name: Upload APK Artifact
-        if: steps.filter.outputs.android == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: lotus-pond-apk
@@ -52,16 +40,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Check for Web Changes
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            web:
-              - 'web/**'
-
       - name: Pushing Web Assets to Website Repo
-        if: steps.filter.outputs.web == 'true'
         uses: cpina/github-action-push-to-another-repository@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.WEB_DEPLOY_TOKEN }}
