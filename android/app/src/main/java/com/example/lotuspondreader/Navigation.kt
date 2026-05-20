@@ -399,11 +399,16 @@ fun MainNavigation(
                         
                         @OptIn(ExperimentalMaterial3Api::class)
                         if (showBottomSheet) {
+                            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
                             ModalBottomSheet(
-                                onDismissRequest = { showBottomSheet = false }
+                                onDismissRequest = { showBottomSheet = false },
+                                sheetState = sheetState
                             ) {
                                 Column(
-                                    modifier = Modifier.padding(16.dp),
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .navigationBarsPadding()
+                                        .verticalScroll(androidx.compose.foundation.rememberScrollState()),
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     Text("Display Settings", style = MaterialTheme.typography.titleLarge)
