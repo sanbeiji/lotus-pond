@@ -22,7 +22,7 @@ The latest web version is always available and up-to-date at:
 
 ### 📱 Android app
 Install the standalone Android application for a dedicated mobile experience:
-* **[Download latest APK](https://github.com/sanbeiji/lotus-pond/releases/latest/download/app-debug.apk)** (Direct Download)
+* **[Download latest APK](https://github.com/sanbeiji/lotus-pond/releases/latest/download/app-debug.apk)** (direct download)
 * **[View latest release](https://github.com/sanbeiji/lotus-pond/releases/latest)**
 
 > **Note:** To install the APK, you may need to enable "Install from Unknown Sources" in your Android system settings.
