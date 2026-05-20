@@ -40,17 +40,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Pushing Web Assets to Website Repo
-        uses: cpina/github-action-push-to-another-repository@main
+      - name: Push Web Assets to sanbeiji.github.io
         env:
-          API_TOKEN_GITHUB: ${{ secrets.WEB_DEPLOY_TOKEN }}
-        with:
-          source-directory: 'web'
-          destination-github-username: 'sanbeiji'
-          destination-repository-name: 'sanbeiji.github.io'
-          target-directory: 'docs/lotus'
-          user-email: '30529+sanbeiji@users.noreply.github.com'
-          target-branch: 'main'
+          WEB_DEPLOY_TOKEN: ${{ secrets.WEB_DEPLOY_TOKEN }}
+        run: |
+          mkdir deploy_workspace
+          cd deploy_workspace
+          git clone https://sanbeiji:${WEB_DEPLOY_TOKEN}@github.com/sanbeiji/sanbeiji.github.io.git .
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p docs/lotus
+          cp -r ../web/* docs/lotus/
+          git add docs/lotus/
+          git commit -m "Continuous Integration: Sync Lotus Pond Reader web release" || true
+          git push origin main
 
   create-release:
     needs: [build-android, deploy-web]
@@ -58,6 +61,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download APK Artifact
         uses: actions/download-artifact@v4
@@ -66,10 +71,16 @@ jobs:
           path: ./downloaded-apk
         continue-on-error: true
 
+      - name: Extract Commit History for Release Notes
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git rev-list --max-parents=0 HEAD)
+          git log --pretty=format:"* %s (%h)" ${PREVIOUS_TAG}..HEAD > release_notes.md
+
       - name: Create Official GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          body_path: release_notes.md
           files: |
             ./downloaded-apk/*.apk
         env:

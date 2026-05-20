@@ -75,7 +75,7 @@ const elements = {
     storySettingsPanel: document.getElementById('story-settings-panel'),
     showTranslationToggle: document.getElementById('show-translation'),
     fontSizeRadios: document.querySelectorAll('input[name="font-size"]'),
-    speechRateSelect: document.getElementById('speech-rate'),
+    speechRateRadios: document.querySelectorAll('input[name="speech-rate"]'),
     copyBtn: document.getElementById('copy-btn'),
     
     historyList: document.getElementById('history-list'),
@@ -186,8 +186,12 @@ function loadState() {
     }
     applyFontSize();
     
-    if (elements.speechRateSelect) {
-        elements.speechRateSelect.value = state.speechRatePreference || '0.9';
+    if (elements.speechRateRadios) {
+        elements.speechRateRadios.forEach(radio => {
+            if (radio.value === (state.speechRatePreference || '0.9')) {
+                radio.checked = true;
+            }
+        });
     }
     
     updateModelFooter();
@@ -353,10 +357,16 @@ function setupEventListeners() {
         });
     }
     
-    elements.speechRateSelect?.addEventListener('change', (e) => {
-        state.speechRatePreference = e.target.value;
-        saveState();
-    });
+    if (elements.speechRateRadios) {
+        elements.speechRateRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    state.speechRatePreference = e.target.value;
+                    saveState();
+                }
+            });
+        });
+    }
 
     if (elements.copyBtn) {
         elements.copyBtn.addEventListener('click', copyToClipboard);
