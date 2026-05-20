@@ -223,15 +223,17 @@
                     </div>
                   </div>
                   <div class="speech-rate-controls">
-                    <label for="speech-rate">Speech speed:</label>
-                    <select id="speech-rate">
-                      <option value="1.0">100%</option>
-                      <option value="0.9" selected>90%</option>
-                      <option value="0.8">80%</option>
-                      <option value="0.7">70%</option>
-                      <option value="0.6">60%</option>
-                      <option value="0.5">50%</option>
-                    </select>
+                    <label>Speech speed:</label>
+                    <div class="toggle-group">
+                      <input type="radio" id="speech-100" name="speech-rate" value="1.0">
+                      <label for="speech-100">100%</label>
+                      <input type="radio" id="speech-90" name="speech-rate" value="0.9" checked>
+                      <label for="speech-90">90%</label>
+                      <input type="radio" id="speech-75" name="speech-rate" value="0.75">
+                      <label for="speech-75">75%</label>
+                      <input type="radio" id="speech-50" name="speech-rate" value="0.5">
+                      <label for="speech-50">50%</label>
+                    </div>
                   </div>
                 </div>
               </div>
