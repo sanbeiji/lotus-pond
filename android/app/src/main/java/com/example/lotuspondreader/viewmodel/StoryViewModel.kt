@@ -44,7 +44,7 @@ class StoryViewModel(
 
     val plot = MutableStateFlow("")
     val skillLevel = MutableStateFlow("A1 (Entry)")
-    val length = MutableStateFlow("300")
+    val length = MutableStateFlow("400")
     val requiredTerms = MutableStateFlow("")
 
     private var currentEntity: StoryEntity? = null

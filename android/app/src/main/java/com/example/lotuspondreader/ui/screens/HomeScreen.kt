@@ -27,6 +27,7 @@ fun HomeScreen(
     uiState: StoryUiState,
     onGenerate: () -> Unit,
     selectedModel: String = "gemini-flash-lite-latest",
+    onResetError: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val skillLevels = listOf(
@@ -34,19 +35,7 @@ fun HomeScreen(
         "B3 (Intermediate)", "B4 (Upper Intermediate)",
         "C5 (Fluent)", "C6 (Advanced)"
     )
-    val lengthOptions = if (selectedModel == "gemini-flash-latest") {
-        listOf("100", "200", "300", "400", "500", "600", "700", "800", "900", "1000")
-    } else {
-        listOf("100", "200", "300", "400", "500")
-    }
-    
-    LaunchedEffect(selectedModel, length) {
-        val maxLen = if (selectedModel == "gemini-flash-latest") 1000 else 500
-        val currLen = length.toIntOrNull() ?: 300
-        if (currLen > maxLen) {
-            onLengthChange(maxLen.toString())
-        }
-    }
+    val lengthOptions = listOf("200", "400", "600", "800", "1000")
 
     var skillExpanded by remember { mutableStateOf(false) }
     var lengthExpanded by remember { mutableStateOf(false) }
@@ -172,11 +161,28 @@ fun HomeScreen(
         }
         
         if (uiState is StoryUiState.Error) {
-            Text(
-                text = uiState.message,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = uiState.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(onClick = onResetError) {
+                        Text("Clear", color = MaterialTheme.colorScheme.onErrorContainer, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
         } // Close the scrolling Column
     }

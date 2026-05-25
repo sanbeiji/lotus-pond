@@ -24,18 +24,21 @@ class StoryRepository {
         isLenient = true
     }
 
-    private val client = HttpClient(OkHttp) {
+    private fun createClient(timeoutSeconds: Long) = HttpClient(OkHttp) {
         engine {
             config {
                 connectTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                readTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
+                writeTimeout(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)
             }
         }
         install(ContentNegotiation) {
             json(jsonConfig)
         }
     }
+
+    private val standardClient = createClient(60)
+    private val extendedClient = createClient(180)
 
     suspend fun generateStory(
         apiKey: String,
@@ -55,7 +58,8 @@ class StoryRepository {
 
             val url = "https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}"
             
-            val response: GeminiResponse = client.post(url) {
+            val activeClient = if (model == "gemini-flash-latest") extendedClient else standardClient
+            val response: GeminiResponse = activeClient.post(url) {
                 contentType(ContentType.Application.Json)
                 setBody(requestBody)
             }.body()
@@ -97,7 +101,7 @@ class StoryRepository {
             val fetchModel = "gemini-flash-lite-latest"
             val url = "https://generativelanguage.googleapis.com/v1beta/models/${fetchModel}:generateContent?key=${apiKey}"
             
-            val response: GeminiResponse = client.post(url) {
+            val response: GeminiResponse = standardClient.post(url) {
                 contentType(ContentType.Application.Json)
                 setBody(requestBody)
             }.body()

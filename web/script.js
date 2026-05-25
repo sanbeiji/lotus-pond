@@ -174,7 +174,6 @@ function loadState() {
     if (elements.modelSelect) {
         elements.modelSelect.value = state.selectedModel || 'gemini-flash-lite-latest';
     }
-    updateLengthMenu();
     if (elements.themeSelect) {
         elements.themeSelect.value = state.themePreference || 'system';
     }
@@ -238,24 +237,6 @@ function updateModelFooter() {
     if (modelDisplay) modelDisplay.textContent = state.selectedModel || 'gemini-flash-lite-latest';
 }
 
-function updateLengthMenu() {
-    if (!elements.lengthInput) return;
-    const isFlash = state.selectedModel === 'gemini-flash-latest';
-    const maxVal = isFlash ? 1000 : 500;
-    const currentVal = parseInt(elements.lengthInput.value) || 300;
-    
-    elements.lengthInput.innerHTML = '';
-    for (let val = 100; val <= maxVal; val += 100) {
-        const opt = document.createElement('option');
-        opt.value = val;
-        opt.textContent = val;
-        if (val === Math.min(currentVal, maxVal)) {
-            opt.selected = true;
-        }
-        elements.lengthInput.appendChild(opt);
-    }
-}
-
 function saveState() {
     const data = JSON.stringify(state);
     if (state.persistKey) {
@@ -271,6 +252,7 @@ function saveState() {
 
 function setupEventListeners() {
     elements.storyForm.addEventListener('submit', handleGenerate);
+    document.getElementById('close-error-btn')?.addEventListener('click', hideError);
     
     elements.toggleSettingsBtn.addEventListener('click', () => {
         const isHidden = !elements.settingsContent.hidden;
@@ -321,7 +303,6 @@ function setupEventListeners() {
         state.selectedModel = e.target.value;
         saveState();
         updateModelFooter();
-        updateLengthMenu();
     });
     
     elements.themeSelect?.addEventListener('change', (e) => {
@@ -562,10 +543,15 @@ async function callGemini(prompt, forceModel = null) {
     const model = forceModel || state.selectedModel || 'gemini-flash-lite-latest';
     const url = `${API_BASE}/models/${model}:generateContent?key=${state.apiKey}`;
     
+    const timeoutMs = model === 'gemini-flash-latest' ? 180000 : 60000;
+    const controller = new AbortController();
+    const timerId = setTimeout(() => controller.abort(), timeoutMs);
+    
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
@@ -578,6 +564,7 @@ async function callGemini(prompt, forceModel = null) {
             })
         });
         
+        clearTimeout(timerId);
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.error?.message || 'API request failed');
@@ -594,6 +581,9 @@ async function callGemini(prompt, forceModel = null) {
         return candidate.content.parts[0].text;
     } catch (err) {
         let msg = err.message || 'Network request failed';
+        if (err.name === 'AbortError') {
+            msg = `Request timed out after ${timeoutMs / 1000} seconds. Please verify connection speed and server load.`;
+        }
         if (state.apiKey) {
             msg = msg.split(state.apiKey).join('[REDACTED]');
         }
