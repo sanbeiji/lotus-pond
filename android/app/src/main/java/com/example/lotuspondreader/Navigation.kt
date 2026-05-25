@@ -354,6 +354,7 @@ fun MainNavigation(
                                 requiredTerms = requiredTerms
                             )
                         },
+                        selectedModel = userSettings.selectedModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

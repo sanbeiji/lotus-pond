@@ -45,29 +45,35 @@ class StoryRepository {
         length: Int,
         requiredTerms: String
     ): StoryResponse {
-        val prompt = buildPrompt(plot, skillLevel, length, requiredTerms)
-        
-        val requestBody = GeminiRequest(
-            contents = listOf(Content(parts = listOf(Part(text = prompt)))),
-            generationConfig = GenerationConfig()
-        )
+        try {
+            val prompt = buildPrompt(plot, skillLevel, length, requiredTerms)
+            
+            val requestBody = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = prompt)))),
+                generationConfig = GenerationConfig()
+            )
 
-        val url = "https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}"
-        
-        val response: GeminiResponse = client.post(url) {
-            contentType(ContentType.Application.Json)
-            setBody(requestBody)
-        }.body()
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}"
+            
+            val response: GeminiResponse = client.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(requestBody)
+            }.body()
 
-        if (response.error != null) {
-            throw Exception(response.error.message)
+            if (response.error != null) {
+                throw Exception(response.error.message)
+            }
+
+            val responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                ?: throw Exception("No content returned from Gemini API")
+
+            val parsedStory = parseResponse(responseText)
+            return parsedStory.copy(requiredTerms = requiredTerms)
+        } catch (e: Exception) {
+            val msg = e.message ?: "Network request failed"
+            val sanitizedMsg = if (apiKey.isNotBlank()) msg.replace(apiKey, "[REDACTED]") else msg
+            throw Exception(sanitizedMsg)
         }
-
-        val responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
-            ?: throw Exception("No content returned from Gemini API")
-
-        val parsedStory = parseResponse(responseText)
-        return parsedStory.copy(requiredTerms = requiredTerms)
     }
 
     suspend fun fetchDynamicContent(
@@ -76,47 +82,69 @@ class StoryRepository {
         type: String,
         sentences: List<String>
     ): List<String> {
-        val prompt = when (type) {
-            "pinyin" -> "Generate Pinyin pronunciation (Taiwanese style, e.g. '和' as 'hàn') for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a \"result\" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${sentences.joinToString(";")}"
-            "zhuyin" -> "Generate Zhuyin/Bopomofo pronunciation for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a \"result\" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${sentences.joinToString(";")}"
-            else -> "Generate natural English translations for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a \"result\" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${sentences.joinToString(";")}"
-        }
-
-        val requestBody = GeminiRequest(
-            contents = listOf(Content(parts = listOf(Part(text = prompt)))),
-            generationConfig = GenerationConfig()
-        )
-
-        val url = "https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}"
-        
-        val response: GeminiResponse = client.post(url) {
-            contentType(ContentType.Application.Json)
-            setBody(requestBody)
-        }.body()
-
-        if (response.error != null) {
-            throw Exception(response.error.message)
-        }
-
-        val responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
-            ?: throw Exception("No content returned from Gemini API")
-
-        val cleanedText = responseText.replace("```json", "").replace("```", "").trim()
-        val start = cleanedText.indexOf('{')
-        val end = cleanedText.lastIndexOf('}')
-        if (start != -1 && end != -1 && end > start) {
-            val cleanJson = cleanedText.substring(start, end + 1)
-            try {
-                val res: DynamicFetchResult = jsonConfig.decodeFromString(cleanJson)
-                if (res.result.size != sentences.size) {
-                    throw Exception("Length mismatch in dynamic content fetch")
-                }
-                return res.result
-            } catch (e: Exception) {
-                throw Exception("Failed to parse dynamic content response: ${e.message}")
+        try {
+            val prompt = when (type) {
+                "pinyin" -> "Generate Pinyin pronunciation (Taiwanese style, e.g. '和' as 'hàn') for the following Traditional Mandarin sentences. You MUST adhere to these strict Pinyin guidelines: 1. Capitalization: Capitalize first letter of each sentence, proper nouns (Běijīng, Zhōngguó), and personal names (e.g. Wáng Xiǎoyún). 2. Word Grouping: Group multi-syllable words continuously (fánguǎn, not fán guǎn), separate distinct words with spaces (Wǒ qù fánguǎn), keep particles (de, le, ma) as separate words, and use apostrophes before a, e, or o for ambiguous boundaries (píng'ān). Return ONLY a valid JSON object with a \"result\" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${sentences.joinToString(";")}"
+                "zhuyin" -> "Generate Zhuyin/Bopomofo pronunciation for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a \"result\" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${sentences.joinToString(";")}"
+                else -> "Generate natural English translations for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a \"result\" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${sentences.joinToString(";")}"
             }
+
+            val requestBody = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = prompt)))),
+                generationConfig = GenerationConfig()
+            )
+
+            val fetchModel = "gemini-flash-lite-latest"
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/${fetchModel}:generateContent?key=${apiKey}"
+            
+            val response: GeminiResponse = client.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(requestBody)
+            }.body()
+
+            if (response.error != null) {
+                throw Exception(response.error.message)
+            }
+
+            val responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                ?: throw Exception("No content returned from Gemini API")
+
+            val cleanedText = responseText.replace("```json", "").replace("```", "").trim()
+            val start = cleanedText.indexOf('{')
+            val end = cleanedText.lastIndexOf('}')
+            if (start != -1 && end != -1 && end > start) {
+                val cleanJson = cleanedText.substring(start, end + 1)
+                try {
+                    val res: DynamicFetchResult = jsonConfig.decodeFromString(cleanJson)
+                    if (res.result.size != sentences.size) {
+                        throw Exception("Length mismatch in dynamic content fetch")
+                    }
+                    return res.result
+                } catch (e: Exception) {
+                    // Fall through to fallback array parsing
+                }
+            }
+
+            val arrStart = cleanedText.indexOf('[')
+            val arrEnd = cleanedText.lastIndexOf(']')
+            if (arrStart != -1 && arrEnd != -1 && arrEnd > arrStart) {
+                val cleanArr = cleanedText.substring(arrStart, arrEnd + 1)
+                try {
+                    val list: List<String> = jsonConfig.decodeFromString(cleanArr)
+                    if (list.size != sentences.size) {
+                        throw Exception("Length mismatch in dynamic content fetch")
+                    }
+                    return list
+                } catch (e: Exception) {
+                    throw Exception("Failed to parse dynamic content response: ${e.message}")
+                }
+            }
+            throw Exception("Invalid response structure from Gemini API")
+        } catch (e: Exception) {
+            val msg = e.message ?: "Dynamic content fetch failed"
+            val sanitizedMsg = if (apiKey.isNotBlank()) msg.replace(apiKey, "[REDACTED]") else msg
+            throw Exception(sanitizedMsg)
         }
-        throw Exception("Invalid response structure from Gemini API")
     }
 
     private fun parseResponse(text: String): StoryResponse {

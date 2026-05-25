@@ -40,9 +40,8 @@ fun SettingsScreen(
 
         var modelExpanded by remember { mutableStateOf(false) }
         val models = listOf(
-            "gemini-2.5-flash-lite",
-            "gemini-2.5-pro",
-            "gemini-3.1-flash-lite-preview"
+            "gemini-flash-lite-latest",
+            "gemini-flash-latest"
         )
         
         ExposedDropdownMenuBox(

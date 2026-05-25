@@ -28,7 +28,7 @@ data class HistoryItem(
 @Serializable
 data class UserSettings(
     val apiKey: String = "",
-    val selectedModel: String = "gemini-2.5-flash-lite",
+    val selectedModel: String = "gemini-flash-lite-latest",
     val showPinyin: Boolean = true,
     val showZhuyin: Boolean = false,
     val studyMode: Boolean = true,

@@ -49,9 +49,15 @@ class SettingsRepository(private val context: Context) {
 
     val userSettingsFlow: Flow<UserSettings> = dataStore.data
         .map { preferences ->
+            val savedModel = preferences[SELECTED_MODEL] ?: "gemini-flash-lite-latest"
+            val normalizedModel = if (savedModel != "gemini-flash-latest" && savedModel != "gemini-flash-lite-latest") {
+                "gemini-flash-lite-latest"
+            } else {
+                savedModel
+            }
             UserSettings(
                 apiKey = encryptedPrefs.getString(SECURE_API_KEY, "") ?: "",
-                selectedModel = preferences[SELECTED_MODEL] ?: "gemini-2.5-flash-lite",
+                selectedModel = normalizedModel,
                 showPinyin = preferences[SHOW_PINYIN] ?: true,
                 showZhuyin = preferences[SHOW_ZHUYIN] ?: false,
                 studyMode = preferences[STUDY_MODE] ?: true,

@@ -26,6 +26,7 @@ fun HomeScreen(
     onRequiredTermsChange: (String) -> Unit,
     uiState: StoryUiState,
     onGenerate: () -> Unit,
+    selectedModel: String = "gemini-flash-lite-latest",
     modifier: Modifier = Modifier
 ) {
     val skillLevels = listOf(
@@ -33,7 +34,20 @@ fun HomeScreen(
         "B3 (Intermediate)", "B4 (Upper Intermediate)",
         "C5 (Fluent)", "C6 (Advanced)"
     )
-    val lengthOptions = listOf("100", "200", "300", "400", "500", "600", "700")
+    val lengthOptions = if (selectedModel == "gemini-flash-latest") {
+        listOf("100", "200", "300", "400", "500", "600", "700", "800", "900", "1000")
+    } else {
+        listOf("100", "200", "300", "400", "500")
+    }
+    
+    LaunchedEffect(selectedModel, length) {
+        val maxLen = if (selectedModel == "gemini-flash-latest") 1000 else 500
+        val currLen = length.toIntOrNull() ?: 300
+        if (currLen > maxLen) {
+            onLengthChange(maxLen.toString())
+        }
+    }
+
     var skillExpanded by remember { mutableStateOf(false) }
     var lengthExpanded by remember { mutableStateOf(false) }
 
