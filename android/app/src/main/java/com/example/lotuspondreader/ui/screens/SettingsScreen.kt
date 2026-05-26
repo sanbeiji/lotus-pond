@@ -40,9 +40,12 @@ fun SettingsScreen(
 
         var modelExpanded by remember { mutableStateOf(false) }
         val models = listOf(
-            "gemini-2.5-flash-lite",
-            "gemini-2.5-pro",
-            "gemini-3.1-flash-lite-preview"
+            "gemini-flash-lite-latest",
+            "gemini-flash-latest"
+        )
+        val modelLabels = mapOf(
+            "gemini-flash-lite-latest" to "Gemini Flash Lite (Fast and cheap, best for most use cases)",
+            "gemini-flash-latest" to "Gemini Flash (Takes longer, costs more, best for complex story ideas)"
         )
         
         ExposedDropdownMenuBox(
@@ -50,7 +53,7 @@ fun SettingsScreen(
             onExpandedChange = { modelExpanded = it },
         ) {
             OutlinedTextField(
-                value = settings.selectedModel,
+                value = modelLabels[settings.selectedModel] ?: settings.selectedModel,
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Gemini model") },
@@ -64,7 +67,7 @@ fun SettingsScreen(
             ) {
                 models.forEach { selectionOption ->
                     DropdownMenuItem(
-                        text = { Text(selectionOption) },
+                        text = { Text(modelLabels[selectionOption] ?: selectionOption) },
                         onClick = {
                             onSettingsChanged(settings.copy(selectedModel = selectionOption))
                             modelExpanded = false

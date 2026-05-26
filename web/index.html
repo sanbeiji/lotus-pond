@@ -94,9 +94,8 @@
             <div class="form-group">
               <label for="model-select">Gemini model</label>
               <select id="model-select">
-                <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite</option>
-                <option value="gemini-2.5-pro">gemini-2.5-pro (Best for long stories)</option>
-                <option value="gemini-3.1-flash-lite-preview">gemini-3.1-flash-lite-preview</option>
+                <option value="gemini-flash-lite-latest" selected>Gemini Flash Lite (Fast and cheap, best for most use cases)</option>
+                <option value="gemini-flash-latest">Gemini Flash (Takes longer, costs more, best for complex story ideas)</option>
               </select>
             </div>
             <div class="form-group">
@@ -144,13 +143,11 @@
               <div class="form-group">
                 <label for="lengthInWords">Number of Mandarin characters <span class="required">*</span></label>
                 <select id="lengthInWords" name="lengthInWords" required>
-                  <option value="100">100</option>
                   <option value="200">200</option>
-                  <option value="300" selected>300</option>
-                  <option value="400">400</option>
-                  <option value="500">500</option>
+                  <option value="400" selected>400</option>
                   <option value="600">600</option>
-                  <option value="700">700</option>
+                  <option value="800">800</option>
+                  <option value="1000">1000</option>
                 </select>
               </div>
             </div>
@@ -185,6 +182,7 @@
         <!-- Error display -->
         <section id="error-section" class="error-card" hidden aria-live="assertive">
           <p id="error-message"></p>
+          <button id="close-error-btn" class="btn-close-error" aria-label="Close error">&times;</button>
         </section>
 
         <!-- Story output -->

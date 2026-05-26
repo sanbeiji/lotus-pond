@@ -354,6 +354,8 @@ fun MainNavigation(
                                 requiredTerms = requiredTerms
                             )
                         },
+                        selectedModel = userSettings.selectedModel,
+                        onResetError = { viewModel.resetUiState() },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

@@ -26,7 +26,7 @@ const LOADING_QUOTES = [
 const DEFAULT_SETTINGS = {
     apiKey: '',
     persistKey: true,
-    selectedModel: 'gemini-2.5-flash-lite',
+    selectedModel: 'gemini-flash-lite-latest',
     showPinyin: true,
     showZhuyin: false,
     studyMode: true,
@@ -162,11 +162,17 @@ function loadState() {
         }
     }
     
+    // Normalize cached model selection
+    if (state.selectedModel !== 'gemini-flash-latest' && state.selectedModel !== 'gemini-flash-lite-latest') {
+        state.selectedModel = 'gemini-flash-lite-latest';
+        saveState();
+    }
+
     // Apply state to UI
     if (elements.apiKeyInput) elements.apiKeyInput.value = state.apiKey;
     if (elements.persistKeyToggle) elements.persistKeyToggle.checked = state.persistKey;
     if (elements.modelSelect) {
-        elements.modelSelect.value = state.selectedModel || 'gemini-2.5-flash-lite';
+        elements.modelSelect.value = state.selectedModel || 'gemini-flash-lite-latest';
     }
     if (elements.themeSelect) {
         elements.themeSelect.value = state.themePreference || 'system';
@@ -228,7 +234,7 @@ function applyFontSize() {
 
 function updateModelFooter() {
     const modelDisplay = document.getElementById('model-version');
-    if (modelDisplay) modelDisplay.textContent = state.selectedModel || 'gemini-2.5-flash-lite';
+    if (modelDisplay) modelDisplay.textContent = state.selectedModel || 'gemini-flash-lite-latest';
 }
 
 function saveState() {
@@ -246,6 +252,7 @@ function saveState() {
 
 function setupEventListeners() {
     elements.storyForm.addEventListener('submit', handleGenerate);
+    document.getElementById('close-error-btn')?.addEventListener('click', hideError);
     
     elements.toggleSettingsBtn.addEventListener('click', () => {
         const isHidden = !elements.settingsContent.hidden;
@@ -532,39 +539,56 @@ To achieve this, you MUST:
 Plot for the story: ${plot}`;
 }
 
-async function callGemini(prompt) {
-    const model = state.selectedModel || 'gemini-2.5-flash-lite';
+async function callGemini(prompt, forceModel = null) {
+    const model = forceModel || state.selectedModel || 'gemini-flash-lite-latest';
     const url = `${API_BASE}/models/${model}:generateContent?key=${state.apiKey}`;
     
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 8192,
-                responseMimeType: "application/json"
-            }
-        })
-    });
+    const timeoutMs = model === 'gemini-flash-latest' ? 180000 : 60000;
+    const controller = new AbortController();
+    const timerId = setTimeout(() => controller.abort(), timeoutMs);
     
-    if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error?.message || 'API request failed');
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: 0.7,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 8192,
+                    responseMimeType: "application/json"
+                }
+            })
+        });
+        
+        clearTimeout(timerId);
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error?.message || 'API request failed');
+        }
+        
+        const data = await response.json();
+        if (!data.candidates || data.candidates.length === 0) {
+            throw new Error('API returned no candidates. Please verify content safety and API limits.');
+        }
+        const candidate = data.candidates[0];
+        if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+            throw new Error(`API returned empty content. Finish reason: ${candidate.finishReason || 'Unknown'}`);
+        }
+        return candidate.content.parts[0].text;
+    } catch (err) {
+        let msg = err.message || 'Network request failed';
+        if (err.name === 'AbortError') {
+            msg = `Request timed out after ${timeoutMs / 1000} seconds. Please verify connection speed and server load.`;
+        }
+        if (state.apiKey) {
+            msg = msg.split(state.apiKey).join('[REDACTED]');
+        }
+        throw new Error(msg);
     }
-    
-    const data = await response.json();
-    if (!data.candidates || data.candidates.length === 0) {
-        throw new Error('API returned no candidates. Please verify content safety and API limits.');
-    }
-    const candidate = data.candidates[0];
-    if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
-        throw new Error(`API returned empty content. Finish reason: ${candidate.finishReason || 'Unknown'}`);
-    }
-    return candidate.content.parts[0].text;
 }
 
 function parseResponse(text) {
@@ -737,19 +761,33 @@ async function checkAndFetchMissing(type) {
         const sentencesArr = lastStoryData.sentences.map(s => s.mandarin);
         let prompt = '';
         if (type === 'pinyin') {
-            prompt = `Generate Pinyin pronunciation (Taiwanese style, e.g. '和' as 'hàn') for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a "result" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${JSON.stringify(sentencesArr)}`;
+            prompt = `Generate Pinyin pronunciation (Taiwanese style, e.g. '和' as 'hàn') for the following Traditional Mandarin sentences. You MUST adhere to these strict Pinyin guidelines: 1. Capitalization: Capitalize first letter of each sentence, proper nouns (Běijīng, Zhōngguó), and personal names (e.g. Wáng Xiǎoyún). 2. Word Grouping: Group multi-syllable words continuously (fánguǎn, not fán guǎn), separate distinct words with spaces (Wǒ qù fánguǎn), keep particles (de, le, ma) as separate words, and use apostrophes before a, e, or o for ambiguous boundaries (píng'ān). Return ONLY a valid JSON object with a "result" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${JSON.stringify(sentencesArr)}`;
         } else if (type === 'zhuyin') {
             prompt = `Generate Zhuyin/Bopomofo pronunciation for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a "result" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${JSON.stringify(sentencesArr)}`;
         } else {
             prompt = `Generate natural English translations for the following Traditional Mandarin sentences. Return ONLY a valid JSON object with a "result" key containing an array of strings corresponding exactly 1-to-1 with the input sentences: ${JSON.stringify(sentencesArr)}`;
         }
 
-        const rawResult = await callGemini(prompt);
+        const rawResult = await callGemini(prompt, 'gemini-flash-lite-latest');
         let cleaned = rawResult.replace(/```json/g, '').replace(/```/g, '').trim();
         let start = cleaned.indexOf('{');
         let end = cleaned.lastIndexOf('}');
-        if (start === -1 || end === -1) throw new Error("Invalid API response structure");
-        const parsed = JSON.parse(cleaned.substring(start, end + 1));
+        let parsed;
+        try {
+            if (start === -1 || end === -1) throw new Error("Missing JSON curly braces");
+            parsed = JSON.parse(cleaned.substring(start, end + 1));
+        } catch (e) {
+            console.warn("JSON parse failed for dynamic content, attempting array extraction...", e);
+            let arrStart = cleaned.indexOf('[');
+            let arrEnd = cleaned.lastIndexOf(']');
+            if (arrStart !== -1 && arrEnd !== -1 && arrEnd > arrStart) {
+                let arrStr = cleaned.substring(arrStart, arrEnd + 1);
+                arrStr = arrStr.replace(/,\s*\]/g, ']');
+                parsed = { result: JSON.parse(arrStr) };
+            } else {
+                throw e;
+            }
+        }
         const resArray = parsed.result;
         if (!Array.isArray(resArray) || resArray.length !== lastStoryData.sentences.length) {
             throw new Error("Length mismatch in dynamic content fetch");
