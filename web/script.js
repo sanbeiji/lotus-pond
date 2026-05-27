@@ -27,6 +27,9 @@ const DEFAULT_SETTINGS = {
     apiKey: '',
     persistKey: true,
     selectedModel: 'gemini-flash-lite-latest',
+    generatePinyin: false,
+    generateZhuyin: false,
+    generateTranslation: false,
     showPinyin: true,
     showZhuyin: false,
     studyMode: true,
@@ -50,6 +53,7 @@ const elements = {
     lengthInput: document.getElementById('lengthInWords'),
     requiredTermsInput: document.getElementById('requiredTerms'),
     generateBtn: document.getElementById('generate-btn'),
+    clearFormBtn: document.getElementById('clear-form-btn'),
     
     apiKeyInput: document.getElementById('api-key'),
     persistKeyToggle: document.getElementById('persist-key'),
@@ -73,6 +77,11 @@ const elements = {
     storyHeading: document.getElementById('story-heading'),
     toggleStorySettingsBtn: document.getElementById('toggle-story-settings'),
     storySettingsPanel: document.getElementById('story-settings-panel'),
+    toggleGenerateSettingsBtn: document.getElementById('toggle-generate-settings'),
+    generateSettingsPanel: document.getElementById('generate-settings-panel'),
+    generatePinyinToggle: document.getElementById('generate-pinyin'),
+    generateZhuyinToggle: document.getElementById('generate-zhuyin'),
+    generateTranslationToggle: document.getElementById('generate-translation'),
     showTranslationToggle: document.getElementById('show-translation'),
     fontSizeRadios: document.querySelectorAll('input[name="font-size"]'),
     speechRateRadios: document.querySelectorAll('input[name="speech-rate"]'),
@@ -178,6 +187,9 @@ function loadState() {
         elements.themeSelect.value = state.themePreference || 'system';
     }
     applyTheme();
+    if (elements.generatePinyinToggle) elements.generatePinyinToggle.checked = state.generatePinyin;
+    if (elements.generateZhuyinToggle) elements.generateZhuyinToggle.checked = state.generateZhuyin;
+    if (elements.generateTranslationToggle) elements.generateTranslationToggle.checked = state.generateTranslation;
     if (elements.showPinyinToggle) elements.showPinyinToggle.checked = state.showPinyin;
     if (elements.showZhuyinToggle) elements.showZhuyinToggle.checked = state.showZhuyin;
     if (elements.studyModeToggle) elements.studyModeToggle.checked = state.studyMode;
@@ -252,6 +264,15 @@ function saveState() {
 
 function setupEventListeners() {
     elements.storyForm.addEventListener('submit', handleGenerate);
+    elements.clearFormBtn?.addEventListener('click', () => {
+        elements.storyForm.reset();
+        if (elements.plotInput) elements.plotInput.style.height = 'auto';
+        if (elements.requiredTermsInput) {
+            elements.requiredTermsInput.classList.remove('invalid');
+            const vocabWarning = document.getElementById('vocab-warning');
+            if (vocabWarning) vocabWarning.hidden = true;
+        }
+    });
     document.getElementById('close-error-btn')?.addEventListener('click', hideError);
     
     elements.toggleSettingsBtn.addEventListener('click', () => {
@@ -280,6 +301,41 @@ function setupEventListeners() {
             e.stopPropagation();
         });
     }
+
+    if (elements.toggleGenerateSettingsBtn && elements.generateSettingsPanel) {
+        elements.toggleGenerateSettingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isShowing = elements.generateSettingsPanel.classList.toggle('show');
+            elements.toggleGenerateSettingsBtn.dataset.tooltip = isShowing ? "Close generate preferences" : "Edit generate preferences";
+        });
+
+        document.addEventListener('click', (e) => {
+            if (elements.generateSettingsPanel.classList.contains('show') &&
+                !elements.generateSettingsPanel.contains(e.target) &&
+                e.target !== elements.toggleGenerateSettingsBtn) {
+                elements.generateSettingsPanel.classList.remove('show');
+                elements.toggleGenerateSettingsBtn.dataset.tooltip = "Edit generate preferences";
+            }
+        });
+        elements.generateSettingsPanel.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    elements.generatePinyinToggle?.addEventListener('change', (e) => {
+        state.generatePinyin = e.target.checked;
+        saveState();
+    });
+
+    elements.generateZhuyinToggle?.addEventListener('change', (e) => {
+        state.generateZhuyin = e.target.checked;
+        saveState();
+    });
+
+    elements.generateTranslationToggle?.addEventListener('change', (e) => {
+        state.generateTranslation = e.target.checked;
+        saveState();
+    });
     
     elements.apiKeyInput.addEventListener('change', (e) => {
         state.apiKey = e.target.value.trim();
@@ -465,9 +521,20 @@ async function handleGenerate(e) {
         elements.resultSection.hidden = false;
         elements.resultSection.scrollIntoView({ behavior: 'smooth' });
 
-        if (state.showPinyin) checkAndFetchMissing('pinyin');
-        if (state.showZhuyin) checkAndFetchMissing('zhuyin');
-        if (state.showTranslation) checkAndFetchMissing('english');
+        state.showPinyin = state.generatePinyin;
+        state.showZhuyin = state.generateZhuyin;
+        state.showTranslation = state.generateTranslation;
+        if (elements.showPinyinToggle) elements.showPinyinToggle.checked = state.showPinyin;
+        if (elements.showZhuyinToggle) elements.showZhuyinToggle.checked = state.showZhuyin;
+        if (elements.showTranslationToggle) elements.showTranslationToggle.checked = state.showTranslation;
+        saveState();
+        updatePinyinVisibility();
+        updateZhuyinVisibility();
+        updateTranslationVisibility();
+
+        if (state.generatePinyin) checkAndFetchMissing('pinyin');
+        if (state.generateZhuyin) checkAndFetchMissing('zhuyin');
+        if (state.generateTranslation) checkAndFetchMissing('english');
     } catch (err) {
         console.error(err);
         showError(err.message || 'An unexpected error occurred during generation.');

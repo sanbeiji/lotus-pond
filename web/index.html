@@ -111,7 +111,26 @@
 
         <!-- Input form -->
         <section class="card" aria-labelledby="generator-heading">
-          <h2 id="generator-heading">Generate a story</h2>
+          <div class="generate-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h2 id="generator-heading" style="margin-bottom: 0;">Generate a story</h2>
+            <div class="generate-settings-container" style="position: relative; display: flex; justify-content: flex-end;">
+              <button id="toggle-generate-settings" class="btn-icon" aria-label="Toggle generate preferences" data-tooltip="Edit generate preferences"><span>⚙️</span></button>
+              <div id="generate-settings-panel" class="view-options-stack">
+                <div class="toggle-switch">
+                  <input type="checkbox" id="generate-pinyin">
+                  <label for="generate-pinyin">Generate Pinyin</label>
+                </div>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="generate-zhuyin">
+                  <label for="generate-zhuyin">Generate Zhuyin</label>
+                </div>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="generate-translation">
+                  <label for="generate-translation">Generate English translation</label>
+                </div>
+              </div>
+            </div>
+          </div>
           <form id="story-form" novalidate>
 
             <div class="form-group">
@@ -165,9 +184,14 @@
               <small id="vocab-warning" class="input-warning" hidden>Please use Mandarin characters only (separated by commas).</small>
             </div>
 
-            <button type="submit" id="generate-btn" class="btn-primary">
-              <span class="btn-text">✨ Generate story</span>
-            </button>
+            <div class="form-actions" style="display: flex; gap: 1rem; align-items: center;">
+              <button type="button" id="clear-form-btn" class="btn-secondary">
+                Clear
+              </button>
+              <button type="submit" id="generate-btn" class="btn-primary" style="flex: 1;">
+                <span class="btn-text">✨ Generate story</span>
+              </button>
+            </div>
           </form>
         </section>
 

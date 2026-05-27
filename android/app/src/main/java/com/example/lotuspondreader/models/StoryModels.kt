@@ -29,6 +29,9 @@ data class HistoryItem(
 data class UserSettings(
     val apiKey: String = "",
     val selectedModel: String = "gemini-flash-lite-latest",
+    val generatePinyin: Boolean = false,
+    val generateZhuyin: Boolean = false,
+    val generateTranslation: Boolean = false,
     val showPinyin: Boolean = true,
     val showZhuyin: Boolean = false,
     val studyMode: Boolean = true,

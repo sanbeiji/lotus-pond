@@ -27,6 +27,7 @@ fun HomeScreen(
     uiState: StoryUiState,
     onGenerate: () -> Unit,
     selectedModel: String = "gemini-flash-lite-latest",
+    onClearForm: () -> Unit = {},
     onResetError: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -146,17 +147,29 @@ fun HomeScreen(
             )
         }
 
-        Button(
-            onClick = onGenerate,
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            enabled = plot.isNotBlank() && uiState !is StoryUiState.Loading
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (uiState is StoryUiState.Loading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("✨ Creating...")
-            } else {
-                Text("✨ Create story")
+            OutlinedButton(
+                onClick = onClearForm,
+                modifier = Modifier.weight(1f),
+                enabled = uiState !is StoryUiState.Loading
+            ) {
+                Text("Clear")
+            }
+            Button(
+                onClick = onGenerate,
+                modifier = Modifier.weight(2f),
+                enabled = plot.isNotBlank() && uiState !is StoryUiState.Loading
+            ) {
+                if (uiState is StoryUiState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("✨ Creating...")
+                } else {
+                    Text("✨ Create story")
+                }
             }
         }
         

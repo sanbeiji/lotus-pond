@@ -355,6 +355,13 @@ fun MainNavigation(
                             )
                         },
                         selectedModel = userSettings.selectedModel,
+                        onClearForm = {
+                            viewModel.plot.value = ""
+                            viewModel.skillLevel.value = "A1 (Entry)"
+                            viewModel.length.value = "400"
+                            viewModel.requiredTerms.value = ""
+                            viewModel.resetUiState()
+                        },
                         onResetError = { viewModel.resetUiState() },
                         modifier = Modifier.padding(innerPadding)
                     )

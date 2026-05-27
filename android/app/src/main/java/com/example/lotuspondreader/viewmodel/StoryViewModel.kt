@@ -106,9 +106,16 @@ class StoryViewModel(
                 val insertedId = storyDao.insertStory(newEntity)
                 currentEntity = newEntity.copy(id = insertedId)
 
-                if (currentSettings.showPinyin) checkAndFetchMissing("pinyin")
-                if (currentSettings.showZhuyin) checkAndFetchMissing("zhuyin")
-                if (currentSettings.showTranslation) checkAndFetchMissing("english")
+                val syncedSettings = currentSettings.copy(
+                    showPinyin = currentSettings.generatePinyin,
+                    showZhuyin = currentSettings.generateZhuyin,
+                    showTranslation = currentSettings.generateTranslation
+                )
+                settingsRepository.saveSettings(syncedSettings)
+
+                if (syncedSettings.generatePinyin) checkAndFetchMissing("pinyin")
+                if (syncedSettings.generateZhuyin) checkAndFetchMissing("zhuyin")
+                if (syncedSettings.generateTranslation) checkAndFetchMissing("english")
             } catch (e: Exception) {
                 _uiState.value = StoryUiState.Error(e.message ?: "An unexpected error occurred")
             }

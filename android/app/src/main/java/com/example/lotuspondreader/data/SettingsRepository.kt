@@ -37,6 +37,9 @@ class SettingsRepository(private val context: Context) {
         private const val SECURE_API_KEY = "secure_api_key"
         val LAST_UPDATED = longPreferencesKey("last_updated")
         val SELECTED_MODEL = stringPreferencesKey("selected_model")
+        val GENERATE_PINYIN = booleanPreferencesKey("generate_pinyin")
+        val GENERATE_ZHUYIN = booleanPreferencesKey("generate_zhuyin")
+        val GENERATE_TRANSLATION = booleanPreferencesKey("generate_translation")
         val SHOW_PINYIN = booleanPreferencesKey("show_pinyin")
         val SHOW_ZHUYIN = booleanPreferencesKey("show_zhuyin")
         val STUDY_MODE = booleanPreferencesKey("study_mode")
@@ -58,6 +61,9 @@ class SettingsRepository(private val context: Context) {
             UserSettings(
                 apiKey = encryptedPrefs.getString(SECURE_API_KEY, "") ?: "",
                 selectedModel = normalizedModel,
+                generatePinyin = preferences[GENERATE_PINYIN] ?: false,
+                generateZhuyin = preferences[GENERATE_ZHUYIN] ?: false,
+                generateTranslation = preferences[GENERATE_TRANSLATION] ?: false,
                 showPinyin = preferences[SHOW_PINYIN] ?: true,
                 showZhuyin = preferences[SHOW_ZHUYIN] ?: false,
                 studyMode = preferences[STUDY_MODE] ?: true,
@@ -77,6 +83,9 @@ class SettingsRepository(private val context: Context) {
         dataStore.edit { preferences ->
             preferences[LAST_UPDATED] = System.currentTimeMillis()
             preferences[SELECTED_MODEL] = settings.selectedModel
+            preferences[GENERATE_PINYIN] = settings.generatePinyin
+            preferences[GENERATE_ZHUYIN] = settings.generateZhuyin
+            preferences[GENERATE_TRANSLATION] = settings.generateTranslation
             preferences[SHOW_PINYIN] = settings.showPinyin
             preferences[SHOW_ZHUYIN] = settings.showZhuyin
             preferences[STUDY_MODE] = settings.studyMode
