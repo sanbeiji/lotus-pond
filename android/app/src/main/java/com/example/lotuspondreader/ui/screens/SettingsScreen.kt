@@ -191,6 +191,16 @@ fun SettingsScreen(
                                 Text("Get API Key", textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                             }
                         }
+                        
+                        HorizontalDivider()
+                        
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Text(
+                                "Version 0.2.6 · Published May 27, 2026",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 },
                 confirmButton = {
