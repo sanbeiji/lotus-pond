@@ -40,7 +40,16 @@ class StoryViewModel(
     val errorEvent: StateFlow<String?> = _errorEvent.asStateFlow()
 
     val userSettings = settingsRepository.userSettingsFlow
-    val history = storyDao.getAllHistory()
+    
+    private val _deletedStoryIds = MutableStateFlow<Set<Long>>(emptySet())
+    private val deletionJobs = java.util.concurrent.ConcurrentHashMap<Long, kotlinx.coroutines.Job>()
+
+    val history = kotlinx.coroutines.flow.combine(
+        storyDao.getAllHistory(),
+        _deletedStoryIds
+    ) { dbList, deletedIds ->
+        dbList.filter { it.id !in deletedIds }
+    }
 
     val plot = MutableStateFlow("")
     val skillLevel = MutableStateFlow("A1 (Entry)")
@@ -183,8 +192,41 @@ class StoryViewModel(
         }
     }
 
+    fun deleteStory(story: StoryEntity) {
+        // Cancel any previous pending delete job for this specific item if somehow invoked again
+        deletionJobs[story.id]?.cancel()
+
+        // 1. Add to optimistic delete tracking flow
+        _deletedStoryIds.value = _deletedStoryIds.value + story.id
+
+        // 2. Launch deferred background deletion job
+        val job = viewModelScope.launch {
+            try {
+                kotlinx.coroutines.delay(4000) // 4 seconds cancellation window
+                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                    storyDao.deleteStory(story)
+                }
+            } finally {
+                _deletedStoryIds.value = _deletedStoryIds.value - story.id
+                deletionJobs.remove(story.id)
+            }
+        }
+        deletionJobs[story.id] = job
+    }
+
+    fun undoDeleteStory(storyId: Long) {
+        deletionJobs[storyId]?.cancel()
+        deletionJobs.remove(storyId)
+        _deletedStoryIds.value = _deletedStoryIds.value - storyId
+    }
+
     fun clearHistory() {
         viewModelScope.launch {
+            // Commit any pending deletions immediately before clearing all
+            deletionJobs.values.forEach { it.cancel() }
+            deletionJobs.clear()
+            _deletedStoryIds.value = emptySet()
+            
             storyDao.clearHistory()
         }
     }

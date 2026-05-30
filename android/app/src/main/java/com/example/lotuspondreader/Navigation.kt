@@ -374,6 +374,12 @@ fun MainNavigation(
                             viewModel.loadStoryFromHistory(storyEntity)
                         },
                         onClearHistory = { viewModel.clearHistory() },
+                        onDeleteStory = { storyEntity ->
+                            viewModel.deleteStory(storyEntity)
+                        },
+                        onUndoDelete = { storyId ->
+                            viewModel.undoDeleteStory(storyId)
+                        },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

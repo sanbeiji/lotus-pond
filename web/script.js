@@ -795,17 +795,38 @@ function updateTranslationVisibility() {
 
 let toastTimeout = null;
 
-function showToast(msg) {
+function showToast(msg, actionLabel = null, actionCallback = null, duration = 3000) {
     const toastEl = document.getElementById('toast');
-    if (!toastEl) return;
-    toastEl.textContent = msg;
+    const toastTextEl = document.getElementById('toast-text');
+    const toastActionBtn = document.getElementById('toast-action-btn');
+    if (!toastEl || !toastTextEl) return;
+
+    toastTextEl.textContent = msg;
+
+    if (actionLabel && actionCallback && toastActionBtn) {
+        toastActionBtn.textContent = actionLabel;
+        toastActionBtn.hidden = false;
+        toastActionBtn.onclick = (e) => {
+            e.stopPropagation();
+            actionCallback();
+            // Dismiss toast instantly
+            toastEl.classList.remove('show');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            setTimeout(() => toastEl.hidden = true, 300);
+        };
+    } else if (toastActionBtn) {
+        toastActionBtn.hidden = true;
+        toastActionBtn.onclick = null;
+    }
+
     toastEl.hidden = false;
     toastEl.classList.add('show');
+
     if (toastTimeout) clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => {
         toastEl.classList.remove('show');
         setTimeout(() => toastEl.hidden = true, 300);
-    }, 3000);
+    }, duration);
 }
 
 async function checkAndFetchMissing(type) {
@@ -954,7 +975,64 @@ function speak(text) {
 
 // ─── History Management ───────────────────────────────────────
 
+let pendingDeleteStoryId = null;
+let pendingDeleteTimeoutId = null;
+let pendingDeleteStoryObj = null;
+
+function deleteHistoryItem(id) {
+    // 1. Commit any previous pending deletions immediately
+    if (pendingDeleteStoryId !== null) {
+        commitPendingDelete();
+    }
+
+    // 2. Stash optimistic delete details
+    pendingDeleteStoryId = id;
+    pendingDeleteStoryObj = state.history.find(h => h.id === id);
+
+    // 3. Re-render UI (optimistically hides the item from screen)
+    renderHistory();
+
+    // 4. Launch functional Toast Action
+    showToast("Story deleted from history", "Undo", undoDelete, 4000);
+
+    // 5. Start auto-commit timer
+    pendingDeleteTimeoutId = setTimeout(() => {
+        commitPendingDelete();
+    }, 4000);
+}
+
+function undoDelete() {
+    if (pendingDeleteTimeoutId) {
+        clearTimeout(pendingDeleteTimeoutId);
+    }
+    pendingDeleteStoryId = null;
+    pendingDeleteStoryObj = null;
+    pendingDeleteTimeoutId = null;
+    renderHistory();
+    showToast("Story restored!");
+}
+
+function commitPendingDelete() {
+    if (pendingDeleteStoryId === null) return;
+    
+    if (pendingDeleteTimeoutId) {
+        clearTimeout(pendingDeleteTimeoutId);
+        pendingDeleteTimeoutId = null;
+    }
+
+    state.history = state.history.filter(h => h.id !== pendingDeleteStoryId);
+    pendingDeleteStoryId = null;
+    pendingDeleteStoryObj = null;
+    saveState();
+    renderHistory();
+}
+
 function addToHistory(storyData, skillLevel) {
+    // Ensure pending deletions are committed before appending new story
+    if (pendingDeleteStoryId !== null) {
+        commitPendingDelete();
+    }
+
     const now = new Date();
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -987,12 +1065,15 @@ function renderHistory() {
         if (!container) return;
         container.innerHTML = '';
         
-        if (state.history.length === 0) {
+        // Filter out any optimistically deleted item
+        const activeHistory = state.history.filter(item => item.id !== pendingDeleteStoryId);
+        
+        if (activeHistory.length === 0) {
             container.innerHTML = '<p class="empty-msg">No stories yet.</p>';
             return;
         }
         
-        state.history.forEach(item => {
+        activeHistory.forEach(item => {
             const el = document.createElement('div');
             el.className = 'history-item';
             let levelHtml = item.level ? `<div class="history-level">${item.level}</div>` : '';
@@ -1003,6 +1084,18 @@ function renderHistory() {
                     ${levelHtml}
                 </div>
             `;
+            
+            // Create permanently visible Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn-delete-history';
+            deleteBtn.innerHTML = '✕';
+            deleteBtn.title = 'Delete story';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteHistoryItem(item.id);
+            };
+            el.appendChild(deleteBtn);
+
             el.onclick = () => {
                 lastStoryData = item.data;
 
@@ -1037,6 +1130,14 @@ function renderHistory() {
 
 function clearHistory() {
     if (confirm('Are you sure you want to clear your story history?')) {
+        // Commit / cancel any pending delete to keep state perfectly clean
+        if (pendingDeleteTimeoutId) {
+            clearTimeout(pendingDeleteTimeoutId);
+            pendingDeleteTimeoutId = null;
+        }
+        pendingDeleteStoryId = null;
+        pendingDeleteStoryObj = null;
+
         state.history = [];
         saveState();
         renderHistory();
