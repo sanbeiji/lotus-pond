@@ -111,6 +111,12 @@ fun HistoryScreen(
                             }
                         )
 
+                        LaunchedEffect(item.id) {
+                            if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) {
+                                dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+                            }
+                        }
+
                         SwipeToDismissBox(
                             state = dismissState,
                             backgroundContent = {
