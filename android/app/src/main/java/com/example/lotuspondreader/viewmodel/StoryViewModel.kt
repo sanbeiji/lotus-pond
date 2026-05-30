@@ -56,6 +56,9 @@ class StoryViewModel(
     val length = MutableStateFlow("400")
     val requiredTerms = MutableStateFlow("")
 
+    private val _isGeneratingPrompt = MutableStateFlow(false)
+    val isGeneratingPrompt: StateFlow<Boolean> = _isGeneratingPrompt.asStateFlow()
+
     private var currentEntity: StoryEntity? = null
 
     fun resetUiState() {
@@ -69,6 +72,29 @@ class StoryViewModel(
     fun updateSettings(settings: UserSettings) {
         viewModelScope.launch {
             settingsRepository.saveSettings(settings)
+        }
+    }
+
+    fun fetchGenrePrompt(genre: String) {
+        viewModelScope.launch {
+            val currentSettings = userSettings.first()
+            if (currentSettings.apiKey.isBlank()) {
+                _errorEvent.value = "Please configure your Gemini API key in settings."
+                return@launch
+            }
+
+            _isGeneratingPrompt.value = true
+            try {
+                val promptResult = storyRepository.generateGenrePrompt(
+                    apiKey = currentSettings.apiKey,
+                    genre = genre
+                )
+                plot.value = promptResult
+            } catch (e: Exception) {
+                _errorEvent.value = e.message ?: "Failed to generate genre prompt."
+            } finally {
+                _isGeneratingPrompt.value = false
+            }
         }
     }
 

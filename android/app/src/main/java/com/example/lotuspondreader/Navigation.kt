@@ -56,6 +56,7 @@ fun MainNavigation(
     val skillLevel by viewModel.skillLevel.collectAsState()
     val length by viewModel.length.collectAsState()
     val requiredTerms by viewModel.requiredTerms.collectAsState()
+    val isGeneratingPrompt by viewModel.isGeneratingPrompt.collectAsState()
     
     val configuration = LocalConfiguration.current
     val isWideScreen = configuration.screenWidthDp > 600
@@ -363,6 +364,8 @@ fun MainNavigation(
                             viewModel.resetUiState()
                         },
                         onResetError = { viewModel.resetUiState() },
+                        isGeneratingPrompt = isGeneratingPrompt,
+                        onSelectGenre = { genre -> viewModel.fetchGenrePrompt(genre) },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

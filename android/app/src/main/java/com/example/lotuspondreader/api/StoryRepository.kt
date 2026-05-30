@@ -151,7 +151,44 @@ class StoryRepository {
         }
     }
 
-    private fun parseResponse(text: String): StoryResponse {
+    suspend fun generateGenrePrompt(
+        apiKey: String,
+        genre: String
+    ): String {
+        try {
+            val prompt = "Generate a creative, engaging story premise in English suitable for a Mandarin learning story in the \"$genre\" genre. The premise must be between 1 and 4 sentences long. It should set up an interesting plot, setting, or character dilemma, preferably reflecting Taiwanese culture, geography, or context. Return ONLY the raw story premise text. Do not include titles, quotes, markdown, JSON, or explanation."
+            
+            val requestBody = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = prompt)))),
+                generationConfig = GenerationConfig()
+            )
+
+            val fetchModel = "gemini-flash-lite-latest"
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/${fetchModel}:generateContent?key=${apiKey}"
+            
+            val response: GeminiResponse = standardClient.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(requestBody)
+            }.body()
+
+            if (response.error != null) {
+                throw Exception(response.error.message)
+            }
+
+            val responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                ?: throw Exception("No content returned from Gemini API")
+
+            return responseText.replace("[\"'“”‘’]".toRegex(), "").trim()
+        } catch (e: Exception) {
+            val msg = e.message ?: "Genre prompt generation failed"
+            val sanitizedMsg = if (apiKey.isNotBlank()) msg.replace(apiKey, "[REDACTED]") else msg
+            throw Exception(sanitizedMsg)
+        }
+    }
+
+    private fun parseResponse(
+        text: String
+    ): StoryResponse {
         try {
             // 1. Try clean parse
             val start = text.indexOf('{')

@@ -134,7 +134,20 @@
           <form id="story-form" novalidate>
 
             <div class="form-group">
-              <label for="plot">Plot / theme <span class="required">*</span></label>
+              <div class="plot-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <label for="plot" style="margin-bottom: 0;">Plot <span class="required">*</span></label>
+                <select id="genre-prompt-select" class="genre-select-dropdown" style="padding: 0.25rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.78rem; background: var(--card-bg); color: var(--text); cursor: pointer; max-width: 180px;">
+                  <option value="" disabled selected hidden>Inspire me</option>
+                  <option value="Adventure">🧭 Adventure</option>
+                  <option value="Daily Life">🏡 Daily Life</option>
+                  <option value="Fantasy">✨ Fantasy</option>
+                  <option value="Mystery">🔍 Mystery</option>
+                  <option value="Sci-Fi">🤖 Sci-Fi</option>
+                  <option value="Historical">📜 Historical</option>
+                  <option value="Romance">💖 Romance</option>
+                  <option value="Pirates">🏴‍☠️ Pirates</option>
+                </select>
+              </div>
               <textarea
                 id="plot"
                 name="plot"

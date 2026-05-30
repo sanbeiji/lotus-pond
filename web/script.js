@@ -86,6 +86,7 @@ const elements = {
     fontSizeRadios: document.querySelectorAll('input[name="font-size"]'),
     speechRateRadios: document.querySelectorAll('input[name="speech-rate"]'),
     copyBtn: document.getElementById('copy-btn'),
+    genrePromptSelect: document.getElementById('genre-prompt-select'),
     
     historyList: document.getElementById('history-list'),
     historyListMobile: document.getElementById('history-list-mobile'),
@@ -273,6 +274,43 @@ function setupEventListeners() {
             if (vocabWarning) vocabWarning.hidden = true;
         }
     });
+    elements.genrePromptSelect?.addEventListener('change', async (e) => {
+        const selectedGenre = e.target.value;
+        if (!selectedGenre) return;
+
+        const currentPlot = elements.plotInput.value.trim();
+        if (currentPlot.length > 0) {
+            const confirmed = confirm("This will replace your current plot text. Do you want to proceed?");
+            if (!confirmed) {
+                // Reset dropdown back to default placeholder
+                elements.genrePromptSelect.value = "";
+                return;
+            }
+        }
+
+        // UI Lock State
+        elements.plotInput.disabled = true;
+        elements.genrePromptSelect.disabled = true;
+        elements.plotInput.value = "";
+        elements.plotInput.placeholder = `Generating ${selectedGenre} prompt...`;
+        hideError();
+
+        try {
+            const generatedPrompt = await generateGenrePrompt(selectedGenre);
+            elements.plotInput.value = generatedPrompt;
+            elements.plotInput.style.height = 'auto';
+            elements.plotInput.style.height = elements.plotInput.scrollHeight + 'px';
+        } catch (err) {
+            showError(err.message || "An unexpected error occurred.");
+            elements.plotInput.placeholder = "e.g. A college student looking for a job…";
+        } finally {
+            elements.plotInput.disabled = false;
+            elements.genrePromptSelect.disabled = false;
+            // Reset dropdown cleanly
+            elements.genrePromptSelect.value = "";
+        }
+    });
+
     document.getElementById('close-error-btn')?.addEventListener('click', hideError);
     
     elements.toggleSettingsBtn.addEventListener('click', () => {
@@ -540,6 +578,39 @@ async function handleGenerate(e) {
         showError(err.message || 'An unexpected error occurred during generation.');
     } finally {
         showLoading(false);
+    }
+}
+
+async function generateGenrePrompt(genre) {
+    const prompt = `Generate a creative, engaging story premise in English suitable for a Mandarin learning story in the "${genre}" genre. The premise must be between 1 and 4 sentences long. It should set up an interesting plot, setting, or character dilemma, preferably reflecting Taiwanese culture, geography, or context. Return ONLY the raw story premise text. Do not include titles, quotes, markdown, JSON, or explanation.`;
+    
+    try {
+        // Force gemini-flash-lite-latest as mandated by requirements
+        const result = await callGemini(prompt, 'gemini-flash-lite-latest');
+        let cleaned = result.trim();
+        
+        // 1. Try to parse as JSON if it looks like valid JSON
+        if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+            try {
+                const parsed = JSON.parse(cleaned);
+                const keys = Object.keys(parsed);
+                if (keys.length > 0) {
+                    const value = parsed[keys[0]];
+                    if (typeof value === 'string') {
+                        cleaned = value;
+                    }
+                }
+            } catch (e) {
+                // Not valid JSON (e.g. raw text in braces), strip the braces
+                cleaned = cleaned.substring(1, cleaned.length - 1).trim();
+            }
+        }
+        
+        // Remove outer quotes and return cleaned text
+        return cleaned.replace(/^["'“”‘’]+|["'“”‘’]+$/g, '').trim();
+    } catch (err) {
+        console.error("Genre prompt generation failed:", err);
+        throw new Error("Failed to generate prompt for " + genre + ". " + err.message);
     }
 }
 
