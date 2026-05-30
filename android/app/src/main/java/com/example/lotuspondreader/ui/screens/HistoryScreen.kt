@@ -91,6 +91,7 @@ fun HistoryScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(history, key = { it.id }) { item ->
+                        var isDismissed by remember { mutableStateOf(false) }
                         val density = LocalDensity.current
                         val dismissState = remember(item.id, density) {
                             SwipeToDismissBoxState(
@@ -98,18 +99,21 @@ fun HistoryScreen(
                                 density = density,
                                 confirmValueChange = { dismissValue ->
                                     if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                                        coroutineScope.launch {
-                                            kotlinx.coroutines.delay(300) // Settle drag gesture smoothly
-                                            onDeleteStory(item)
-                                        }
-                                        coroutineScope.launch {
-                                            val result = snackbarHostState.showSnackbar(
-                                                message = "Story deleted from history",
-                                                actionLabel = "Undo",
-                                                duration = SnackbarDuration.Short
-                                            )
-                                            if (result == SnackbarResult.ActionPerformed) {
-                                                onUndoDelete(item.id)
+                                        if (!isDismissed) {
+                                            isDismissed = true
+                                            coroutineScope.launch {
+                                                kotlinx.coroutines.delay(300) // Settle drag gesture smoothly
+                                                onDeleteStory(item)
+                                            }
+                                            coroutineScope.launch {
+                                                val result = snackbarHostState.showSnackbar(
+                                                    message = "Story deleted from history",
+                                                    actionLabel = "Undo",
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                                if (result == SnackbarResult.ActionPerformed) {
+                                                    onUndoDelete(item.id)
+                                                }
                                             }
                                         }
                                         true
