@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
 import com.example.lotuspondreader.data.StoryEntity
 import kotlinx.coroutines.launch
 
@@ -90,27 +91,35 @@ fun HistoryScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(history, key = { it.id }) { item ->
-                        val dismissState = rememberSwipeToDismissBoxState(
-                            confirmValueChange = { dismissValue ->
-                                if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                                    coroutineScope.launch {
-                                        kotlinx.coroutines.delay(300) // Settle drag gesture smoothly
-                                        onDeleteStory(item)
-                                    }
-                                    coroutineScope.launch {
-                                        val result = snackbarHostState.showSnackbar(
-                                            message = "Story deleted from history",
-                                            actionLabel = "Undo",
-                                            duration = SnackbarDuration.Short
-                                        )
-                                        if (result == SnackbarResult.ActionPerformed) {
-                                            onUndoDelete(item.id)
+                        val density = LocalDensity.current
+                        val dismissState = remember(item.id, density) {
+                            SwipeToDismissBoxState(
+                                initialValue = SwipeToDismissBoxValue.Settled,
+                                density = density,
+                                confirmValueChange = { dismissValue ->
+                                    if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                                        coroutineScope.launch {
+                                            kotlinx.coroutines.delay(300) // Settle drag gesture smoothly
+                                            onDeleteStory(item)
                                         }
+                                        coroutineScope.launch {
+                                            val result = snackbarHostState.showSnackbar(
+                                                message = "Story deleted from history",
+                                                actionLabel = "Undo",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                            if (result == SnackbarResult.ActionPerformed) {
+                                                onUndoDelete(item.id)
+                                            }
+                                        }
+                                        true
+                                    } else {
+                                        false
                                     }
-                                }
-                                false
-                            }
-                        )
+                                },
+                                positionalThreshold = { distance -> distance * 0.6f }
+                            )
+                        }
 
                         SwipeToDismissBox(
                             state = dismissState,
