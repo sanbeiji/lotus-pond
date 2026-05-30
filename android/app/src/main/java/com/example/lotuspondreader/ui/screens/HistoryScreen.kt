@@ -93,7 +93,10 @@ fun HistoryScreen(
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = { dismissValue ->
                                 if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                                    onDeleteStory(item)
+                                    coroutineScope.launch {
+                                        kotlinx.coroutines.delay(300) // Settle drag gesture smoothly
+                                        onDeleteStory(item)
+                                    }
                                     coroutineScope.launch {
                                         val result = snackbarHostState.showSnackbar(
                                             message = "Story deleted from history",
@@ -104,18 +107,10 @@ fun HistoryScreen(
                                             onUndoDelete(item.id)
                                         }
                                     }
-                                    true
-                                } else {
-                                    false
                                 }
+                                false
                             }
                         )
-
-                        LaunchedEffect(item.id) {
-                            if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) {
-                                dismissState.snapTo(SwipeToDismissBoxValue.Settled)
-                            }
-                        }
 
                         SwipeToDismissBox(
                             state = dismissState,
