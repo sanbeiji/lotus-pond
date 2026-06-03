@@ -11,13 +11,16 @@ class TaiwaneseMandarinPcmPlayer {
 
     private val sampleRate = 24000 // Gemini default spec
     
+    suspend fun playBase64Pcm(base64Data: String) {
+        val audioBytes = Base64.decode(base64Data, Base64.DEFAULT)
+        playRawPcm(audioBytes)
+    }
+
     /**
-     * Decodes Base64 PCM data and writes it to an authentic AudioTrack channel
+     * Writes raw ByteArray PCM frames to an authentic AudioTrack channel
      */
-    suspend fun playBase64Pcm(base64Data: String) = withContext(Dispatchers.IO) {
+    suspend fun playRawPcm(audioBytes: ByteArray) = withContext(Dispatchers.IO) {
         try {
-            // Convert to raw byte frames
-            val audioBytes = Base64.decode(base64Data, Base64.DEFAULT)
             
             // Calculate optimal buffer sizing
             val minBufferSize = AudioTrack.getMinBufferSize(

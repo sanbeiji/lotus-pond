@@ -1,5 +1,6 @@
 package com.example.lotuspondreader.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lotuspondreader.api.StoryRepository
@@ -27,7 +28,8 @@ sealed class StoryUiState {
 class StoryViewModel(
     private val settingsRepository: SettingsRepository,
     private val storyRepository: StoryRepository,
-    private val storyDao: StoryDao
+    private val storyDao: StoryDao,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<StoryUiState>(StoryUiState.Idle)
@@ -98,14 +100,35 @@ class StoryViewModel(
         }
     }
 
-    suspend fun generateSpeech(text: String, voiceStyle: String): String? {
+    private fun getAudioCacheFile(text: String, voiceStyle: String): java.io.File {
+        val hashInput = "${text}_${voiceStyle}"
+        val digest = java.security.MessageDigest.getInstance("MD5")
+        val hashBytes = digest.digest(hashInput.toByteArray(Charsets.UTF_8))
+        val hashString = hashBytes.joinToString("") { "%02x".format(it) }
+        
+        val ttsDir = java.io.File(context.cacheDir, "tts_cache")
+        if (!ttsDir.exists()) {
+            ttsDir.mkdirs()
+        }
+        return java.io.File(ttsDir, "$hashString.pcm")
+    }
+
+    suspend fun generateSpeech(text: String, voiceStyle: String): ByteArray? {
         return try {
+            val cacheFile = getAudioCacheFile(text, voiceStyle)
+            if (cacheFile.exists()) {
+                return cacheFile.readBytes()
+            }
+
             val currentSettings = userSettings.first()
             if (currentSettings.apiKey.isBlank()) {
                 _errorEvent.value = "Please configure your Gemini API key in settings."
                 return null
             }
-            storyRepository.generateSpeech(currentSettings.apiKey, text, voiceStyle)
+            val base64Data = storyRepository.generateSpeech(currentSettings.apiKey, text, voiceStyle)
+            val audioBytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT)
+            cacheFile.writeBytes(audioBytes)
+            audioBytes
         } catch (e: Exception) {
             _errorEvent.value = e.message ?: "Failed to generate speech."
             null
@@ -245,6 +268,17 @@ class StoryViewModel(
                 kotlinx.coroutines.delay(4000) // 4 seconds cancellation window
                 kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
                     storyDao.deleteStory(story)
+                    
+                    // Also delete cached audio files for this story's sentences
+                    val voiceStyles = listOf("standard", "southern", "heavy_southern")
+                    story.storyData.sentences.forEach { sentence ->
+                        voiceStyles.forEach { style ->
+                            val cacheFile = getAudioCacheFile(sentence.mandarin, style)
+                            if (cacheFile.exists()) {
+                                cacheFile.delete()
+                            }
+                        }
+                    }
                 }
             } finally {
                 _deletedStoryIds.value = _deletedStoryIds.value - story.id
@@ -268,6 +302,12 @@ class StoryViewModel(
             _deletedStoryIds.value = emptySet()
             
             storyDao.clearHistory()
+            
+            // Clear entire cache directory
+            val ttsDir = java.io.File(context.cacheDir, "tts_cache")
+            if (ttsDir.exists()) {
+                ttsDir.deleteRecursively()
+            }
         }
     }
 }

@@ -588,7 +588,7 @@ fun MainNavigation(
                                         scope.launch {
                                             val audioData = viewModel.generateSpeech(textToSpeak, userSettings.geminiTtsVoiceStyle)
                                             if (audioData != null) {
-                                                pcmPlayer.playBase64Pcm(audioData)
+                                                pcmPlayer.playRawPcm(audioData)
                                             }
                                         }
                                     } else {
