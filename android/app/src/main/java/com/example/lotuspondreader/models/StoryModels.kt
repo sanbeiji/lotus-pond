@@ -39,5 +39,7 @@ data class UserSettings(
     val themePreference: String = "system", // "system", "light", "dark"
     val useDynamicColor: Boolean = false,
     val fontSizePreference: String = "small", // "small", "medium", "large"
-    val speechRatePreference: Float = 0.9f
+    val speechRatePreference: Float = 0.9f,
+    val useGeminiTts: Boolean = false,
+    val geminiTtsVoiceStyle: String = "standard"
 )

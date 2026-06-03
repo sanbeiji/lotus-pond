@@ -98,6 +98,20 @@ class StoryViewModel(
         }
     }
 
+    suspend fun generateSpeech(text: String, voiceStyle: String): String? {
+        return try {
+            val currentSettings = userSettings.first()
+            if (currentSettings.apiKey.isBlank()) {
+                _errorEvent.value = "Please configure your Gemini API key in settings."
+                return null
+            }
+            storyRepository.generateSpeech(currentSettings.apiKey, text, voiceStyle)
+        } catch (e: Exception) {
+            _errorEvent.value = e.message ?: "Failed to generate speech."
+            null
+        }
+    }
+
     fun loadStoryFromHistory(storyEntity: StoryEntity) {
         currentEntity = storyEntity
         _uiState.value = StoryUiState.Success(storyEntity.storyData)

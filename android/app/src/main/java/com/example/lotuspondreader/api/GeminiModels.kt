@@ -15,16 +15,40 @@ data class Content(
 
 @Serializable
 data class Part(
-    val text: String
+    val text: String? = null,
+    val inlineData: InlineData? = null
+)
+
+@Serializable
+data class InlineData(
+    val mimeType: String,
+    val data: String
 )
 
 @Serializable
 data class GenerationConfig(
-    val temperature: Double = 0.7,
-    val topK: Int = 40,
-    val topP: Double = 0.95,
-    val maxOutputTokens: Int = 8192,
-    val responseMimeType: String = "application/json"
+    val temperature: Double? = null,
+    val topK: Int? = null,
+    val topP: Double? = null,
+    val maxOutputTokens: Int? = null,
+    val responseMimeType: String? = null,
+    val responseModalities: List<String>? = null,
+    val speechConfig: SpeechConfig? = null
+)
+
+@Serializable
+data class SpeechConfig(
+    val voiceConfig: VoiceConfig? = null
+)
+
+@Serializable
+data class VoiceConfig(
+    val prebuiltVoiceConfig: PrebuiltVoiceConfig? = null
+)
+
+@Serializable
+data class PrebuiltVoiceConfig(
+    val voiceName: String? = null
 )
 
 @Serializable

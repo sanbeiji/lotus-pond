@@ -37,7 +37,9 @@ const DEFAULT_SETTINGS = {
     history: [],
     themePreference: 'system',
     fontSizePreference: 'small',
-    speechRatePreference: '0.9'
+    speechRatePreference: '0.9',
+    useGeminiTts: false,
+    geminiTtsVoiceStyle: 'standard'
 };
 
 // ─── App State ────────────────────────────────────────────────
@@ -60,6 +62,9 @@ const elements = {
     clearApiKeyBtn: document.getElementById('clear-api-key'),
     modelSelect: document.getElementById('model-select'),
     themeSelect: document.getElementById('theme-select'),
+    useGeminiTtsToggle: document.getElementById('use-gemini-tts'),
+    geminiTtsStyleGroup: document.getElementById('gemini-tts-style-group'),
+    geminiTtsStyleRadios: document.querySelectorAll('input[name="gemini-tts-style"]'),
     showPinyinToggle: document.getElementById('show-pinyin'),
     showZhuyinToggle: document.getElementById('show-zhuyin'),
     studyModeToggle: document.getElementById('study-mode'),
@@ -186,6 +191,17 @@ function loadState() {
     }
     if (elements.themeSelect) {
         elements.themeSelect.value = state.themePreference || 'system';
+    }
+    if (elements.useGeminiTtsToggle) elements.useGeminiTtsToggle.checked = state.useGeminiTts;
+    if (elements.geminiTtsStyleGroup) {
+        elements.geminiTtsStyleGroup.hidden = !state.useGeminiTts;
+    }
+    if (elements.geminiTtsStyleRadios) {
+        elements.geminiTtsStyleRadios.forEach(radio => {
+            if (radio.value === (state.geminiTtsVoiceStyle || 'standard')) {
+                radio.checked = true;
+            }
+        });
     }
     applyTheme();
     if (elements.generatePinyinToggle) elements.generatePinyinToggle.checked = state.generatePinyin;
@@ -404,6 +420,25 @@ function setupEventListeners() {
         saveState();
         applyTheme();
     });
+
+    elements.useGeminiTtsToggle?.addEventListener('change', (e) => {
+        state.useGeminiTts = e.target.checked;
+        saveState();
+        if (elements.geminiTtsStyleGroup) {
+            elements.geminiTtsStyleGroup.hidden = !state.useGeminiTts;
+        }
+    });
+
+    if (elements.geminiTtsStyleRadios) {
+        elements.geminiTtsStyleRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    state.geminiTtsVoiceStyle = e.target.value;
+                    saveState();
+                }
+            });
+        });
+    }
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
         if (state.themePreference === 'system') {
@@ -1020,8 +1055,16 @@ function hideError() {
 // ─── TTS (Read Aloud) ─────────────────────────────────────────
 
 function speak(text) {
+    if (state.useGeminiTts) {
+        speakWithGemini(text);
+        return;
+    }
+
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
+    if (window.currentGeminiAudio) {
+        window.currentGeminiAudio.pause();
+    }
     
     const utterance = new SpeechSynthesisUtterance(text);
     
@@ -1042,6 +1085,118 @@ function speak(text) {
     
     utterance.rate = parseFloat(state.speechRatePreference || '0.9');
     window.speechSynthesis.speak(utterance);
+}
+
+/**
+ * Wraps raw 16-bit Signed Little-Endian Mono PCM data in a WAV container header.
+ * @param {string} b64Pcm Base64 encoded string of raw PCM bytes
+ * @param {number} sampleRate Default sampling rate for Gemini (24000 Hz)
+ * @returns {string} Fully playable Blob URL
+ */
+function pcmToWavBlobUrl(b64Pcm, sampleRate = 24000) {
+  try {
+    const rawBinary = atob(b64Pcm);
+    const dataLen = rawBinary.length;
+    
+    const buffer = new ArrayBuffer(44 + dataLen);
+    const view = new DataView(buffer);
+    
+    view.setUint32(0, 0x52494646, false); 
+    view.setUint32(4, 36 + dataLen, true);
+    view.setUint32(8, 0x57415645, false);
+    view.setUint32(12, 0x666d7420, false);
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 1 * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    view.setUint32(36, 0x64617461, false);
+    view.setUint32(40, dataLen, true);
+    
+    const u8Buffer = new Uint8Array(buffer, 44);
+    for (let i = 0; i < dataLen; i++) {
+      u8Buffer[i] = rawBinary.charCodeAt(i);
+    }
+    
+    const wavBlob = new Blob([buffer], { type: "audio/wav" });
+    return URL.createObjectURL(wavBlob);
+  } catch (error) {
+    console.error("PCM-to-WAV conversion error:", error);
+    return null;
+  }
+}
+
+async function speakWithGemini(text) {
+    if (!state.apiKey) {
+        showError('Please enter your Gemini API Key in the settings for TTS.');
+        return;
+    }
+
+    const voicePrompt = {
+        'standard': '[Voice Style: Speak in a natural, standard, clear reading style.]\nRead in standard, clear Taiwanese Mandarin (都會風格台北/台灣腔) as heard in public announcements (like the Taipei MRT) or urban professional settings.\n- Speak in a natural, clean, moderately fast, modern Taiwanese tempo.\n- Retroflex sounds (zh, ch, sh) are relaxed and naturally simplified, avoiding any dry retroflex friction or thick northern Beijing acoustics. No "er" (no 兒化音).\n- Render neutral tones (輕聲) in accordance with general urban Taiwanese Mandarin usage (typically pronounced as lighter full tones rather than clipped neutral vowels).\n- Deliver with a clean, melodic, polite, and professional Taiwanese tone.',
+        'southern': '[Voice Style: Speak gently, softly, and reassuringly, at a relaxed pace with extreme warmth.]\nRead in a warm, relaxed, authentic Southern Taiwanese Mandarin (台灣國語) regional accent (popular in Tainan, Kaohsiung, and Pingtung).\n- Speak with a friendly, local Taiwanese cadence and relaxed mouth positioning.\n- Strictly avoid Beijing-style speech: absolutely no curl-tongue "er" (no 兒化音) and do not retroflex sounds like zh, ch, sh (pronounce them shifted toward z, c, s, e.g. 知道 sounds like zīdào, 是 sounds like sì).\n- Do not suppress tones into neutral short tones (輕聲), pronounce grammatically light words with their full traditional Taiwanese Mandarin tones (e.g. 舒服 is shūfú, 先生 is xiānshēng).\n- Keep any natural sentence-final particles from Taiwan (like \'啦\', \'齁\', \'喔\', \'欸\') represented with authentic, comfortable, musical southern cadence.',
+        'heavy_southern': '[Voice Style: Speak extremely casually, off-the-cuff, like chatting with a close family member or childhood friend.]\nRead in a local, very down-to-earth, thick Southern Taiwanese Mandarin colloquial style (重度南部腔台灣國語) with strong Taiwanese (Minnan/Hokkien) substrate.\n- Sound like a friendly neighbor from Tainan or Kaohsiung speaking casual Mandarin.\n- Strongly dentalize retroflexes (zh, ch, sh -> z, c, s, e.g., 船 sounds like cuán, 睡 sounds like suì).\n- Use Minnan speech substrate pitch and rhythm. Syllable-final nasals "eng" and "en" can merge with "ing" and "in", or open slightly (e.g. 朋友 sounds like píngyǒu or péng-ǐou).\n- Do not use neutral/light tones (輕聲); give everything comfortable, rich Taiwanese tones.\n- If natural, blend f and h sounds gently (e.g., 飯 fàn sounds like huàn, 發生 fāshēng sounds like huāshēng).\n- Keep the cadence relaxed, friendly, and expressive, showing regional southern warmth.'
+    };
+    
+    const styleInstruction = voicePrompt[state.geminiTtsVoiceStyle || 'standard'];
+    const fullText = `${styleInstruction}\nPlease recite the following text exactly as requested: "${text}"`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${state.apiKey}`;
+    
+    // Stop native speech synthesis if any
+    window.speechSynthesis.cancel();
+    if (window.currentGeminiAudio) {
+        window.currentGeminiAudio.pause();
+    }
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: fullText }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: {
+                                voiceName: "Kore"
+                            }
+                        }
+                    }
+                }
+            })
+        });
+        
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error?.message || 'API request failed');
+        }
+        
+        const data = await response.json();
+        const candidate = data.candidates && data.candidates[0];
+        const part = candidate?.content?.parts?.find(p => p.inlineData && p.inlineData.mimeType.startsWith('audio/'));
+        
+        if (!part) {
+            throw new Error('No audio returned from Gemini API.');
+        }
+        
+        const b64Pcm = part.inlineData.data;
+        const playUrl = pcmToWavBlobUrl(b64Pcm, 24000);
+        if (!playUrl) throw new Error("Audio conversion failed");
+        
+        const audioPlayer = new Audio();
+        audioPlayer.src = playUrl;
+        audioPlayer.playbackRate = parseFloat(state.speechRatePreference || '0.9');
+        audioPlayer.play();
+        window.currentGeminiAudio = audioPlayer;
+        
+    } catch (err) {
+        console.error("Gemini TTS Error:", err);
+        showError("Gemini TTS failed: " + err.message);
+    }
 }
 
 // ─── History Management ───────────────────────────────────────

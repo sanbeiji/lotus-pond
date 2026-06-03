@@ -1,5 +1,6 @@
 package com.example.lotuspondreader
 
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -399,6 +400,9 @@ fun MainNavigation(
                         lastStory = (uiState as StoryUiState.Success).story
                     }
                     val story = lastStory
+                    val scope = rememberCoroutineScope()
+                    val pcmPlayer = remember { com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer() }
+                    
                     if (story != null) {
                         val termsList = story.requiredTerms.split("[,，]".toRegex()).map { it.trim() }.filter { it.isNotEmpty() }
                         var showBottomSheet by remember { mutableStateOf(false) }
@@ -579,8 +583,18 @@ fun MainNavigation(
                                 fontSizePreference = userSettings.fontSizePreference,
                                 requiredTerms = termsList,
                                 onPlayAudio = { textToSpeak -> 
-                                    tts?.setSpeechRate(userSettings.speechRatePreference)
-                                    tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
+                                    if (userSettings.useGeminiTts) {
+                                        tts?.stop()
+                                        scope.launch {
+                                            val audioData = viewModel.generateSpeech(textToSpeak, userSettings.geminiTtsVoiceStyle)
+                                            if (audioData != null) {
+                                                pcmPlayer.playBase64Pcm(audioData)
+                                            }
+                                        }
+                                    } else {
+                                        tts?.setSpeechRate(userSettings.speechRatePreference)
+                                        tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
+                                    }
                                 },
                                 contentPadding = PaddingValues(
                                     start = 16.dp,
