@@ -524,36 +524,7 @@ fun MainNavigation(
 
                                     Text("Speech Preferences", style = MaterialTheme.typography.titleMedium)
 
-                                    val engineOptions = listOf("Android", "Gemini")
-                                    SingleChoiceSegmentedButtonRow(
-                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                                    ) {
-                                        engineOptions.forEachIndexed { index, option ->
-                                            val isSelected = if (option == "Gemini") userSettings.useGeminiTts else !userSettings.useGeminiTts
-                                            SegmentedButton(
-                                                shape = SegmentedButtonDefaults.itemShape(index = index, count = engineOptions.size),
-                                                onClick = { viewModel.updateSettings(userSettings.copy(useGeminiTts = (option == "Gemini"))) },
-                                                selected = isSelected,
-                                                icon = { SegmentedButtonDefaults.Icon(active = isSelected) }
-                                            ) {
-                                                Text(option)
-                                            }
-                                        }
-                                    }
-
-                                    val subtext = if (userSettings.useGeminiTts) {
-                                        "Uses Gemini AI (Experimental). High-quality voices and regional accents; requires internet and has minor initial latency/token costs."
-                                    } else {
-                                        "Uses native text-to-speech. Fast, free, and works offline."
-                                    }
-                                    Text(
-                                        text = subtext,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                                    )
-
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 12.dp)) {
                                         Text("Speech speed", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold))
                                         val rates = listOf(1.0f, 0.9f, 0.75f, 0.5f)
                                         val rateLabels = listOf("100%", "90%", "75%", "50%")
@@ -571,6 +542,38 @@ fun MainNavigation(
                                                 }
                                             }
                                         }
+                                    }
+
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text("Voice Engine", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold))
+                                        val engineOptions = listOf("Android", "Gemini")
+                                        SingleChoiceSegmentedButtonRow(
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            engineOptions.forEachIndexed { index, option ->
+                                                val isSelected = if (option == "Gemini") userSettings.useGeminiTts else !userSettings.useGeminiTts
+                                                SegmentedButton(
+                                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = engineOptions.size),
+                                                    onClick = { viewModel.updateSettings(userSettings.copy(useGeminiTts = (option == "Gemini"))) },
+                                                    selected = isSelected,
+                                                    icon = { SegmentedButtonDefaults.Icon(active = isSelected) }
+                                                ) {
+                                                    Text(option)
+                                                }
+                                            }
+                                        }
+
+                                        val subtext = if (userSettings.useGeminiTts) {
+                                            "Uses Gemini AI (Experimental). High-quality voices and regional accents; requires internet and has minor initial latency/token costs."
+                                        } else {
+                                            "Uses native text-to-speech. Fast, free, and works offline."
+                                        }
+                                        Text(
+                                            text = subtext,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                                        )
                                     }
 
                                     if (userSettings.useGeminiTts) {
