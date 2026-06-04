@@ -709,6 +709,8 @@ async function generateGenrePrompt(genre) {
         const result = await callGemini(prompt, 'gemini-flash-lite-latest');
         let cleaned = result.trim();
         
+        cleaned = cleaned.replace(/^```(json)?\s*|\s*```$/gi, '').trim();
+        
         // 1. Try to parse as JSON if it looks like valid JSON
         if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
             try {
@@ -725,6 +727,9 @@ async function generateGenrePrompt(genre) {
                 cleaned = cleaned.substring(1, cleaned.length - 1).trim();
             }
         }
+        
+        // Remove "premise:", "prompt:", etc prefix
+        cleaned = cleaned.replace(/^(?:"?premise"?|"?prompt"?|"?story"?)\s*:\s*/i, '').trim();
         
         // Remove outer quotes and return cleaned text
         return cleaned.replace(/^["'“”‘’]+|["'“”‘’]+$/g, '').trim();

@@ -193,8 +193,30 @@ class StoryRepository {
                 throw Exception(response.error.message)
             }
 
-            val responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            var responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
                 ?: throw Exception("No content returned from Gemini API")
+                
+            responseText = responseText.trim()
+            responseText = responseText.replace(Regex("^```(?:json)?\\s*|\\s*```$", RegexOption.IGNORE_CASE), "").trim()
+
+            if (responseText.startsWith("{") && responseText.endsWith("}")) {
+                try {
+                    val jsonElement = jsonConfig.parseToJsonElement(responseText)
+                    if (jsonElement is kotlinx.serialization.json.JsonObject) {
+                        val firstKey = jsonElement.keys.firstOrNull()
+                        if (firstKey != null) {
+                            val firstValue = jsonElement[firstKey]
+                            if (firstValue is kotlinx.serialization.json.JsonPrimitive && firstValue.isString) {
+                                responseText = firstValue.content
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    responseText = responseText.substring(1, responseText.length - 1).trim()
+                }
+            }
+            
+            responseText = responseText.replace(Regex("^(?:\"?premise\"?|\"?prompt\"?|\"?story\"?)\\s*:\\s*", RegexOption.IGNORE_CASE), "").trim()
 
             return responseText.replace("[\"'“”‘’]".toRegex(), "").trim()
         } catch (e: Exception) {
