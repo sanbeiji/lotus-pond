@@ -261,20 +261,7 @@
                   <div class="speech-preferences-section" style="width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem;">
                     <label style="font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-bottom: 0; align-self: flex-start;">Speech Preferences</label>
                     
-                    <!-- Engine Selection Segmented Radio -->
-                    <div class="toggle-group" style="width: 100%;">
-                      <input type="radio" id="engine-browser" name="tts-engine" value="browser" checked>
-                      <label for="engine-browser">Browser</label>
-                      <input type="radio" id="engine-gemini" name="tts-engine" value="gemini">
-                      <label for="engine-gemini">Gemini</label>
-                    </div>
-
-                    <!-- Subtext -->
-                    <div id="tts-engine-subtext" style="font-size: 0.72rem; color: var(--text-muted); text-align: right; line-height: 1.3;">
-                      Uses native text-to-speech. Fast, free, and works offline.
-                    </div>
-
-                    <!-- Speech speed (moved here!) -->
+                    <!-- Speech speed -->
                     <div class="speech-rate-controls" style="width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
                       <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0;">Speech speed:</label>
                       <div class="toggle-group" style="width: 100%;">
@@ -287,6 +274,22 @@
                         <input type="radio" id="speech-50" name="speech-rate" value="0.5">
                         <label for="speech-50">50%</label>
                       </div>
+                    </div>
+
+                    <!-- Engine Selection Segmented Radio -->
+                    <div class="form-group" style="width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
+                      <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0;">Voice Engine:</label>
+                      <div class="toggle-group" style="width: 100%;">
+                        <input type="radio" id="engine-browser" name="tts-engine" value="browser" checked>
+                        <label for="engine-browser">Browser</label>
+                        <input type="radio" id="engine-gemini" name="tts-engine" value="gemini">
+                        <label for="engine-gemini">Gemini</label>
+                      </div>
+                    </div>
+
+                    <!-- Subtext -->
+                    <div id="tts-engine-subtext" style="font-size: 0.72rem; color: var(--text-muted); text-align: right; line-height: 1.3;">
+                      Uses native text-to-speech. Fast, free, and works offline.
                     </div>
 
                     <!-- Dialect/Voice styles, visible only for Gemini -->
