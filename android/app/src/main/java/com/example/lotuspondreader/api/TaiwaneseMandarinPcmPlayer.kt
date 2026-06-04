@@ -11,15 +11,15 @@ class TaiwaneseMandarinPcmPlayer {
 
     private val sampleRate = 24000 // Gemini default spec
     
-    suspend fun playBase64Pcm(base64Data: String) {
+    suspend fun playBase64Pcm(base64Data: String, speed: Float = 1.0f) {
         val audioBytes = Base64.decode(base64Data, Base64.DEFAULT)
-        playRawPcm(audioBytes)
+        playRawPcm(audioBytes, speed)
     }
 
     /**
      * Writes raw ByteArray PCM frames to an authentic AudioTrack channel
      */
-    suspend fun playRawPcm(audioBytes: ByteArray) = withContext(Dispatchers.IO) {
+    suspend fun playRawPcm(audioBytes: ByteArray, speed: Float = 1.0f) = withContext(Dispatchers.IO) {
         try {
             
             // Calculate optimal buffer sizing
@@ -50,10 +50,17 @@ class TaiwaneseMandarinPcmPlayer {
             
             // Static playback: load entire buffer array, play, and clean resources on completion
             audioTrack.write(audioBytes, 0, audioBytes.size)
+
+            if (speed != 1.0f) {
+                audioTrack.playbackParams = android.media.PlaybackParams().apply {
+                    this.speed = speed
+                }
+            }
+
             audioTrack.play()
             
             // Block thread waiting for completion to safely release stream resources
-            val durationMs = ((audioBytes.size / 2.0) / sampleRate) * 1000
+            val durationMs = (((audioBytes.size / 2.0) / sampleRate) * 1000) / speed
             Thread.sleep(durationMs.toLong() + 200)
             
             audioTrack.stop()

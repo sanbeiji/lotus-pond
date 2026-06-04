@@ -62,7 +62,7 @@ const elements = {
     clearApiKeyBtn: document.getElementById('clear-api-key'),
     modelSelect: document.getElementById('model-select'),
     themeSelect: document.getElementById('theme-select'),
-    useGeminiTtsToggle: document.getElementById('use-gemini-tts'),
+    ttsEngineRadios: document.querySelectorAll('input[name="tts-engine"]'),
     geminiTtsStyleGroup: document.getElementById('gemini-tts-style-group'),
     geminiTtsStyleRadios: document.querySelectorAll('input[name="gemini-tts-style"]'),
     showPinyinToggle: document.getElementById('show-pinyin'),
@@ -192,10 +192,16 @@ function loadState() {
     if (elements.themeSelect) {
         elements.themeSelect.value = state.themePreference || 'system';
     }
-    if (elements.useGeminiTtsToggle) elements.useGeminiTtsToggle.checked = state.useGeminiTts;
-    if (elements.geminiTtsStyleGroup) {
-        elements.geminiTtsStyleGroup.hidden = !state.useGeminiTts;
+    if (elements.ttsEngineRadios) {
+        elements.ttsEngineRadios.forEach(radio => {
+            if (radio.value === 'gemini') {
+                radio.checked = state.useGeminiTts;
+            } else if (radio.value === 'browser') {
+                radio.checked = !state.useGeminiTts;
+            }
+        });
     }
+    updateTtsUi();
     if (elements.geminiTtsStyleRadios) {
         elements.geminiTtsStyleRadios.forEach(radio => {
             if (radio.value === (state.geminiTtsVoiceStyle || 'standard')) {
@@ -234,6 +240,18 @@ function loadState() {
     // If no API key, show settings
     if (!state.apiKey && elements.settingsContent) {
         elements.settingsContent.hidden = false;
+    }
+}
+
+function updateTtsUi() {
+    const subtextEl = document.getElementById('tts-engine-subtext');
+    if (subtextEl) {
+        subtextEl.textContent = state.useGeminiTts 
+            ? "Uses Gemini AI (Experimental). High-quality voices and regional accents; requires internet and has minor initial latency/token costs."
+            : "Uses native text-to-speech. Fast, free, and works offline.";
+    }
+    if (elements.geminiTtsStyleGroup) {
+        elements.geminiTtsStyleGroup.hidden = !state.useGeminiTts;
     }
 }
 
@@ -421,13 +439,17 @@ function setupEventListeners() {
         applyTheme();
     });
 
-    elements.useGeminiTtsToggle?.addEventListener('change', (e) => {
-        state.useGeminiTts = e.target.checked;
-        saveState();
-        if (elements.geminiTtsStyleGroup) {
-            elements.geminiTtsStyleGroup.hidden = !state.useGeminiTts;
-        }
-    });
+    if (elements.ttsEngineRadios) {
+        elements.ttsEngineRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    state.useGeminiTts = (e.target.value === 'gemini');
+                    saveState();
+                    updateTtsUi();
+                }
+            });
+        });
+    }
 
     if (elements.geminiTtsStyleRadios) {
         elements.geminiTtsStyleRadios.forEach(radio => {
