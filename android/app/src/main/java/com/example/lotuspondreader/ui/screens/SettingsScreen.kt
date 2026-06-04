@@ -156,48 +156,6 @@ fun SettingsScreen(
 
         HorizontalDivider()
         
-        Text("Speech preferences", style = MaterialTheme.typography.titleMedium)
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Use Gemini TTS")
-            Switch(
-                checked = settings.useGeminiTts,
-                onCheckedChange = { onSettingsChanged(settings.copy(useGeminiTts = it)) }
-            )
-        }
-
-        if (settings.useGeminiTts) {
-            Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp)) {
-                Text("Voice Style", style = MaterialTheme.typography.bodyMedium)
-                
-                val voiceStyles = listOf(
-                    "standard" to "Standard Taiwanese Mandarin",
-                    "southern" to "Southern Taiwan Accent (台南高雄腔)",
-                    "heavy_southern" to "Heavy Southern + Minnan (偏鄉本土腔)"
-                )
-                
-                voiceStyles.forEach { (value, label) ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = settings.geminiTtsVoiceStyle == value,
-                            onClick = { onSettingsChanged(settings.copy(geminiTtsVoiceStyle = value)) }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(label, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-        }
-
-        HorizontalDivider()
-        
         var showAboutDialog by remember { mutableStateOf(false) }
 
         if (showAboutDialog) {

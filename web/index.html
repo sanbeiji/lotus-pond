@@ -106,31 +106,6 @@
                 <option value="dark">Dark</option>
               </select>
             </div>
-            <hr class="settings-divider" style="border: 0; height: 1px; background: var(--border); margin: 1rem 0;">
-            <h3 style="margin-top: 0;">Speech preferences</h3>
-            <div class="form-group">
-              <div class="toggle-switch">
-                <input type="checkbox" id="use-gemini-tts">
-                <label for="use-gemini-tts">Use Gemini TTS</label>
-              </div>
-            </div>
-            <div class="form-group" id="gemini-tts-style-group" hidden>
-              <label>Voice Style</label>
-              <div class="radio-group" style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                  <input type="radio" name="gemini-tts-style" value="standard" checked>
-                  Standard Taiwanese Mandarin
-                </label>
-                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                  <input type="radio" name="gemini-tts-style" value="southern">
-                  Southern Taiwan Accent (台南高雄腔)
-                </label>
-                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                  <input type="radio" name="gemini-tts-style" value="heavy_southern">
-                  Heavy Southern + Minnan (偏鄉本土腔)
-                </label>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -293,6 +268,28 @@
                       <label for="speech-75">75%</label>
                       <input type="radio" id="speech-50" name="speech-rate" value="0.5">
                       <label for="speech-50">50%</label>
+                    </div>
+                  </div>
+                  <hr style="width: 100%; border: 0; border-top: 1px solid var(--border); margin: 0.5rem 0;">
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="use-gemini-tts">
+                    <label for="use-gemini-tts">Use Gemini TTS <span style="font-size: 0.72rem; opacity: 0.7; font-weight: normal; font-style: italic;">(Experimental)</span></label>
+                  </div>
+                  <div class="form-group" id="gemini-tts-style-group" hidden style="width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; margin-top: 0.25rem;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0;">Voice Style</label>
+                    <div class="radio-group" style="display: flex; flex-direction: column; gap: 0.35rem; align-items: flex-end; width: 100%;">
+                      <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; font-size: 0.78rem; color: var(--text-muted);">
+                        Standard Taiwanese Mandarin
+                        <input type="radio" name="gemini-tts-style" value="standard" checked>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; font-size: 0.78rem; color: var(--text-muted);">
+                        Southern Taiwan Accent (台南高雄腔)
+                        <input type="radio" name="gemini-tts-style" value="southern">
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; font-size: 0.78rem; color: var(--text-muted);">
+                        Heavy Southern + Minnan (偏鄉本土腔)
+                        <input type="radio" name="gemini-tts-style" value="heavy_southern">
+                      </label>
                     </div>
                   </div>
                 </div>

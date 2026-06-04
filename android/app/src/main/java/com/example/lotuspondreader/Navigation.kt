@@ -252,7 +252,10 @@ fun MainNavigation(
                         ) {
                             Text(
                                 text = "Lotus Pond Reader",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                ),
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -532,6 +535,51 @@ fun MainNavigation(
                                                     icon = { SegmentedButtonDefaults.Icon(active = userSettings.speechRatePreference == rate) }
                                                 ) {
                                                     Text(rateLabels[index])
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    HorizontalDivider()
+
+                                    Text("Speech Preferences", style = MaterialTheme.typography.titleMedium)
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                    ) {
+                                        Text("Use Gemini TTS (Experimental)")
+                                        Switch(
+                                            checked = userSettings.useGeminiTts,
+                                            onCheckedChange = { viewModel.updateSettings(userSettings.copy(useGeminiTts = it)) }
+                                        )
+                                    }
+
+                                    if (userSettings.useGeminiTts) {
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text("Voice Style", style = MaterialTheme.typography.bodyMedium)
+
+                                            val voiceStyles = listOf(
+                                                "standard" to "Standard Taiwanese Mandarin",
+                                                "southern" to "Southern Taiwan Accent (台南高雄腔)",
+                                                "heavy_southern" to "Heavy Southern + Minnan (偏鄉本土腔)"
+                                            )
+
+                                            voiceStyles.forEach { (value, label) ->
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                                ) {
+                                                    RadioButton(
+                                                        selected = userSettings.geminiTtsVoiceStyle == value,
+                                                        onClick = { viewModel.updateSettings(userSettings.copy(geminiTtsVoiceStyle = value)) }
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text(label, style = MaterialTheme.typography.bodyMedium)
                                                 }
                                             }
                                         }

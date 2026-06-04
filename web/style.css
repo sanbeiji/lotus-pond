@@ -89,14 +89,17 @@ header {
 }
 
 .header-inner h1 {
-  font-size: 2.1rem;
+  font-family: var(--mandarin-font);
+  font-size: 2.3rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.03em;
   margin-bottom: 0.4rem;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .header-subtitle {
-  opacity: 0.88;
+  font-family: var(--mandarin-font);
+  opacity: 0.9;
   font-size: 1rem;
   letter-spacing: 0.02em;
 }
