@@ -145,6 +145,69 @@ function init() {
     }
 }
 
+// ─── Audio Caching (IndexedDB) ────────────────────────────────
+const AudioCache = {
+    DB_NAME: 'LotusPondAudioDB',
+    DB_VERSION: 1,
+    STORE_NAME: 'audio_cache',
+    dbPromise: null,
+
+    init() {
+        this.dbPromise = new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+                    db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
+                }
+            };
+            request.onsuccess = (event) => resolve(event.target.result);
+            request.onerror = (event) => reject(event.target.error);
+        });
+    },
+
+    async get(text, voiceStyle) {
+        if (!this.dbPromise) this.init();
+        const id = `${voiceStyle}_${text}`;
+        const db = await this.dbPromise;
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(this.STORE_NAME, 'readonly');
+            const store = tx.objectStore(this.STORE_NAME);
+            const request = store.get(id);
+            request.onsuccess = () => resolve(request.result ? request.result.b64Pcm : null);
+            request.onerror = () => reject(request.error);
+        });
+    },
+
+    async put(text, voiceStyle, b64Pcm) {
+        if (!this.dbPromise) this.init();
+        const id = `${voiceStyle}_${text}`;
+        const db = await this.dbPromise;
+        const tx = db.transaction(this.STORE_NAME, 'readwrite');
+        const store = tx.objectStore(this.STORE_NAME);
+        store.put({ id, b64Pcm, timestamp: Date.now() });
+    },
+
+    async remove(text, voiceStyle) {
+        if (!this.dbPromise) this.init();
+        const id = `${voiceStyle}_${text}`;
+        const db = await this.dbPromise;
+        const tx = db.transaction(this.STORE_NAME, 'readwrite');
+        const store = tx.objectStore(this.STORE_NAME);
+        store.delete(id);
+    },
+
+    async clearAll() {
+        if (!this.dbPromise) this.init();
+        const db = await this.dbPromise;
+        const tx = db.transaction(this.STORE_NAME, 'readwrite');
+        const store = tx.objectStore(this.STORE_NAME);
+        store.clear();
+    }
+};
+
+AudioCache.init();
+
 // ─── State Management ─────────────────────────────────────────
 
 function loadState() {
@@ -1162,7 +1225,8 @@ async function speakWithGemini(text) {
         'heavy_southern': '[Voice Style: Speak extremely casually, off-the-cuff, like chatting with a close family member or childhood friend.]\nRead in a local, very down-to-earth, thick Southern Taiwanese Mandarin colloquial style (重度南部腔台灣國語) with strong Taiwanese (Minnan/Hokkien) substrate.\n- Sound like a friendly neighbor from Tainan or Kaohsiung speaking casual Mandarin.\n- Strongly dentalize retroflexes (zh, ch, sh -> z, c, s, e.g., 船 sounds like cuán, 睡 sounds like suì).\n- Use Minnan speech substrate pitch and rhythm. Syllable-final nasals "eng" and "en" can merge with "ing" and "in", or open slightly (e.g. 朋友 sounds like píngyǒu or péng-ǐou).\n- Do not use neutral/light tones (輕聲); give everything comfortable, rich Taiwanese tones.\n- If natural, blend f and h sounds gently (e.g., 飯 fàn sounds like huàn, 發生 fāshēng sounds like huāshēng).\n- Keep the cadence relaxed, friendly, and expressive, showing regional southern warmth.'
     };
     
-    const styleInstruction = voicePrompt[state.geminiTtsVoiceStyle || 'standard'];
+    const voiceStyle = state.geminiTtsVoiceStyle || 'standard';
+    const styleInstruction = voicePrompt[voiceStyle];
     const fullText = `${styleInstruction}\nPlease recite the following text exactly as requested: "${text}"`;
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${state.apiKey}`;
@@ -1174,38 +1238,44 @@ async function speakWithGemini(text) {
     }
     
     try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: fullText }] }],
-                generationConfig: {
-                    responseModalities: ["AUDIO"],
-                    speechConfig: {
-                        voiceConfig: {
-                            prebuiltVoiceConfig: {
-                                voiceName: "Kore"
+        let b64Pcm = await AudioCache.get(text, voiceStyle);
+        
+        if (!b64Pcm) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: fullText }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: {
+                                    voiceName: "Kore"
+                                }
                             }
                         }
                     }
-                }
-            })
-        });
-        
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.error?.message || 'API request failed');
+                })
+            });
+            
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error?.message || 'API request failed');
+            }
+            
+            const data = await response.json();
+            const candidate = data.candidates && data.candidates[0];
+            const part = candidate?.content?.parts?.find(p => p.inlineData && p.inlineData.mimeType.startsWith('audio/'));
+            
+            if (!part) {
+                throw new Error('No audio returned from Gemini API.');
+            }
+            
+            b64Pcm = part.inlineData.data;
+            await AudioCache.put(text, voiceStyle, b64Pcm);
         }
         
-        const data = await response.json();
-        const candidate = data.candidates && data.candidates[0];
-        const part = candidate?.content?.parts?.find(p => p.inlineData && p.inlineData.mimeType.startsWith('audio/'));
-        
-        if (!part) {
-            throw new Error('No audio returned from Gemini API.');
-        }
-        
-        const b64Pcm = part.inlineData.data;
         const playUrl = pcmToWavBlobUrl(b64Pcm, 24000);
         if (!playUrl) throw new Error("Audio conversion failed");
         
@@ -1268,6 +1338,15 @@ function commitPendingDelete() {
         pendingDeleteTimeoutId = null;
     }
 
+    const storyToDelete = state.history.find(h => h.id === pendingDeleteStoryId);
+    if (storyToDelete && storyToDelete.data && storyToDelete.data.sentences) {
+        storyToDelete.data.sentences.forEach(s => {
+            AudioCache.remove(s.mandarin, 'standard');
+            AudioCache.remove(s.mandarin, 'southern');
+            AudioCache.remove(s.mandarin, 'heavy_southern');
+        });
+    }
+
     state.history = state.history.filter(h => h.id !== pendingDeleteStoryId);
     pendingDeleteStoryId = null;
     pendingDeleteStoryObj = null;
@@ -1299,7 +1378,14 @@ function addToHistory(storyData, skillLevel) {
     
     state.history.unshift(historyItem);
     if (state.history.length > 20) {
-        state.history.pop();
+        const popped = state.history.pop();
+        if (popped && popped.data && popped.data.sentences) {
+            popped.data.sentences.forEach(s => {
+                AudioCache.remove(s.mandarin, 'standard');
+                AudioCache.remove(s.mandarin, 'southern');
+                AudioCache.remove(s.mandarin, 'heavy_southern');
+            });
+        }
     }
     
     saveState();
@@ -1387,6 +1473,7 @@ function clearHistory() {
         pendingDeleteStoryObj = null;
 
         state.history = [];
+        AudioCache.clearAll();
         saveState();
         renderHistory();
     }
