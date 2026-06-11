@@ -27,7 +27,10 @@ fun HomeScreen(
     uiState: StoryUiState,
     onGenerate: () -> Unit,
     selectedModel: String = "gemini-flash-lite-latest",
+    onClearForm: () -> Unit = {},
     onResetError: () -> Unit = {},
+    isGeneratingPrompt: Boolean = false,
+    onSelectGenre: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val skillLevels = listOf(
@@ -37,8 +40,50 @@ fun HomeScreen(
     )
     val lengthOptions = listOf("200", "400", "600", "800", "1000")
 
+    val genres = listOf(
+        "Adventure", "Daily Life", "Fantasy", "Mystery",
+        "Sci-Fi", "Historical", "Romance", "Pirates"
+    )
+
     var skillExpanded by remember { mutableStateOf(false) }
     var lengthExpanded by remember { mutableStateOf(false) }
+
+    var selectedGenreToFetch by remember { mutableStateOf<String?>(null) }
+    var showOverwriteConfirmation by remember { mutableStateOf(false) }
+
+    if (showOverwriteConfirmation) {
+        AlertDialog(
+            onDismissRequest = {
+                showOverwriteConfirmation = false
+                selectedGenreToFetch = null
+            },
+            title = { Text("Overwrite Plot?") },
+            text = { Text("Are you sure you want to overwrite your current plot text with a new AI-generated premise?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showOverwriteConfirmation = false
+                        selectedGenreToFetch?.let { genre ->
+                            onSelectGenre(genre)
+                        }
+                        selectedGenreToFetch = null
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showOverwriteConfirmation = false
+                        selectedGenreToFetch = null
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(
@@ -50,15 +95,76 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Plot / theme *", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Plot *",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    
+                    var genreExpanded by remember { mutableStateOf(false) }
+                    ExposedDropdownMenuBox(
+                        expanded = genreExpanded,
+                        onExpandedChange = { if (!isGeneratingPrompt) genreExpanded = it }
+                    ) {
+                        TextButton(
+                            onClick = { if (!isGeneratingPrompt) genreExpanded = true },
+                            enabled = !isGeneratingPrompt,
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        ) {
+                            Text(
+                                text = "Inspire me",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = genreExpanded)
+                        }
+                        
+                        ExposedDropdownMenu(
+                            expanded = genreExpanded,
+                            onDismissRequest = { genreExpanded = false }
+                        ) {
+                            genres.forEach { genreOption ->
+                                DropdownMenuItem(
+                                    text = { Text(genreOption) },
+                                    onClick = {
+                                        genreExpanded = false
+                                        if (plot.isNotBlank()) {
+                                            selectedGenreToFetch = genreOption
+                                            showOverwriteConfirmation = true
+                                        } else {
+                                            onSelectGenre(genreOption)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+                
                 OutlinedTextField(
-                    value = plot,
+                    value = if (isGeneratingPrompt) "Generating premise..." else plot,
                     onValueChange = onPlotChange,
+                    enabled = !isGeneratingPrompt,
                     placeholder = { Text("e.g. A college student looking for a job…") },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                     ),
+                    trailingIcon = {
+                        if (isGeneratingPrompt) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3
                 )
@@ -146,17 +252,29 @@ fun HomeScreen(
             )
         }
 
-        Button(
-            onClick = onGenerate,
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            enabled = plot.isNotBlank() && uiState !is StoryUiState.Loading
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (uiState is StoryUiState.Loading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("✨ Creating...")
-            } else {
-                Text("✨ Create story")
+            OutlinedButton(
+                onClick = onClearForm,
+                modifier = Modifier.weight(1f),
+                enabled = uiState !is StoryUiState.Loading && !isGeneratingPrompt
+            ) {
+                Text("Clear")
+            }
+            Button(
+                onClick = onGenerate,
+                modifier = Modifier.weight(2f),
+                enabled = plot.isNotBlank() && uiState !is StoryUiState.Loading && !isGeneratingPrompt
+            ) {
+                if (uiState is StoryUiState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("✨ Creating...")
+                } else {
+                    Text("✨ Create story")
+                }
             }
         }
         

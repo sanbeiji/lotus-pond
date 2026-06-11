@@ -14,7 +14,8 @@ class StoryViewModelFactory(private val context: Context) : ViewModelProvider.Fa
             return StoryViewModel(
                 settingsRepository = SettingsRepository(context),
                 storyRepository = StoryRepository(),
-                storyDao = StoryDatabase.getDatabase(context).storyDao()
+                storyDao = StoryDatabase.getDatabase(context).storyDao(),
+                context = context.applicationContext
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

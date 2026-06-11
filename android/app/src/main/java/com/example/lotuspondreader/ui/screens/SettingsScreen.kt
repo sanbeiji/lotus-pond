@@ -79,6 +79,46 @@ fun SettingsScreen(
 
         HorizontalDivider()
 
+        Text("Generate Story Preferences", style = MaterialTheme.typography.titleMedium)
+        
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Generate Pinyin")
+            Switch(
+                checked = settings.generatePinyin,
+                onCheckedChange = { onSettingsChanged(settings.copy(generatePinyin = it)) }
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Generate Zhuyin")
+            Switch(
+                checked = settings.generateZhuyin,
+                onCheckedChange = { onSettingsChanged(settings.copy(generateZhuyin = it)) }
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Generate English translation")
+            Switch(
+                checked = settings.generateTranslation,
+                onCheckedChange = { onSettingsChanged(settings.copy(generateTranslation = it)) }
+            )
+        }
+
+        HorizontalDivider()
+
         Text("App theme", style = MaterialTheme.typography.titleMedium)
         
         val themeOptions = listOf("system", "light", "dark")
@@ -150,6 +190,16 @@ fun SettingsScreen(
                             TextButton(onClick = { uriHandler.openUri("https://aistudio.google.com/app/apikey") }, modifier = Modifier.weight(1f)) {
                                 Text("Get API Key", textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                             }
+                        }
+                        
+                        HorizontalDivider()
+                        
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Text(
+                                "Version 0.3.0 · Published June 10, 2026",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 },

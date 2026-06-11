@@ -1,5 +1,6 @@
 package com.example.lotuspondreader.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lotuspondreader.api.StoryRepository
@@ -27,7 +28,8 @@ sealed class StoryUiState {
 class StoryViewModel(
     private val settingsRepository: SettingsRepository,
     private val storyRepository: StoryRepository,
-    private val storyDao: StoryDao
+    private val storyDao: StoryDao,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<StoryUiState>(StoryUiState.Idle)
@@ -40,12 +42,24 @@ class StoryViewModel(
     val errorEvent: StateFlow<String?> = _errorEvent.asStateFlow()
 
     val userSettings = settingsRepository.userSettingsFlow
-    val history = storyDao.getAllHistory()
+    
+    private val _deletedStoryIds = MutableStateFlow<Set<Long>>(emptySet())
+    private val deletionJobs = java.util.concurrent.ConcurrentHashMap<Long, kotlinx.coroutines.Job>()
+
+    val history = kotlinx.coroutines.flow.combine(
+        storyDao.getAllHistory(),
+        _deletedStoryIds
+    ) { dbList, deletedIds ->
+        dbList.filter { it.id !in deletedIds }
+    }
 
     val plot = MutableStateFlow("")
     val skillLevel = MutableStateFlow("A1 (Entry)")
     val length = MutableStateFlow("400")
     val requiredTerms = MutableStateFlow("")
+
+    private val _isGeneratingPrompt = MutableStateFlow(false)
+    val isGeneratingPrompt: StateFlow<Boolean> = _isGeneratingPrompt.asStateFlow()
 
     private var currentEntity: StoryEntity? = null
 
@@ -60,6 +74,64 @@ class StoryViewModel(
     fun updateSettings(settings: UserSettings) {
         viewModelScope.launch {
             settingsRepository.saveSettings(settings)
+        }
+    }
+
+    fun fetchGenrePrompt(genre: String) {
+        viewModelScope.launch {
+            val currentSettings = userSettings.first()
+            if (currentSettings.apiKey.isBlank()) {
+                _errorEvent.value = "Please configure your Gemini API key in settings."
+                return@launch
+            }
+
+            _isGeneratingPrompt.value = true
+            try {
+                val promptResult = storyRepository.generateGenrePrompt(
+                    apiKey = currentSettings.apiKey,
+                    genre = genre
+                )
+                plot.value = promptResult
+            } catch (e: Exception) {
+                _errorEvent.value = e.message ?: "Failed to generate genre prompt."
+            } finally {
+                _isGeneratingPrompt.value = false
+            }
+        }
+    }
+
+    private fun getAudioCacheFile(text: String, voiceStyle: String): java.io.File {
+        val hashInput = "${text}_${voiceStyle}"
+        val digest = java.security.MessageDigest.getInstance("MD5")
+        val hashBytes = digest.digest(hashInput.toByteArray(Charsets.UTF_8))
+        val hashString = hashBytes.joinToString("") { "%02x".format(it) }
+        
+        val ttsDir = java.io.File(context.cacheDir, "tts_cache")
+        if (!ttsDir.exists()) {
+            ttsDir.mkdirs()
+        }
+        return java.io.File(ttsDir, "$hashString.pcm")
+    }
+
+    suspend fun generateSpeech(text: String, voiceStyle: String): ByteArray? {
+        return try {
+            val cacheFile = getAudioCacheFile(text, voiceStyle)
+            if (cacheFile.exists()) {
+                return cacheFile.readBytes()
+            }
+
+            val currentSettings = userSettings.first()
+            if (currentSettings.apiKey.isBlank()) {
+                _errorEvent.value = "Please configure your Gemini API key in settings."
+                return null
+            }
+            val base64Data = storyRepository.generateSpeech(currentSettings.apiKey, text, voiceStyle)
+            val audioBytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT)
+            cacheFile.writeBytes(audioBytes)
+            audioBytes
+        } catch (e: Exception) {
+            _errorEvent.value = e.message ?: "Failed to generate speech."
+            null
         }
     }
 
@@ -106,9 +178,16 @@ class StoryViewModel(
                 val insertedId = storyDao.insertStory(newEntity)
                 currentEntity = newEntity.copy(id = insertedId)
 
-                if (currentSettings.showPinyin) checkAndFetchMissing("pinyin")
-                if (currentSettings.showZhuyin) checkAndFetchMissing("zhuyin")
-                if (currentSettings.showTranslation) checkAndFetchMissing("english")
+                val syncedSettings = currentSettings.copy(
+                    showPinyin = currentSettings.generatePinyin,
+                    showZhuyin = currentSettings.generateZhuyin,
+                    showTranslation = currentSettings.generateTranslation
+                )
+                settingsRepository.saveSettings(syncedSettings)
+
+                if (syncedSettings.generatePinyin) checkAndFetchMissing("pinyin")
+                if (syncedSettings.generateZhuyin) checkAndFetchMissing("zhuyin")
+                if (syncedSettings.generateTranslation) checkAndFetchMissing("english")
             } catch (e: Exception) {
                 _uiState.value = StoryUiState.Error(e.message ?: "An unexpected error occurred")
             }
@@ -176,9 +255,59 @@ class StoryViewModel(
         }
     }
 
+    fun deleteStory(story: StoryEntity) {
+        // Cancel any previous pending delete job for this specific item if somehow invoked again
+        deletionJobs[story.id]?.cancel()
+
+        // 1. Add to optimistic delete tracking flow
+        _deletedStoryIds.value = _deletedStoryIds.value + story.id
+
+        // 2. Launch deferred background deletion job
+        val job = viewModelScope.launch {
+            try {
+                kotlinx.coroutines.delay(4000) // 4 seconds cancellation window
+                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                    storyDao.deleteStory(story)
+                    
+                    // Also delete cached audio files for this story's sentences
+                    val voiceStyles = listOf("standard", "southern", "heavy_southern")
+                    story.storyData.sentences.forEach { sentence ->
+                        voiceStyles.forEach { style ->
+                            val cacheFile = getAudioCacheFile(sentence.mandarin, style)
+                            if (cacheFile.exists()) {
+                                cacheFile.delete()
+                            }
+                        }
+                    }
+                }
+            } finally {
+                _deletedStoryIds.value = _deletedStoryIds.value - story.id
+                deletionJobs.remove(story.id)
+            }
+        }
+        deletionJobs[story.id] = job
+    }
+
+    fun undoDeleteStory(storyId: Long) {
+        deletionJobs[storyId]?.cancel()
+        deletionJobs.remove(storyId)
+        _deletedStoryIds.value = _deletedStoryIds.value - storyId
+    }
+
     fun clearHistory() {
         viewModelScope.launch {
+            // Commit any pending deletions immediately before clearing all
+            deletionJobs.values.forEach { it.cancel() }
+            deletionJobs.clear()
+            _deletedStoryIds.value = emptySet()
+            
             storyDao.clearHistory()
+            
+            // Clear entire cache directory
+            val ttsDir = java.io.File(context.cacheDir, "tts_cache")
+            if (ttsDir.exists()) {
+                ttsDir.deleteRecursively()
+            }
         }
     }
 }

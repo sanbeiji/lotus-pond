@@ -37,6 +37,9 @@ class SettingsRepository(private val context: Context) {
         private const val SECURE_API_KEY = "secure_api_key"
         val LAST_UPDATED = longPreferencesKey("last_updated")
         val SELECTED_MODEL = stringPreferencesKey("selected_model")
+        val GENERATE_PINYIN = booleanPreferencesKey("generate_pinyin")
+        val GENERATE_ZHUYIN = booleanPreferencesKey("generate_zhuyin")
+        val GENERATE_TRANSLATION = booleanPreferencesKey("generate_translation")
         val SHOW_PINYIN = booleanPreferencesKey("show_pinyin")
         val SHOW_ZHUYIN = booleanPreferencesKey("show_zhuyin")
         val STUDY_MODE = booleanPreferencesKey("study_mode")
@@ -45,6 +48,8 @@ class SettingsRepository(private val context: Context) {
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val FONT_SIZE_PREFERENCE = stringPreferencesKey("font_size_preference")
         val SPEECH_RATE_PREFERENCE = floatPreferencesKey("speech_rate_preference")
+        val USE_GEMINI_TTS = booleanPreferencesKey("use_gemini_tts")
+        val GEMINI_TTS_VOICE_STYLE = stringPreferencesKey("gemini_tts_voice_style")
     }
 
     val userSettingsFlow: Flow<UserSettings> = dataStore.data
@@ -58,6 +63,9 @@ class SettingsRepository(private val context: Context) {
             UserSettings(
                 apiKey = encryptedPrefs.getString(SECURE_API_KEY, "") ?: "",
                 selectedModel = normalizedModel,
+                generatePinyin = preferences[GENERATE_PINYIN] ?: false,
+                generateZhuyin = preferences[GENERATE_ZHUYIN] ?: false,
+                generateTranslation = preferences[GENERATE_TRANSLATION] ?: false,
                 showPinyin = preferences[SHOW_PINYIN] ?: true,
                 showZhuyin = preferences[SHOW_ZHUYIN] ?: false,
                 studyMode = preferences[STUDY_MODE] ?: true,
@@ -65,7 +73,9 @@ class SettingsRepository(private val context: Context) {
                 themePreference = preferences[THEME_PREFERENCE] ?: "system",
                 useDynamicColor = preferences[DYNAMIC_COLOR] ?: false,
                 fontSizePreference = preferences[FONT_SIZE_PREFERENCE] ?: "small",
-                speechRatePreference = preferences[SPEECH_RATE_PREFERENCE] ?: 0.9f
+                speechRatePreference = preferences[SPEECH_RATE_PREFERENCE] ?: 0.9f,
+                useGeminiTts = preferences[USE_GEMINI_TTS] ?: false,
+                geminiTtsVoiceStyle = preferences[GEMINI_TTS_VOICE_STYLE] ?: "standard"
             )
         }
 
@@ -77,6 +87,9 @@ class SettingsRepository(private val context: Context) {
         dataStore.edit { preferences ->
             preferences[LAST_UPDATED] = System.currentTimeMillis()
             preferences[SELECTED_MODEL] = settings.selectedModel
+            preferences[GENERATE_PINYIN] = settings.generatePinyin
+            preferences[GENERATE_ZHUYIN] = settings.generateZhuyin
+            preferences[GENERATE_TRANSLATION] = settings.generateTranslation
             preferences[SHOW_PINYIN] = settings.showPinyin
             preferences[SHOW_ZHUYIN] = settings.showZhuyin
             preferences[STUDY_MODE] = settings.studyMode
@@ -85,6 +98,8 @@ class SettingsRepository(private val context: Context) {
             preferences[DYNAMIC_COLOR] = settings.useDynamicColor
             preferences[FONT_SIZE_PREFERENCE] = settings.fontSizePreference
             preferences[SPEECH_RATE_PREFERENCE] = settings.speechRatePreference
+            preferences[USE_GEMINI_TTS] = settings.useGeminiTts
+            preferences[GEMINI_TTS_VOICE_STYLE] = settings.geminiTtsVoiceStyle
         }
     }
 }

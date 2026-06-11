@@ -53,7 +53,13 @@ class StoryRepository {
             
             val requestBody = GeminiRequest(
                 contents = listOf(Content(parts = listOf(Part(text = prompt)))),
-                generationConfig = GenerationConfig()
+                generationConfig = GenerationConfig(
+                    temperature = 0.7,
+                    topK = 40,
+                    topP = 0.95,
+                    maxOutputTokens = 8192,
+                    responseMimeType = "application/json"
+                )
             )
 
             val url = "https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}"
@@ -95,7 +101,13 @@ class StoryRepository {
 
             val requestBody = GeminiRequest(
                 contents = listOf(Content(parts = listOf(Part(text = prompt)))),
-                generationConfig = GenerationConfig()
+                generationConfig = GenerationConfig(
+                    temperature = 0.7,
+                    topK = 40,
+                    topP = 0.95,
+                    maxOutputTokens = 8192,
+                    responseMimeType = "application/json"
+                )
             )
 
             val fetchModel = "gemini-flash-lite-latest"
@@ -151,7 +163,123 @@ class StoryRepository {
         }
     }
 
-    private fun parseResponse(text: String): StoryResponse {
+    suspend fun generateGenrePrompt(
+        apiKey: String,
+        genre: String
+    ): String {
+        try {
+            val prompt = "Generate a creative, engaging story premise in English suitable for a Mandarin learning story in the \"$genre\" genre. The premise must be between 1 and 4 sentences long. It should set up an interesting plot, setting, or character dilemma, preferably reflecting Taiwanese culture, geography, or context. Return ONLY the raw story premise text. Do not include titles, quotes, markdown, JSON, or explanation."
+            
+            val requestBody = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = prompt)))),
+                generationConfig = GenerationConfig(
+                    temperature = 0.7,
+                    topK = 40,
+                    topP = 0.95,
+                    maxOutputTokens = 8192,
+                    responseMimeType = "application/json"
+                )
+            )
+
+            val fetchModel = "gemini-flash-lite-latest"
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/${fetchModel}:generateContent?key=${apiKey}"
+            
+            val response: GeminiResponse = standardClient.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(requestBody)
+            }.body()
+
+            if (response.error != null) {
+                throw Exception(response.error.message)
+            }
+
+            var responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                ?: throw Exception("No content returned from Gemini API")
+                
+            responseText = responseText.trim()
+            responseText = responseText.replace(Regex("^```(?:json)?\\s*|\\s*```$", RegexOption.IGNORE_CASE), "").trim()
+
+            if (responseText.startsWith("{") && responseText.endsWith("}")) {
+                try {
+                    val jsonElement = jsonConfig.parseToJsonElement(responseText)
+                    if (jsonElement is kotlinx.serialization.json.JsonObject) {
+                        val firstKey = jsonElement.keys.firstOrNull()
+                        if (firstKey != null) {
+                            val firstValue = jsonElement[firstKey]
+                            if (firstValue is kotlinx.serialization.json.JsonPrimitive && firstValue.isString) {
+                                responseText = firstValue.content
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    responseText = responseText.substring(1, responseText.length - 1).trim()
+                }
+            }
+            
+            responseText = responseText.replace(Regex("^(?:\"?premise\"?|\"?prompt\"?|\"?story\"?)\\s*:\\s*", RegexOption.IGNORE_CASE), "").trim()
+
+            return responseText.replace("[\"'“”‘’]".toRegex(), "").trim()
+        } catch (e: Exception) {
+            val msg = e.message ?: "Genre prompt generation failed"
+            val sanitizedMsg = if (apiKey.isNotBlank()) msg.replace(apiKey, "[REDACTED]") else msg
+            throw Exception(sanitizedMsg)
+        }
+    }
+
+    suspend fun generateSpeech(apiKey: String, text: String, voiceStyle: String): String {
+        try {
+            val voicePrompt = when (voiceStyle) {
+                "southern" -> "[Voice Style: Speak gently, softly, and reassuringly, at a relaxed pace with extreme warmth.]\nRead in a warm, relaxed, authentic Southern Taiwanese Mandarin (台灣國語) regional accent (popular in Tainan, Kaohsiung, and Pingtung).\n- Speak with a friendly, local Taiwanese cadence and relaxed mouth positioning.\n- Strictly avoid Beijing-style speech: absolutely no curl-tongue \"er\" (no 兒化音) and do not retroflex sounds like zh, ch, sh (pronounce them shifted toward z, c, s, e.g. 知道 sounds like zīdào, 是 sounds like sì).\n- Do not suppress tones into neutral short tones (輕聲), pronounce grammatically light words with their full traditional Taiwanese Mandarin tones (e.g. 舒服 is shūfú, 先生 is xiānshēng).\n- Keep any natural sentence-final particles from Taiwan (like '啦', '齁', '喔', '欸') represented with authentic, comfortable, musical southern cadence."
+                "heavy_southern" -> "[Voice Style: Speak extremely casually, off-the-cuff, like chatting with a close family member or childhood friend.]\nRead in a local, very down-to-earth, thick Southern Taiwanese Mandarin colloquial style (重度南部腔台灣國語) with strong Taiwanese (Minnan/Hokkien) substrate.\n- Sound like a friendly neighbor from Tainan or Kaohsiung speaking casual Mandarin.\n- Strongly dentalize retroflexes (zh, ch, sh -> z, c, s, e.g., 船 sounds like cuán, 睡 sounds like suì).\n- Use Minnan speech substrate pitch and rhythm. Syllable-final nasals \"eng\" and \"en\" can merge with \"ing\" and \"in\", or open slightly (e.g. 朋友 sounds like píngyǒu or péng-ǐou).\n- Do not use neutral/light tones (輕聲); give everything comfortable, rich Taiwanese tones.\n- If natural, blend f and h sounds gently (e.g., 飯 fàn sounds like huàn, 發生 fāshēng sounds like huāshēng).\n- Keep the cadence relaxed, friendly, and expressive, showing regional southern warmth."
+                else -> "[Voice Style: Speak in a natural, standard, clear reading style.]\nRead in standard, clear Taiwanese Mandarin (都會風格台北/台灣腔) as heard in public announcements (like the Taipei MRT) or urban professional settings.\n- Speak in a natural, clean, moderately fast, modern Taiwanese tempo.\n- Retroflex sounds (zh, ch, sh) are relaxed and naturally simplified, avoiding any dry retroflex friction or thick northern Beijing acoustics. No \"er\" (no 兒化音).\n- Render neutral tones (輕聲) in accordance with general urban Taiwanese Mandarin usage (typically pronounced as lighter full tones rather than clipped neutral vowels).\n- Deliver with a clean, melodic, polite, and professional Taiwanese tone."
+            }
+
+            val fullText = "$voicePrompt\n\nPlease recite the following text exactly as requested: \"$text\""
+
+            val requestBody = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = fullText)))),
+                generationConfig = GenerationConfig(
+                    responseModalities = listOf("AUDIO"),
+                    speechConfig = SpeechConfig(
+                        voiceConfig = VoiceConfig(
+                            prebuiltVoiceConfig = PrebuiltVoiceConfig(
+                                voiceName = "Kore"
+                            )
+                        )
+                    )
+                )
+            )
+
+            val fetchModel = "gemini-3.1-flash-tts-preview"
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/${fetchModel}:generateContent?key=$apiKey"
+            
+            val response: GeminiResponse = standardClient.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(requestBody)
+            }.body()
+
+            if (response.error != null) {
+                throw Exception(response.error.message)
+            }
+
+            val candidate = response.candidates?.firstOrNull()
+            val part = candidate?.content?.parts?.find { it.inlineData != null && it.inlineData.mimeType.startsWith("audio/") }
+            
+            if (part?.inlineData?.data == null) {
+                throw Exception("No audio returned from Gemini API")
+            }
+
+            return part.inlineData.data
+        } catch (e: Exception) {
+            val msg = e.message ?: "Audio generation failed"
+            val sanitizedMsg = if (apiKey.isNotBlank()) msg.replace(apiKey, "[REDACTED]") else msg
+            throw Exception(sanitizedMsg)
+        }
+    }
+
+    private fun parseResponse(
+        text: String
+    ): StoryResponse {
         try {
             // 1. Try clean parse
             val start = text.indexOf('{')

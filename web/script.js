@@ -27,6 +27,9 @@ const DEFAULT_SETTINGS = {
     apiKey: '',
     persistKey: true,
     selectedModel: 'gemini-flash-lite-latest',
+    generatePinyin: false,
+    generateZhuyin: false,
+    generateTranslation: false,
     showPinyin: true,
     showZhuyin: false,
     studyMode: true,
@@ -34,7 +37,9 @@ const DEFAULT_SETTINGS = {
     history: [],
     themePreference: 'system',
     fontSizePreference: 'small',
-    speechRatePreference: '0.9'
+    speechRatePreference: '0.9',
+    useGeminiTts: false,
+    geminiTtsVoiceStyle: 'standard'
 };
 
 // ─── App State ────────────────────────────────────────────────
@@ -50,12 +55,16 @@ const elements = {
     lengthInput: document.getElementById('lengthInWords'),
     requiredTermsInput: document.getElementById('requiredTerms'),
     generateBtn: document.getElementById('generate-btn'),
+    clearFormBtn: document.getElementById('clear-form-btn'),
     
     apiKeyInput: document.getElementById('api-key'),
     persistKeyToggle: document.getElementById('persist-key'),
     clearApiKeyBtn: document.getElementById('clear-api-key'),
     modelSelect: document.getElementById('model-select'),
     themeSelect: document.getElementById('theme-select'),
+    ttsEngineRadios: document.querySelectorAll('input[name="tts-engine"]'),
+    geminiTtsStyleGroup: document.getElementById('gemini-tts-style-group'),
+    geminiTtsStyleRadios: document.querySelectorAll('input[name="gemini-tts-style"]'),
     showPinyinToggle: document.getElementById('show-pinyin'),
     showZhuyinToggle: document.getElementById('show-zhuyin'),
     studyModeToggle: document.getElementById('study-mode'),
@@ -73,10 +82,16 @@ const elements = {
     storyHeading: document.getElementById('story-heading'),
     toggleStorySettingsBtn: document.getElementById('toggle-story-settings'),
     storySettingsPanel: document.getElementById('story-settings-panel'),
+    toggleGenerateSettingsBtn: document.getElementById('toggle-generate-settings'),
+    generateSettingsPanel: document.getElementById('generate-settings-panel'),
+    generatePinyinToggle: document.getElementById('generate-pinyin'),
+    generateZhuyinToggle: document.getElementById('generate-zhuyin'),
+    generateTranslationToggle: document.getElementById('generate-translation'),
     showTranslationToggle: document.getElementById('show-translation'),
     fontSizeRadios: document.querySelectorAll('input[name="font-size"]'),
     speechRateRadios: document.querySelectorAll('input[name="speech-rate"]'),
     copyBtn: document.getElementById('copy-btn'),
+    genrePromptSelect: document.getElementById('genre-prompt-select'),
     
     historyList: document.getElementById('history-list'),
     historyListMobile: document.getElementById('history-list-mobile'),
@@ -130,6 +145,69 @@ function init() {
     }
 }
 
+// ─── Audio Caching (IndexedDB) ────────────────────────────────
+const AudioCache = {
+    DB_NAME: 'LotusPondAudioDB',
+    DB_VERSION: 1,
+    STORE_NAME: 'audio_cache',
+    dbPromise: null,
+
+    init() {
+        this.dbPromise = new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+                    db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
+                }
+            };
+            request.onsuccess = (event) => resolve(event.target.result);
+            request.onerror = (event) => reject(event.target.error);
+        });
+    },
+
+    async get(text, voiceStyle) {
+        if (!this.dbPromise) this.init();
+        const id = `${voiceStyle}_${text}`;
+        const db = await this.dbPromise;
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(this.STORE_NAME, 'readonly');
+            const store = tx.objectStore(this.STORE_NAME);
+            const request = store.get(id);
+            request.onsuccess = () => resolve(request.result ? request.result.b64Pcm : null);
+            request.onerror = () => reject(request.error);
+        });
+    },
+
+    async put(text, voiceStyle, b64Pcm) {
+        if (!this.dbPromise) this.init();
+        const id = `${voiceStyle}_${text}`;
+        const db = await this.dbPromise;
+        const tx = db.transaction(this.STORE_NAME, 'readwrite');
+        const store = tx.objectStore(this.STORE_NAME);
+        store.put({ id, b64Pcm, timestamp: Date.now() });
+    },
+
+    async remove(text, voiceStyle) {
+        if (!this.dbPromise) this.init();
+        const id = `${voiceStyle}_${text}`;
+        const db = await this.dbPromise;
+        const tx = db.transaction(this.STORE_NAME, 'readwrite');
+        const store = tx.objectStore(this.STORE_NAME);
+        store.delete(id);
+    },
+
+    async clearAll() {
+        if (!this.dbPromise) this.init();
+        const db = await this.dbPromise;
+        const tx = db.transaction(this.STORE_NAME, 'readwrite');
+        const store = tx.objectStore(this.STORE_NAME);
+        store.clear();
+    }
+};
+
+AudioCache.init();
+
 // ─── State Management ─────────────────────────────────────────
 
 function loadState() {
@@ -177,7 +255,27 @@ function loadState() {
     if (elements.themeSelect) {
         elements.themeSelect.value = state.themePreference || 'system';
     }
+    if (elements.ttsEngineRadios) {
+        elements.ttsEngineRadios.forEach(radio => {
+            if (radio.value === 'gemini') {
+                radio.checked = state.useGeminiTts;
+            } else if (radio.value === 'browser') {
+                radio.checked = !state.useGeminiTts;
+            }
+        });
+    }
+    updateTtsUi();
+    if (elements.geminiTtsStyleRadios) {
+        elements.geminiTtsStyleRadios.forEach(radio => {
+            if (radio.value === (state.geminiTtsVoiceStyle || 'standard')) {
+                radio.checked = true;
+            }
+        });
+    }
     applyTheme();
+    if (elements.generatePinyinToggle) elements.generatePinyinToggle.checked = state.generatePinyin;
+    if (elements.generateZhuyinToggle) elements.generateZhuyinToggle.checked = state.generateZhuyin;
+    if (elements.generateTranslationToggle) elements.generateTranslationToggle.checked = state.generateTranslation;
     if (elements.showPinyinToggle) elements.showPinyinToggle.checked = state.showPinyin;
     if (elements.showZhuyinToggle) elements.showZhuyinToggle.checked = state.showZhuyin;
     if (elements.studyModeToggle) elements.studyModeToggle.checked = state.studyMode;
@@ -205,6 +303,18 @@ function loadState() {
     // If no API key, show settings
     if (!state.apiKey && elements.settingsContent) {
         elements.settingsContent.hidden = false;
+    }
+}
+
+function updateTtsUi() {
+    const subtextEl = document.getElementById('tts-engine-subtext');
+    if (subtextEl) {
+        subtextEl.textContent = state.useGeminiTts 
+            ? "Uses Gemini AI (Experimental). High-quality voices and regional accents; requires internet and has minor initial latency/token costs."
+            : "Uses native text-to-speech. Fast, free, and works offline.";
+    }
+    if (elements.geminiTtsStyleGroup) {
+        elements.geminiTtsStyleGroup.hidden = !state.useGeminiTts;
     }
 }
 
@@ -252,6 +362,52 @@ function saveState() {
 
 function setupEventListeners() {
     elements.storyForm.addEventListener('submit', handleGenerate);
+    elements.clearFormBtn?.addEventListener('click', () => {
+        elements.storyForm.reset();
+        if (elements.plotInput) elements.plotInput.style.height = 'auto';
+        if (elements.requiredTermsInput) {
+            elements.requiredTermsInput.classList.remove('invalid');
+            const vocabWarning = document.getElementById('vocab-warning');
+            if (vocabWarning) vocabWarning.hidden = true;
+        }
+    });
+    elements.genrePromptSelect?.addEventListener('change', async (e) => {
+        const selectedGenre = e.target.value;
+        if (!selectedGenre) return;
+
+        const currentPlot = elements.plotInput.value.trim();
+        if (currentPlot.length > 0) {
+            const confirmed = confirm("This will replace your current plot text. Do you want to proceed?");
+            if (!confirmed) {
+                // Reset dropdown back to default placeholder
+                elements.genrePromptSelect.value = "";
+                return;
+            }
+        }
+
+        // UI Lock State
+        elements.plotInput.disabled = true;
+        elements.genrePromptSelect.disabled = true;
+        elements.plotInput.value = "";
+        elements.plotInput.placeholder = `Generating ${selectedGenre} prompt...`;
+        hideError();
+
+        try {
+            const generatedPrompt = await generateGenrePrompt(selectedGenre);
+            elements.plotInput.value = generatedPrompt;
+            elements.plotInput.style.height = 'auto';
+            elements.plotInput.style.height = elements.plotInput.scrollHeight + 'px';
+        } catch (err) {
+            showError(err.message || "An unexpected error occurred.");
+            elements.plotInput.placeholder = "e.g. A college student looking for a job…";
+        } finally {
+            elements.plotInput.disabled = false;
+            elements.genrePromptSelect.disabled = false;
+            // Reset dropdown cleanly
+            elements.genrePromptSelect.value = "";
+        }
+    });
+
     document.getElementById('close-error-btn')?.addEventListener('click', hideError);
     
     elements.toggleSettingsBtn.addEventListener('click', () => {
@@ -280,6 +436,41 @@ function setupEventListeners() {
             e.stopPropagation();
         });
     }
+
+    if (elements.toggleGenerateSettingsBtn && elements.generateSettingsPanel) {
+        elements.toggleGenerateSettingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isShowing = elements.generateSettingsPanel.classList.toggle('show');
+            elements.toggleGenerateSettingsBtn.dataset.tooltip = isShowing ? "Close generate preferences" : "Edit generate preferences";
+        });
+
+        document.addEventListener('click', (e) => {
+            if (elements.generateSettingsPanel.classList.contains('show') &&
+                !elements.generateSettingsPanel.contains(e.target) &&
+                e.target !== elements.toggleGenerateSettingsBtn) {
+                elements.generateSettingsPanel.classList.remove('show');
+                elements.toggleGenerateSettingsBtn.dataset.tooltip = "Edit generate preferences";
+            }
+        });
+        elements.generateSettingsPanel.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    elements.generatePinyinToggle?.addEventListener('change', (e) => {
+        state.generatePinyin = e.target.checked;
+        saveState();
+    });
+
+    elements.generateZhuyinToggle?.addEventListener('change', (e) => {
+        state.generateZhuyin = e.target.checked;
+        saveState();
+    });
+
+    elements.generateTranslationToggle?.addEventListener('change', (e) => {
+        state.generateTranslation = e.target.checked;
+        saveState();
+    });
     
     elements.apiKeyInput.addEventListener('change', (e) => {
         state.apiKey = e.target.value.trim();
@@ -310,6 +501,29 @@ function setupEventListeners() {
         saveState();
         applyTheme();
     });
+
+    if (elements.ttsEngineRadios) {
+        elements.ttsEngineRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    state.useGeminiTts = (e.target.value === 'gemini');
+                    saveState();
+                    updateTtsUi();
+                }
+            });
+        });
+    }
+
+    if (elements.geminiTtsStyleRadios) {
+        elements.geminiTtsStyleRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    state.geminiTtsVoiceStyle = e.target.value;
+                    saveState();
+                }
+            });
+        });
+    }
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
         if (state.themePreference === 'system') {
@@ -465,14 +679,63 @@ async function handleGenerate(e) {
         elements.resultSection.hidden = false;
         elements.resultSection.scrollIntoView({ behavior: 'smooth' });
 
-        if (state.showPinyin) checkAndFetchMissing('pinyin');
-        if (state.showZhuyin) checkAndFetchMissing('zhuyin');
-        if (state.showTranslation) checkAndFetchMissing('english');
+        state.showPinyin = state.generatePinyin;
+        state.showZhuyin = state.generateZhuyin;
+        state.showTranslation = state.generateTranslation;
+        if (elements.showPinyinToggle) elements.showPinyinToggle.checked = state.showPinyin;
+        if (elements.showZhuyinToggle) elements.showZhuyinToggle.checked = state.showZhuyin;
+        if (elements.showTranslationToggle) elements.showTranslationToggle.checked = state.showTranslation;
+        saveState();
+        updatePinyinVisibility();
+        updateZhuyinVisibility();
+        updateTranslationVisibility();
+
+        if (state.generatePinyin) checkAndFetchMissing('pinyin');
+        if (state.generateZhuyin) checkAndFetchMissing('zhuyin');
+        if (state.generateTranslation) checkAndFetchMissing('english');
     } catch (err) {
         console.error(err);
         showError(err.message || 'An unexpected error occurred during generation.');
     } finally {
         showLoading(false);
+    }
+}
+
+async function generateGenrePrompt(genre) {
+    const prompt = `Generate a creative, engaging story premise in English suitable for a Mandarin learning story in the "${genre}" genre. The premise must be between 1 and 4 sentences long. It should set up an interesting plot, setting, or character dilemma, preferably reflecting Taiwanese culture, geography, or context. Return ONLY the raw story premise text. Do not include titles, quotes, markdown, JSON, or explanation.`;
+    
+    try {
+        // Force gemini-flash-lite-latest as mandated by requirements
+        const result = await callGemini(prompt, 'gemini-flash-lite-latest');
+        let cleaned = result.trim();
+        
+        cleaned = cleaned.replace(/^```(json)?\s*|\s*```$/gi, '').trim();
+        
+        // 1. Try to parse as JSON if it looks like valid JSON
+        if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+            try {
+                const parsed = JSON.parse(cleaned);
+                const keys = Object.keys(parsed);
+                if (keys.length > 0) {
+                    const value = parsed[keys[0]];
+                    if (typeof value === 'string') {
+                        cleaned = value;
+                    }
+                }
+            } catch (e) {
+                // Not valid JSON (e.g. raw text in braces), strip the braces
+                cleaned = cleaned.substring(1, cleaned.length - 1).trim();
+            }
+        }
+        
+        // Remove "premise:", "prompt:", etc prefix
+        cleaned = cleaned.replace(/^(?:"?premise"?|"?prompt"?|"?story"?)\s*:\s*/i, '').trim();
+        
+        // Remove outer quotes and return cleaned text
+        return cleaned.replace(/^["'“”‘’]+|["'“”‘’]+$/g, '').trim();
+    } catch (err) {
+        console.error("Genre prompt generation failed:", err);
+        throw new Error("Failed to generate prompt for " + genre + ". " + err.message);
     }
 }
 
@@ -728,17 +991,38 @@ function updateTranslationVisibility() {
 
 let toastTimeout = null;
 
-function showToast(msg) {
+function showToast(msg, actionLabel = null, actionCallback = null, duration = 3000) {
     const toastEl = document.getElementById('toast');
-    if (!toastEl) return;
-    toastEl.textContent = msg;
+    const toastTextEl = document.getElementById('toast-text');
+    const toastActionBtn = document.getElementById('toast-action-btn');
+    if (!toastEl || !toastTextEl) return;
+
+    toastTextEl.textContent = msg;
+
+    if (actionLabel && actionCallback && toastActionBtn) {
+        toastActionBtn.textContent = actionLabel;
+        toastActionBtn.hidden = false;
+        toastActionBtn.onclick = (e) => {
+            e.stopPropagation();
+            actionCallback();
+            // Dismiss toast instantly
+            toastEl.classList.remove('show');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            setTimeout(() => toastEl.hidden = true, 300);
+        };
+    } else if (toastActionBtn) {
+        toastActionBtn.hidden = true;
+        toastActionBtn.onclick = null;
+    }
+
     toastEl.hidden = false;
     toastEl.classList.add('show');
+
     if (toastTimeout) clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => {
         toastEl.classList.remove('show');
         setTimeout(() => toastEl.hidden = true, 300);
-    }, 3000);
+    }, duration);
 }
 
 async function checkAndFetchMissing(type) {
@@ -861,8 +1145,16 @@ function hideError() {
 // ─── TTS (Read Aloud) ─────────────────────────────────────────
 
 function speak(text) {
+    if (state.useGeminiTts) {
+        speakWithGemini(text);
+        return;
+    }
+
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
+    if (window.currentGeminiAudio) {
+        window.currentGeminiAudio.pause();
+    }
     
     const utterance = new SpeechSynthesisUtterance(text);
     
@@ -885,9 +1177,194 @@ function speak(text) {
     window.speechSynthesis.speak(utterance);
 }
 
+/**
+ * Wraps raw 16-bit Signed Little-Endian Mono PCM data in a WAV container header.
+ * @param {string} b64Pcm Base64 encoded string of raw PCM bytes
+ * @param {number} sampleRate Default sampling rate for Gemini (24000 Hz)
+ * @returns {string} Fully playable Blob URL
+ */
+function pcmToWavBlobUrl(b64Pcm, sampleRate = 24000) {
+  try {
+    const rawBinary = atob(b64Pcm);
+    const dataLen = rawBinary.length;
+    
+    const buffer = new ArrayBuffer(44 + dataLen);
+    const view = new DataView(buffer);
+    
+    view.setUint32(0, 0x52494646, false); 
+    view.setUint32(4, 36 + dataLen, true);
+    view.setUint32(8, 0x57415645, false);
+    view.setUint32(12, 0x666d7420, false);
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 1 * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    view.setUint32(36, 0x64617461, false);
+    view.setUint32(40, dataLen, true);
+    
+    const u8Buffer = new Uint8Array(buffer, 44);
+    for (let i = 0; i < dataLen; i++) {
+      u8Buffer[i] = rawBinary.charCodeAt(i);
+    }
+    
+    const wavBlob = new Blob([buffer], { type: "audio/wav" });
+    return URL.createObjectURL(wavBlob);
+  } catch (error) {
+    console.error("PCM-to-WAV conversion error:", error);
+    return null;
+  }
+}
+
+async function speakWithGemini(text) {
+    if (!state.apiKey) {
+        showError('Please enter your Gemini API Key in the settings for TTS.');
+        return;
+    }
+
+    const voicePrompt = {
+        'standard': '[Voice Style: Speak in a natural, standard, clear reading style.]\nRead in standard, clear Taiwanese Mandarin (都會風格台北/台灣腔) as heard in public announcements (like the Taipei MRT) or urban professional settings.\n- Speak in a natural, clean, moderately fast, modern Taiwanese tempo.\n- Retroflex sounds (zh, ch, sh) are relaxed and naturally simplified, avoiding any dry retroflex friction or thick northern Beijing acoustics. No "er" (no 兒化音).\n- Render neutral tones (輕聲) in accordance with general urban Taiwanese Mandarin usage (typically pronounced as lighter full tones rather than clipped neutral vowels).\n- Deliver with a clean, melodic, polite, and professional Taiwanese tone.',
+        'southern': '[Voice Style: Speak gently, softly, and reassuringly, at a relaxed pace with extreme warmth.]\nRead in a warm, relaxed, authentic Southern Taiwanese Mandarin (台灣國語) regional accent (popular in Tainan, Kaohsiung, and Pingtung).\n- Speak with a friendly, local Taiwanese cadence and relaxed mouth positioning.\n- Strictly avoid Beijing-style speech: absolutely no curl-tongue "er" (no 兒化音) and do not retroflex sounds like zh, ch, sh (pronounce them shifted toward z, c, s, e.g. 知道 sounds like zīdào, 是 sounds like sì).\n- Do not suppress tones into neutral short tones (輕聲), pronounce grammatically light words with their full traditional Taiwanese Mandarin tones (e.g. 舒服 is shūfú, 先生 is xiānshēng).\n- Keep any natural sentence-final particles from Taiwan (like \'啦\', \'齁\', \'喔\', \'欸\') represented with authentic, comfortable, musical southern cadence.',
+        'heavy_southern': '[Voice Style: Speak extremely casually, off-the-cuff, like chatting with a close family member or childhood friend.]\nRead in a local, very down-to-earth, thick Southern Taiwanese Mandarin colloquial style (重度南部腔台灣國語) with strong Taiwanese (Minnan/Hokkien) substrate.\n- Sound like a friendly neighbor from Tainan or Kaohsiung speaking casual Mandarin.\n- Strongly dentalize retroflexes (zh, ch, sh -> z, c, s, e.g., 船 sounds like cuán, 睡 sounds like suì).\n- Use Minnan speech substrate pitch and rhythm. Syllable-final nasals "eng" and "en" can merge with "ing" and "in", or open slightly (e.g. 朋友 sounds like píngyǒu or péng-ǐou).\n- Do not use neutral/light tones (輕聲); give everything comfortable, rich Taiwanese tones.\n- If natural, blend f and h sounds gently (e.g., 飯 fàn sounds like huàn, 發生 fāshēng sounds like huāshēng).\n- Keep the cadence relaxed, friendly, and expressive, showing regional southern warmth.'
+    };
+    
+    const voiceStyle = state.geminiTtsVoiceStyle || 'standard';
+    const styleInstruction = voicePrompt[voiceStyle];
+    const fullText = `${styleInstruction}\nPlease recite the following text exactly as requested: "${text}"`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${state.apiKey}`;
+    
+    // Stop native speech synthesis if any
+    window.speechSynthesis.cancel();
+    if (window.currentGeminiAudio) {
+        window.currentGeminiAudio.pause();
+    }
+    
+    try {
+        let b64Pcm = await AudioCache.get(text, voiceStyle);
+        
+        if (!b64Pcm) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: fullText }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: {
+                                    voiceName: "Kore"
+                                }
+                            }
+                        }
+                    }
+                })
+            });
+            
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error?.message || 'API request failed');
+            }
+            
+            const data = await response.json();
+            const candidate = data.candidates && data.candidates[0];
+            const part = candidate?.content?.parts?.find(p => p.inlineData && p.inlineData.mimeType.startsWith('audio/'));
+            
+            if (!part) {
+                throw new Error('No audio returned from Gemini API.');
+            }
+            
+            b64Pcm = part.inlineData.data;
+            await AudioCache.put(text, voiceStyle, b64Pcm);
+        }
+        
+        const playUrl = pcmToWavBlobUrl(b64Pcm, 24000);
+        if (!playUrl) throw new Error("Audio conversion failed");
+        
+        const audioPlayer = new Audio();
+        audioPlayer.src = playUrl;
+        audioPlayer.playbackRate = parseFloat(state.speechRatePreference || '0.9');
+        audioPlayer.play();
+        window.currentGeminiAudio = audioPlayer;
+        
+    } catch (err) {
+        console.error("Gemini TTS Error:", err);
+        showError("Gemini TTS failed: " + err.message);
+    }
+}
+
 // ─── History Management ───────────────────────────────────────
 
+let pendingDeleteStoryId = null;
+let pendingDeleteTimeoutId = null;
+let pendingDeleteStoryObj = null;
+
+function deleteHistoryItem(id) {
+    // 1. Commit any previous pending deletions immediately
+    if (pendingDeleteStoryId !== null) {
+        commitPendingDelete();
+    }
+
+    // 2. Stash optimistic delete details
+    pendingDeleteStoryId = id;
+    pendingDeleteStoryObj = state.history.find(h => h.id === id);
+
+    // 3. Re-render UI (optimistically hides the item from screen)
+    renderHistory();
+
+    // 4. Launch functional Toast Action
+    showToast("Story deleted from history", "Undo", undoDelete, 4000);
+
+    // 5. Start auto-commit timer
+    pendingDeleteTimeoutId = setTimeout(() => {
+        commitPendingDelete();
+    }, 4000);
+}
+
+function undoDelete() {
+    if (pendingDeleteTimeoutId) {
+        clearTimeout(pendingDeleteTimeoutId);
+    }
+    pendingDeleteStoryId = null;
+    pendingDeleteStoryObj = null;
+    pendingDeleteTimeoutId = null;
+    renderHistory();
+    showToast("Story restored!");
+}
+
+function commitPendingDelete() {
+    if (pendingDeleteStoryId === null) return;
+    
+    if (pendingDeleteTimeoutId) {
+        clearTimeout(pendingDeleteTimeoutId);
+        pendingDeleteTimeoutId = null;
+    }
+
+    const storyToDelete = state.history.find(h => h.id === pendingDeleteStoryId);
+    if (storyToDelete && storyToDelete.data && storyToDelete.data.sentences) {
+        storyToDelete.data.sentences.forEach(s => {
+            AudioCache.remove(s.mandarin, 'standard');
+            AudioCache.remove(s.mandarin, 'southern');
+            AudioCache.remove(s.mandarin, 'heavy_southern');
+        });
+    }
+
+    state.history = state.history.filter(h => h.id !== pendingDeleteStoryId);
+    pendingDeleteStoryId = null;
+    pendingDeleteStoryObj = null;
+    saveState();
+    renderHistory();
+}
+
 function addToHistory(storyData, skillLevel) {
+    // Ensure pending deletions are committed before appending new story
+    if (pendingDeleteStoryId !== null) {
+        commitPendingDelete();
+    }
+
     const now = new Date();
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -906,7 +1383,14 @@ function addToHistory(storyData, skillLevel) {
     
     state.history.unshift(historyItem);
     if (state.history.length > 20) {
-        state.history.pop();
+        const popped = state.history.pop();
+        if (popped && popped.data && popped.data.sentences) {
+            popped.data.sentences.forEach(s => {
+                AudioCache.remove(s.mandarin, 'standard');
+                AudioCache.remove(s.mandarin, 'southern');
+                AudioCache.remove(s.mandarin, 'heavy_southern');
+            });
+        }
     }
     
     saveState();
@@ -920,12 +1404,15 @@ function renderHistory() {
         if (!container) return;
         container.innerHTML = '';
         
-        if (state.history.length === 0) {
+        // Filter out any optimistically deleted item
+        const activeHistory = state.history.filter(item => item.id !== pendingDeleteStoryId);
+        
+        if (activeHistory.length === 0) {
             container.innerHTML = '<p class="empty-msg">No stories yet.</p>';
             return;
         }
         
-        state.history.forEach(item => {
+        activeHistory.forEach(item => {
             const el = document.createElement('div');
             el.className = 'history-item';
             let levelHtml = item.level ? `<div class="history-level">${item.level}</div>` : '';
@@ -936,6 +1423,18 @@ function renderHistory() {
                     ${levelHtml}
                 </div>
             `;
+            
+            // Create permanently visible Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn-delete-history';
+            deleteBtn.innerHTML = '✕';
+            deleteBtn.title = 'Delete story';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteHistoryItem(item.id);
+            };
+            el.appendChild(deleteBtn);
+
             el.onclick = () => {
                 lastStoryData = item.data;
 
@@ -970,7 +1469,16 @@ function renderHistory() {
 
 function clearHistory() {
     if (confirm('Are you sure you want to clear your story history?')) {
+        // Commit / cancel any pending delete to keep state perfectly clean
+        if (pendingDeleteTimeoutId) {
+            clearTimeout(pendingDeleteTimeoutId);
+            pendingDeleteTimeoutId = null;
+        }
+        pendingDeleteStoryId = null;
+        pendingDeleteStoryObj = null;
+
         state.history = [];
+        AudioCache.clearAll();
         saveState();
         renderHistory();
     }

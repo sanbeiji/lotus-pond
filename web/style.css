@@ -89,14 +89,17 @@ header {
 }
 
 .header-inner h1 {
-  font-size: 2.1rem;
+  font-family: var(--mandarin-font);
+  font-size: 2.3rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.03em;
   margin-bottom: 0.4rem;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .header-subtitle {
-  opacity: 0.88;
+  font-family: var(--mandarin-font);
+  opacity: 0.9;
   font-size: 1rem;
   letter-spacing: 0.02em;
 }
@@ -282,11 +285,34 @@ main {
 }
 
 .history-item {
+    position: relative;
     padding: 0.75rem;
+    padding-right: 2rem;
     border-bottom: 1px solid var(--border);
     cursor: pointer;
     transition: background 0.2s;
     font-size: 0.9rem;
+}
+
+.btn-delete-history {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.btn-delete-history:hover {
+    opacity: 1;
+    color: var(--error-text, #b85c72);
 }
 
 .history-item:hover {
@@ -920,14 +946,34 @@ footer a:hover {
     opacity: 0;
     transition: opacity 0.3s ease, transform 0.3s ease;
     pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .toast.show {
     opacity: 1;
+    pointer-events: auto;
 }
 
 .toast[hidden] {
     display: none;
+}
+
+.toast-action-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: #fff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.toast-action-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
 }
 
 /* ─── Responsive ─────────────────────────────────────────────── */

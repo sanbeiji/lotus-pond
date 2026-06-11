@@ -111,11 +111,43 @@
 
         <!-- Input form -->
         <section class="card" aria-labelledby="generator-heading">
-          <h2 id="generator-heading">Generate a story</h2>
+          <div class="generate-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h2 id="generator-heading" style="margin-bottom: 0;">Generate a story</h2>
+            <div class="generate-settings-container" style="position: relative; display: flex; justify-content: flex-end;">
+              <button id="toggle-generate-settings" class="btn-icon" aria-label="Toggle generate preferences" data-tooltip="Edit generate preferences"><span>⚙️</span></button>
+              <div id="generate-settings-panel" class="view-options-stack">
+                <div class="toggle-switch">
+                  <input type="checkbox" id="generate-pinyin">
+                  <label for="generate-pinyin">Generate Pinyin</label>
+                </div>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="generate-zhuyin">
+                  <label for="generate-zhuyin">Generate Zhuyin</label>
+                </div>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="generate-translation">
+                  <label for="generate-translation">Generate English translation</label>
+                </div>
+              </div>
+            </div>
+          </div>
           <form id="story-form" novalidate>
 
             <div class="form-group">
-              <label for="plot">Plot / theme <span class="required">*</span></label>
+              <div class="plot-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <label for="plot" style="margin-bottom: 0;">Plot <span class="required">*</span></label>
+                <select id="genre-prompt-select" class="genre-select-dropdown" style="padding: 0.25rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.78rem; background: var(--card-bg); color: var(--text); cursor: pointer; max-width: 180px;">
+                  <option value="" disabled selected hidden>Inspire me</option>
+                  <option value="Adventure">🧭 Adventure</option>
+                  <option value="Daily Life">🏡 Daily Life</option>
+                  <option value="Fantasy">✨ Fantasy</option>
+                  <option value="Mystery">🔍 Mystery</option>
+                  <option value="Sci-Fi">🤖 Sci-Fi</option>
+                  <option value="Historical">📜 Historical</option>
+                  <option value="Romance">💖 Romance</option>
+                  <option value="Pirates">🏴‍☠️ Pirates</option>
+                </select>
+              </div>
               <textarea
                 id="plot"
                 name="plot"
@@ -165,9 +197,14 @@
               <small id="vocab-warning" class="input-warning" hidden>Please use Mandarin characters only (separated by commas).</small>
             </div>
 
-            <button type="submit" id="generate-btn" class="btn-primary">
-              <span class="btn-text">✨ Generate story</span>
-            </button>
+            <div class="form-actions" style="display: flex; gap: 1rem; align-items: center;">
+              <button type="button" id="clear-form-btn" class="btn-secondary">
+                Clear
+              </button>
+              <button type="submit" id="generate-btn" class="btn-primary" style="flex: 1;">
+                <span class="btn-text">✨ Generate story</span>
+              </button>
+            </div>
           </form>
         </section>
 
@@ -220,17 +257,58 @@
                       <label for="font-large">Large</label>
                     </div>
                   </div>
-                  <div class="speech-rate-controls">
-                    <label>Speech speed:</label>
-                    <div class="toggle-group">
-                      <input type="radio" id="speech-100" name="speech-rate" value="1.0">
-                      <label for="speech-100">100%</label>
-                      <input type="radio" id="speech-90" name="speech-rate" value="0.9" checked>
-                      <label for="speech-90">90%</label>
-                      <input type="radio" id="speech-75" name="speech-rate" value="0.75">
-                      <label for="speech-75">75%</label>
-                      <input type="radio" id="speech-50" name="speech-rate" value="0.5">
-                      <label for="speech-50">50%</label>
+                  <hr style="width: 100%; border: 0; border-top: 1px solid var(--border); margin: 0.5rem 0;">
+                  <div class="speech-preferences-section" style="width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem;">
+                    <label style="font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-bottom: 0; align-self: flex-start;">Speech Preferences</label>
+                    
+                    <!-- Speech speed -->
+                    <div class="speech-rate-controls" style="width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
+                      <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0;">Speech speed:</label>
+                      <div class="toggle-group" style="width: 100%;">
+                        <input type="radio" id="speech-100" name="speech-rate" value="1.0">
+                        <label for="speech-100">100%</label>
+                        <input type="radio" id="speech-90" name="speech-rate" value="0.9" checked>
+                        <label for="speech-90">90%</label>
+                        <input type="radio" id="speech-75" name="speech-rate" value="0.75">
+                        <label for="speech-75">75%</label>
+                        <input type="radio" id="speech-50" name="speech-rate" value="0.5">
+                        <label for="speech-50">50%</label>
+                      </div>
+                    </div>
+
+                    <!-- Engine Selection Segmented Radio -->
+                    <div class="form-group" style="width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
+                      <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0;">Voice Engine:</label>
+                      <div class="toggle-group" style="width: 100%;">
+                        <input type="radio" id="engine-browser" name="tts-engine" value="browser" checked>
+                        <label for="engine-browser">Browser</label>
+                        <input type="radio" id="engine-gemini" name="tts-engine" value="gemini">
+                        <label for="engine-gemini">Gemini</label>
+                      </div>
+                    </div>
+
+                    <!-- Subtext -->
+                    <div id="tts-engine-subtext" style="font-size: 0.72rem; color: var(--text-muted); text-align: right; line-height: 1.3;">
+                      Uses native text-to-speech. Fast, free, and works offline.
+                    </div>
+
+                    <!-- Dialect/Voice styles, visible only for Gemini -->
+                    <div class="form-group" id="gemini-tts-style-group" hidden style="width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; margin: 0;">
+                      <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0;">Voice Style</label>
+                      <div class="radio-group" style="display: flex; flex-direction: column; gap: 0.35rem; align-items: flex-end; width: 100%;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; font-size: 0.78rem; color: var(--text-muted);">
+                          Standard Taiwanese Mandarin
+                          <input type="radio" name="gemini-tts-style" value="standard" checked>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; font-size: 0.78rem; color: var(--text-muted);">
+                          Southern Taiwan Accent (台南高雄腔)
+                          <input type="radio" name="gemini-tts-style" value="southern">
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; font-size: 0.78rem; color: var(--text-muted);">
+                          Heavy Southern + Minnan (偏鄉本土腔)
+                          <input type="radio" name="gemini-tts-style" value="heavy_southern">
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -294,12 +372,18 @@
               6. You can toggle the pronunciation, highlighted words, and English translations on the story view screen.<br>
               7. Practice by reading aloud as best you can for your level. Increase the difficulty as you become more comfortable.<br>
               8. Your last 20 generated stories are automatically saved locally in the History panel. You can tap on any past story to instantly load and read it again.</p>
+              <div class="version-info" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                Version 0.3.0 · Published June 10, 2026
+              </div>
           </div>
       </div>
   </div>
 
   <!-- Toast message -->
-  <div id="toast" class="toast" hidden></div>
+  <div id="toast" class="toast" hidden>
+      <span id="toast-text"></span>
+      <button id="toast-action-btn" class="toast-action-btn" hidden></button>
+  </div>
 
   <script src="script.js"></script>
 </body>

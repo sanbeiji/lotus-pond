@@ -1,5 +1,6 @@
 package com.example.lotuspondreader
 
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -56,6 +57,7 @@ fun MainNavigation(
     val skillLevel by viewModel.skillLevel.collectAsState()
     val length by viewModel.length.collectAsState()
     val requiredTerms by viewModel.requiredTerms.collectAsState()
+    val isGeneratingPrompt by viewModel.isGeneratingPrompt.collectAsState()
     
     val configuration = LocalConfiguration.current
     val isWideScreen = configuration.screenWidthDp > 600
@@ -250,7 +252,10 @@ fun MainNavigation(
                         ) {
                             Text(
                                 text = "Lotus Pond Reader",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                ),
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -355,7 +360,16 @@ fun MainNavigation(
                             )
                         },
                         selectedModel = userSettings.selectedModel,
+                        onClearForm = {
+                            viewModel.plot.value = ""
+                            viewModel.skillLevel.value = "A1 (Entry)"
+                            viewModel.length.value = "400"
+                            viewModel.requiredTerms.value = ""
+                            viewModel.resetUiState()
+                        },
                         onResetError = { viewModel.resetUiState() },
+                        isGeneratingPrompt = isGeneratingPrompt,
+                        onSelectGenre = { genre -> viewModel.fetchGenrePrompt(genre) },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -367,6 +381,12 @@ fun MainNavigation(
                             viewModel.loadStoryFromHistory(storyEntity)
                         },
                         onClearHistory = { viewModel.clearHistory() },
+                        onDeleteStory = { storyEntity ->
+                            viewModel.deleteStory(storyEntity)
+                        },
+                        onUndoDelete = { storyId ->
+                            viewModel.undoDeleteStory(storyId)
+                        },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -383,6 +403,9 @@ fun MainNavigation(
                         lastStory = (uiState as StoryUiState.Success).story
                     }
                     val story = lastStory
+                    val scope = rememberCoroutineScope()
+                    val pcmPlayer = remember { com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer() }
+                    
                     if (story != null) {
                         val termsList = story.requiredTerms.split("[,，]".toRegex()).map { it.trim() }.filter { it.isNotEmpty() }
                         var showBottomSheet by remember { mutableStateOf(false) }
@@ -497,8 +520,12 @@ fun MainNavigation(
                                         }
                                     }
 
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Text("Speech speed", style = MaterialTheme.typography.titleMedium)
+                                    HorizontalDivider()
+
+                                    Text("Speech Preferences", style = MaterialTheme.typography.titleMedium)
+
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 12.dp)) {
+                                        Text("Speech speed", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold))
                                         val rates = listOf(1.0f, 0.9f, 0.75f, 0.5f)
                                         val rateLabels = listOf("100%", "90%", "75%", "50%")
                                         SingleChoiceSegmentedButtonRow(
@@ -512,6 +539,67 @@ fun MainNavigation(
                                                     icon = { SegmentedButtonDefaults.Icon(active = userSettings.speechRatePreference == rate) }
                                                 ) {
                                                     Text(rateLabels[index])
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text("Voice Engine", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold))
+                                        val engineOptions = listOf("Android", "Gemini")
+                                        SingleChoiceSegmentedButtonRow(
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            engineOptions.forEachIndexed { index, option ->
+                                                val isSelected = if (option == "Gemini") userSettings.useGeminiTts else !userSettings.useGeminiTts
+                                                SegmentedButton(
+                                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = engineOptions.size),
+                                                    onClick = { viewModel.updateSettings(userSettings.copy(useGeminiTts = (option == "Gemini"))) },
+                                                    selected = isSelected,
+                                                    icon = { SegmentedButtonDefaults.Icon(active = isSelected) }
+                                                ) {
+                                                    Text(option)
+                                                }
+                                            }
+                                        }
+
+                                        val subtext = if (userSettings.useGeminiTts) {
+                                            "Uses Gemini AI (Experimental). High-quality voices and regional accents; requires internet and has minor initial latency/token costs."
+                                        } else {
+                                            "Uses native text-to-speech. Fast, free, and works offline."
+                                        }
+                                        Text(
+                                            text = subtext,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                                        )
+                                    }
+
+                                    if (userSettings.useGeminiTts) {
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text("Voice Style", style = MaterialTheme.typography.bodyMedium)
+
+                                            val voiceStyles = listOf(
+                                                "standard" to "Standard Taiwanese Mandarin",
+                                                "southern" to "Southern Taiwan Accent (台南高雄腔)",
+                                                "heavy_southern" to "Heavy Southern + Minnan (偏鄉本土腔)"
+                                            )
+
+                                            voiceStyles.forEach { (value, label) ->
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                                ) {
+                                                    RadioButton(
+                                                        selected = userSettings.geminiTtsVoiceStyle == value,
+                                                        onClick = { viewModel.updateSettings(userSettings.copy(geminiTtsVoiceStyle = value)) }
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text(label, style = MaterialTheme.typography.bodyMedium)
                                                 }
                                             }
                                         }
@@ -563,8 +651,18 @@ fun MainNavigation(
                                 fontSizePreference = userSettings.fontSizePreference,
                                 requiredTerms = termsList,
                                 onPlayAudio = { textToSpeak -> 
-                                    tts?.setSpeechRate(userSettings.speechRatePreference)
-                                    tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
+                                    if (userSettings.useGeminiTts) {
+                                        tts?.stop()
+                                        scope.launch {
+                                            val audioData = viewModel.generateSpeech(textToSpeak, userSettings.geminiTtsVoiceStyle)
+                                            if (audioData != null) {
+                                                pcmPlayer.playRawPcm(audioData, userSettings.speechRatePreference)
+                                            }
+                                        }
+                                    } else {
+                                        tts?.setSpeechRate(userSettings.speechRatePreference)
+                                        tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
+                                    }
                                 },
                                 contentPadding = PaddingValues(
                                     start = 16.dp,

@@ -29,6 +29,9 @@ data class HistoryItem(
 data class UserSettings(
     val apiKey: String = "",
     val selectedModel: String = "gemini-flash-lite-latest",
+    val generatePinyin: Boolean = false,
+    val generateZhuyin: Boolean = false,
+    val generateTranslation: Boolean = false,
     val showPinyin: Boolean = true,
     val showZhuyin: Boolean = false,
     val studyMode: Boolean = true,
@@ -36,5 +39,7 @@ data class UserSettings(
     val themePreference: String = "system", // "system", "light", "dark"
     val useDynamicColor: Boolean = false,
     val fontSizePreference: String = "small", // "small", "medium", "large"
-    val speechRatePreference: Float = 0.9f
+    val speechRatePreference: Float = 0.9f,
+    val useGeminiTts: Boolean = false,
+    val geminiTtsVoiceStyle: String = "standard"
 )
