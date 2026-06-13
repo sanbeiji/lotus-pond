@@ -168,7 +168,32 @@ class StoryRepository {
         genre: String
     ): String {
         try {
-            val prompt = "Generate a creative, engaging story premise in English suitable for a Mandarin learning story in the \"$genre\" genre. The premise must be between 1 and 4 sentences long. It should set up an interesting plot, setting, or character dilemma, preferably reflecting Taiwanese culture, geography, or context. Return ONLY the raw story premise text. Do not include titles, quotes, markdown, JSON, or explanation."
+            val settings = listOf(
+                "a night market in Kaohsiung",
+                "a quiet tea house in Jiufen",
+                "a traditional bakery in Taichung",
+                "a street in Taipei on a rainy day",
+                "an old temple in Tainan",
+                "a sunny beach in Kenting",
+                "a slow train ride along the east coast",
+                "a busy boba tea shop",
+                "a sky lantern festival in Pingxi",
+                "a hot spring in Beitou",
+                "a breakfast shop in Taipei",
+                "a historic street in Lukang",
+                "a seaside path in Tamsui",
+                "a pottery workshop in Yingge",
+                "a seafood market in Keelung",
+                "a mango ice shop in Taipei",
+                "a green onion farm in Yilan",
+                "a path in Yangmingshan",
+                "the Taiwan High-Speed Rail",
+                "a cozy bookstore in Taipei",
+                "a hotel in Sun Moon Lake",
+                "a tea plantation in Maokong"
+            )
+            val randomSetting = settings.random()
+            val prompt = "Return a JSON object with a \"premise\" key containing a short story idea (1 to 2 sentences) in simple English for the \"$genre\" genre. Set the story in or connect it to: $randomSetting. Use very basic words so it is easy to read. Do not use complex language."
             
             val requestBody = GeminiRequest(
                 contents = listOf(Content(parts = listOf(Part(text = prompt)))),

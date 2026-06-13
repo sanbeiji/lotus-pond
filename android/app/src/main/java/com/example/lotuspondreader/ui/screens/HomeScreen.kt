@@ -117,7 +117,7 @@ fun HomeScreen(
                             modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         ) {
                             Text(
-                                text = "Inspire me",
+                                text = "💡 Inspire me",
                                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
