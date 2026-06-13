@@ -253,8 +253,8 @@ fun MainNavigation(
                             Text(
                                 text = "Lotus Pond Reader",
                                 style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = com.example.lotuspondreader.theme.MontserratFontFamily,
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                                    fontFamily = com.example.lotuspondreader.theme.LobsterFontFamily,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
                                 ),
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 maxLines = 1,
@@ -267,8 +267,8 @@ fun MainNavigation(
                             Text(
                                 text = viewName,
                                 style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = com.example.lotuspondreader.theme.MontserratFontFamily,
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                                    fontFamily = com.example.lotuspondreader.theme.LobsterFontFamily,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
                                 ),
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 maxLines = 1
