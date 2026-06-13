@@ -12,6 +12,13 @@ val IansuiFontFamily = FontFamily(
     Font(R.font.iansui, FontWeight.Normal)
 )
 
+val MontserratFontFamily = FontFamily(
+    Font(R.font.montserrat_semibold, FontWeight.Normal),
+    Font(R.font.montserrat_semibold, FontWeight.Medium),
+    Font(R.font.montserrat_semibold, FontWeight.SemiBold),
+    Font(R.font.montserrat_semibold, FontWeight.Bold)
+)
+
 // Set of Material typography styles to start with
 val Typography =
   Typography(
