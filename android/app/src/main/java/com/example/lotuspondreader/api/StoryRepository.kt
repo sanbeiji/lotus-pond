@@ -383,6 +383,7 @@ class StoryRepository {
             4. SKILL LEVEL: Adhere strictly to the $skillLevel level requirements defined above.
             5. VOCABULARY INTEGRATION: If specific vocabulary terms are provided ("$requiredTerms"), you MUST include EVERY term at least TWICE in the story. Ensure they are used naturally but frequently enough for the reader to practice them. Integrate them into both narrative and dialogue where appropriate.
             6. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
+            7. WORD SEGMENTATION: You MUST segment each Mandarin sentence into its constituent words and punctuation marks, returning them in order as a JSON array of strings in the "words" field of the sentence. Segment compound words naturally (e.g. "珍珠奶茶" should be a single word token "珍珠奶茶", "夜市" should be "夜市"). Do not skip any characters or punctuation marks; when combined, the strings in "words" must match "mandarin" exactly.
 
             OUTPUT FORMAT:
             You must return a valid JSON object with NO OTHER TEXT before or after the JSON. DO NOT include markdown code blocks.
@@ -391,7 +392,8 @@ class StoryRepository {
               "title": "Story Title in Traditional Mandarin",
               "sentences": [
                 {
-                  "mandarin": "Mandarin sentence here"
+                  "mandarin": "Mandarin sentence here",
+                  "words": ["word1", "word2", "word3", "punct"]
                 }
               ]
             }

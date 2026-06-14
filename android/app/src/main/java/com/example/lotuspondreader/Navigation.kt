@@ -667,6 +667,7 @@ fun MainNavigation(
                                         tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
                                     }
                                 },
+                                onLookupWord = { word -> viewModel.lookupWord(word) },
                                 contentPadding = PaddingValues(
                                     start = 16.dp,
                                     end = 16.dp,

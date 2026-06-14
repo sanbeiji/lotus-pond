@@ -32,6 +32,15 @@ class StoryViewModel(
     private val context: Context
 ) : ViewModel() {
 
+    init {
+        viewModelScope.launch {
+            com.example.lotuspondreader.data.DictionaryImporter.importIfNeeded(
+                context,
+                com.example.lotuspondreader.data.StoryDatabase.getDatabase(context)
+            )
+        }
+    }
+
     private val _uiState = MutableStateFlow<StoryUiState>(StoryUiState.Idle)
     val uiState: StateFlow<StoryUiState> = _uiState.asStateFlow()
 
@@ -69,6 +78,11 @@ class StoryViewModel(
 
     fun clearErrorEvent() {
         _errorEvent.value = null
+    }
+
+    suspend fun lookupWord(word: String): List<com.example.lotuspondreader.data.DictEntry> {
+        val database = com.example.lotuspondreader.data.StoryDatabase.getDatabase(context)
+        return com.example.lotuspondreader.data.WordLookupService.lookupWord(word, database.dictDao())
     }
 
     fun updateSettings(settings: UserSettings) {

@@ -12,6 +12,7 @@ data class StoryResponse(
 @Serializable
 data class Sentence(
     val mandarin: String,
+    val words: List<String> = emptyList(),
     val pinyin: String? = null,
     val zhuyin: String? = null,
     val english: String? = null
