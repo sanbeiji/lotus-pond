@@ -29,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.height
@@ -164,17 +164,14 @@ fun SentenceBlock(
                                         )
                                         .run {
                                             if (isChinese) {
-                                                combinedClickable(
-                                                    onLongClick = {
-                                                        selectedWordIndex = index
-                                                        coroutineScope.launch {
-                                                            isLoading = true
-                                                            lookupResult = onLookupWord(word)
-                                                            isLoading = false
-                                                        }
-                                                    },
-                                                    onClick = {}
-                                                )
+                                                clickable {
+                                                    selectedWordIndex = index
+                                                    coroutineScope.launch {
+                                                        isLoading = true
+                                                        lookupResult = onLookupWord(word)
+                                                        isLoading = false
+                                                    }
+                                                }
                                             } else this
                                         }
                                         .padding(horizontal = 1.dp)
