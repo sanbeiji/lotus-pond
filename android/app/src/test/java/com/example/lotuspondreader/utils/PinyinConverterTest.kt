@@ -61,4 +61,12 @@ class PinyinConverterTest {
         assertEquals("", PinyinConverter.convertToToneMarks("   "))
         assertEquals("hǎoma", PinyinConverter.convertToToneMarks("hao3   ma5"))
     }
+
+    @Test
+    fun testPinyinInDefinition() {
+        assertEquals("diary; CL: 則[zé],本[běn],篇[piān]", PinyinConverter.convertPinyinInDefinition("diary; CL: 則[ze2],本[ben3],篇[pian1]"))
+        assertEquals("see also 什麼|什么[shénme]", PinyinConverter.convertPinyinInDefinition("see also 什麼|什么[shen2 me5]"))
+        assertEquals("to tell [sb] [sth]", PinyinConverter.convertPinyinInDefinition("to tell [sb] [sth]"))
+        assertEquals("in detail [in]", PinyinConverter.convertPinyinInDefinition("in detail [in]"))
+    }
 }

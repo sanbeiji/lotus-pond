@@ -31,6 +31,16 @@ object PinyinConverter {
         return result.toString()
     }
 
+    fun convertPinyinInDefinition(definition: String): String {
+        if (definition.isEmpty()) return ""
+        val pattern = Regex("\\[([a-zA-Z0-9:\\s]+)\\]")
+        return pattern.replace(definition) { matchResult ->
+            val pinyinContent = matchResult.groupValues[1]
+            val converted = convertToToneMarks(pinyinContent)
+            "[$converted]"
+        }
+    }
+
     private fun convertSyllable(syllable: String): String {
         if (syllable.isEmpty()) return ""
         

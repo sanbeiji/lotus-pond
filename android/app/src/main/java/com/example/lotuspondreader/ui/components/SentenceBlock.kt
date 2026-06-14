@@ -303,7 +303,7 @@ fun SentenceBlock(
                                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                                                 )
                                                                 Text(
-                                                                    text = entry.english,
+                                                                    text = PinyinConverter.convertPinyinInDefinition(entry.english),
                                                                     style = MaterialTheme.typography.bodySmall,
                                                                     color = MaterialTheme.colorScheme.onSurface
                                                                 )
