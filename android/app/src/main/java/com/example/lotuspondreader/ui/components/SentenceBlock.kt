@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import com.example.lotuspondreader.models.Sentence
+import com.example.lotuspondreader.utils.PinyinConverter
 import kotlinx.coroutines.launch
 
 @Composable
@@ -297,7 +298,7 @@ fun SentenceBlock(
                                                                     )
                                                                 }
                                                                 Text(
-                                                                    text = entry.pinyin,
+                                                                    text = PinyinConverter.convertToToneMarks(entry.pinyin),
                                                                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                                                 )
