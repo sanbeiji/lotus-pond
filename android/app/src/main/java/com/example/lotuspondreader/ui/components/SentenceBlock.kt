@@ -48,6 +48,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import com.example.lotuspondreader.models.Sentence
 import kotlinx.coroutines.launch
 
@@ -107,7 +112,7 @@ fun SentenceBlock(
             ) {
                 if (sentence.words.isNotEmpty()) {
                     // Render as FlowRow of word tokens
-                    var selectedWord by remember { mutableStateOf<String?>(null) }
+                    var selectedWordIndex by remember { mutableStateOf<Int?>(null) }
                     var lookupResult by remember { mutableStateOf<List<com.example.lotuspondreader.data.DictEntry>?>(null) }
                     var isLoading by remember { mutableStateOf(false) }
                     val coroutineScope = rememberCoroutineScope()
@@ -119,10 +124,28 @@ fun SentenceBlock(
                         horizontalArrangement = Arrangement.Start,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        sentence.words.forEach { word ->
+                        sentence.words.forEachIndexed { index, word ->
                             val isChinese = word.any { it.code in 0x4e00..0x9fff }
                             val isHighlighted = studyMode && requiredTerms.isNotEmpty() && requiredTerms.any { term -> word.contains(term) }
-                            
+                            val isSelected = selectedWordIndex == index
+
+                            val backgroundColor = when {
+                                isSelected -> MaterialTheme.colorScheme.secondaryContainer
+                                isHighlighted -> MaterialTheme.colorScheme.primaryContainer
+                                else -> Color.Transparent
+                            }
+
+                            val textColor = when {
+                                isSelected -> MaterialTheme.colorScheme.onSecondaryContainer
+                                isHighlighted -> MaterialTheme.colorScheme.onPrimaryContainer
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+
+                            val fontWeight = when {
+                                isSelected || isHighlighted -> FontWeight.Bold
+                                else -> FontWeight.Normal
+                            }
+
                             Box {
                                 Text(
                                     text = word,
@@ -130,19 +153,19 @@ fun SentenceBlock(
                                         fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
                                         fontSize = mandarinFontSize,
                                         lineHeight = mandarinLineHeight,
-                                        fontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Normal
+                                        fontWeight = fontWeight
                                     ),
-                                    color = if (isHighlighted) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = textColor,
                                     modifier = Modifier
                                         .background(
-                                            color = if (isHighlighted) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                                            color = backgroundColor,
                                             shape = RoundedCornerShape(4.dp)
                                         )
                                         .run {
                                             if (isChinese) {
                                                 combinedClickable(
                                                     onLongClick = {
-                                                        selectedWord = word
+                                                        selectedWordIndex = index
                                                         coroutineScope.launch {
                                                             isLoading = true
                                                             lookupResult = onLookupWord(word)
@@ -156,10 +179,45 @@ fun SentenceBlock(
                                         .padding(horizontal = 1.dp)
                                 )
 
-                                if (selectedWord == word) {
+                                if (isSelected) {
+                                    val popupPositionProvider = remember {
+                                        object : PopupPositionProvider {
+                                            override fun calculatePosition(
+                                                anchorBounds: IntRect,
+                                                windowSize: IntSize,
+                                                layoutDirection: LayoutDirection,
+                                                popupContentSize: IntSize
+                                            ): IntOffset {
+                                                val margin = 24 // pixels
+                                                val x = anchorBounds.left + (anchorBounds.width - popupContentSize.width) / 2
+                                                
+                                                val spaceAbove = anchorBounds.top
+                                                val spaceBelow = windowSize.height - anchorBounds.bottom
+                                                
+                                                val fitsAbove = spaceAbove >= popupContentSize.height + margin
+                                                val fitsBelow = spaceBelow >= popupContentSize.height + margin
+                                                
+                                                val y = if (fitsAbove) {
+                                                    anchorBounds.top - popupContentSize.height - margin
+                                                } else if (fitsBelow) {
+                                                    anchorBounds.bottom + margin
+                                                } else {
+                                                    if (spaceAbove > spaceBelow) {
+                                                        margin
+                                                    } else {
+                                                        (windowSize.height - popupContentSize.height - margin).coerceAtLeast(margin)
+                                                    }
+                                                }
+                                                val clampedX = x.coerceIn(margin, (windowSize.width - popupContentSize.width - margin).coerceAtLeast(margin))
+                                                return IntOffset(clampedX, y)
+                                            }
+                                        }
+                                    }
+
                                     Popup(
+                                        popupPositionProvider = popupPositionProvider,
                                         onDismissRequest = {
-                                            selectedWord = null
+                                            selectedWordIndex = null
                                             lookupResult = null
                                         },
                                         properties = PopupProperties(focusable = true)
