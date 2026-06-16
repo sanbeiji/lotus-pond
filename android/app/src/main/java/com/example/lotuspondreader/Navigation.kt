@@ -431,6 +431,7 @@ fun MainNavigation(
                         @OptIn(ExperimentalMaterial3Api::class)
                         if (showBottomSheet) {
                             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                            val sheetScrollState = androidx.compose.foundation.rememberScrollState()
                             ModalBottomSheet(
                                 onDismissRequest = { showBottomSheet = false },
                                 sheetState = sheetState
@@ -439,7 +440,7 @@ fun MainNavigation(
                                     modifier = Modifier
                                         .padding(16.dp)
                                         .navigationBarsPadding()
-                                        .verticalScroll(androidx.compose.foundation.rememberScrollState()),
+                                        .verticalScroll(sheetScrollState),
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -605,7 +606,16 @@ fun MainNavigation(
                                                 val isSelected = if (option == "Gemini") userSettings.useGeminiTts else !userSettings.useGeminiTts
                                                 SegmentedButton(
                                                     shape = SegmentedButtonDefaults.itemShape(index = index, count = engineOptions.size),
-                                                    onClick = { viewModel.updateSettings(userSettings.copy(useGeminiTts = (option == "Gemini"))) },
+                                                    onClick = {
+                                                        val isGemini = option == "Gemini"
+                                                        viewModel.updateSettings(userSettings.copy(useGeminiTts = isGemini))
+                                                        if (isGemini) {
+                                                            scope.launch {
+                                                                kotlinx.coroutines.delay(100)
+                                                                sheetScrollState.animateScrollTo(sheetScrollState.maxValue)
+                                                            }
+                                                        }
+                                                    },
                                                     selected = isSelected,
                                                     icon = { SegmentedButtonDefaults.Icon(active = isSelected) }
                                                 ) {
