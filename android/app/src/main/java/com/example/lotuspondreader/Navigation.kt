@@ -51,7 +51,7 @@ fun MainNavigation(
     var selectedItem by remember { mutableIntStateOf(0) }
     val items = listOf("Create", "History", "Settings")
     
-    val userSettings by viewModel.userSettings.collectAsState(initial = UserSettings())
+    val userSettings by viewModel.userSettings.collectAsState(initial = UserSettings(apiKey = "loading"))
     val uiState by viewModel.uiState.collectAsState()
     
     val plot by viewModel.plot.collectAsState()
@@ -116,7 +116,7 @@ fun MainNavigation(
         )
     }
 
-    if (userSettings.apiKey.isBlank()) {
+    if (userSettings.apiKey.isBlank() && currentScreen != Splash) {
         var tempApiKey by remember { mutableStateOf("") }
         val uriHandler = LocalUriHandler.current
         AlertDialog(
