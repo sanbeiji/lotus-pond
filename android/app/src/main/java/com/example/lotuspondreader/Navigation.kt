@@ -442,7 +442,7 @@ fun MainNavigation(
                                         .verticalScroll(androidx.compose.foundation.rememberScrollState()),
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         Text("Show", style = MaterialTheme.typography.titleMedium)
                                         @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
                                         FlowRow(
@@ -532,7 +532,7 @@ fun MainNavigation(
                                         }
                                     }
                                     
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         Text("Font size", style = MaterialTheme.typography.titleMedium)
                                         val fontOptions = listOf("small", "medium", "large")
                                         val fontLabels = listOf("Small", "Medium", "Large")
@@ -554,7 +554,7 @@ fun MainNavigation(
 
                                     HorizontalDivider()
 
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 12.dp)) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(bottom = 12.dp)) {
                                         Text("Speech speed", style = MaterialTheme.typography.titleMedium)
                                         val rates = listOf(1.0f, 0.9f, 0.75f, 0.5f)
                                         val rateLabels = listOf("100%", "90%", "75%", "50%")
@@ -574,7 +574,7 @@ fun MainNavigation(
                                         }
                                     }
 
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         Text("Voice gender", style = MaterialTheme.typography.titleMedium)
                                         val genderOptions = listOf("female", "male")
                                         val genderLabels = listOf("Female", "Male")
@@ -595,7 +595,7 @@ fun MainNavigation(
                                         }
                                     }
 
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         Text("Voice engine", style = MaterialTheme.typography.titleMedium)
                                         val engineOptions = listOf("Android", "Gemini")
                                         SingleChoiceSegmentedButtonRow(
@@ -630,7 +630,7 @@ fun MainNavigation(
                                     if (userSettings.useGeminiTts) {
                                         Column(
                                             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp),
-                                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                                            verticalArrangement = Arrangement.spacedBy(2.dp)
                                         ) {
                                             Text("Voice style", style = MaterialTheme.typography.bodyMedium)
 
@@ -643,7 +643,7 @@ fun MainNavigation(
 
                                             voiceStyles.forEach { (value, label) ->
                                                 Row(
-                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                                    modifier = Modifier.fillMaxWidth(),
                                                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                                                 ) {
                                                     RadioButton(
