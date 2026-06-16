@@ -726,8 +726,24 @@ async function generateGenrePrompt(genre) {
         "a hotel in Sun Moon Lake",
         "a tea plantation in Maokong"
     ];
-    const randomSetting = taiwanSettings[Math.floor(Math.random() * taiwanSettings.length)];
-    const prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English for the "${genre}" genre. Set the story in or connect it to: ${randomSetting}. Use very basic words so it is easy to read. Do not use complex language.`;
+    let prompt;
+    if (genre.toLowerCase() === "music") {
+        const musicalActivities = [
+            "preparing for a big concert in a grand hall",
+            "practicing a difficult piece on the violin until late at night",
+            "teaching a young student how to play the piano",
+            "playing in a professional symphony orchestra rehearsal",
+            "rehearsing chamber music with a string quartet",
+            "auditioning for a prestigious music school or orchestra",
+            "tuning and preparing instruments backstage before a show",
+            "discussing musical interpretation with other musicians"
+        ];
+        const activity = musicalActivities[Math.floor(Math.random() * musicalActivities.length)];
+        prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English about a professional classical musician. Set the story around or connect it to: ${activity}. Use very basic words so it is easy to read. Do not use complex language.`;
+    } else {
+        const randomSetting = taiwanSettings[Math.floor(Math.random() * taiwanSettings.length)];
+        prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English for the "${genre}" genre. Set the story in or connect it to: ${randomSetting}. Use very basic words so it is easy to read. Do not use complex language.`;
+    }
     
     try {
         // Force gemini-flash-lite-latest as mandated by requirements

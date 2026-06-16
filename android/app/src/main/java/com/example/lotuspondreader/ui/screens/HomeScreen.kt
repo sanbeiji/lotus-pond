@@ -42,7 +42,7 @@ fun HomeScreen(
 
     val genres = listOf(
         "Adventure", "Daily Life", "Fantasy", "Mystery",
-        "Sci-Fi", "Historical", "Romance", "Pirates"
+        "Sci-Fi", "Historical", "Romance", "Pirates", "Music"
     )
 
     var skillExpanded by remember { mutableStateOf(false) }
