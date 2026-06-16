@@ -728,18 +728,30 @@ async function generateGenrePrompt(genre) {
     ];
     let prompt;
     if (genre.toLowerCase() === "music") {
+        const instruments = [
+            "Violin", "Violin", "Violin", "Violin",
+            "Viola", "Viola", "Viola", "Viola",
+            "Cello", "Cello", "Cello", "Cello",
+            "Double bass", "Double bass", "Double bass", "Double bass",
+            "Piano", "Piano", "Piano", "Piano",
+            "Guitar", "Clarinet", "Flute", "Oboe", "Bassoon",
+            "Trombone", "Trumpet", "French horn", "Tuba", "Tympani", "Percussion"
+        ];
+        const selectedInstrument = instruments[Math.floor(Math.random() * instruments.length)];
+
         const musicalActivities = [
-            "preparing for a big concert in a grand hall",
-            "practicing a difficult piece on the violin until late at night",
-            "teaching a young student how to play the piano",
+            "preparing for a big concert in a symphony hall",
+            "practicing a difficult piece on the <instrument> until late at night",
+            "teaching a young student how to play the <instrument>",
             "playing in a professional symphony orchestra rehearsal",
             "rehearsing chamber music with a string quartet",
-            "auditioning for a prestigious music school or orchestra",
-            "tuning and preparing instruments backstage before a show",
-            "discussing musical interpretation with other musicians"
+            "auditioning for a prestigious orchestra",
+            "discussing musical interpretation with other musicians",
+            "Musicians hanging out after the concert"
         ];
-        const activity = musicalActivities[Math.floor(Math.random() * musicalActivities.length)];
-        prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English about a professional classical musician. Set the story around or connect it to: ${activity}. Use very basic words so it is easy to read. Do not use complex language.`;
+        const activityTemplate = musicalActivities[Math.floor(Math.random() * musicalActivities.length)];
+        const activity = activityTemplate.replace("<instrument>", selectedInstrument.toLowerCase());
+        prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English about a professional classical musician who plays the ${selectedInstrument}. Set the story around or connect it to: ${activity}. Ensure the character is not always nervous; they can be happy, inspired, tired, or excited. Use very basic words so it is easy to read. Do not use complex language.`;
     } else {
         const randomSetting = taiwanSettings[Math.floor(Math.random() * taiwanSettings.length)];
         prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English for the "${genre}" genre. Set the story in or connect it to: ${randomSetting}. Use very basic words so it is easy to read. Do not use complex language.`;
