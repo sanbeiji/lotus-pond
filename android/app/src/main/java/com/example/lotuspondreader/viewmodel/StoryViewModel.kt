@@ -114,8 +114,8 @@ class StoryViewModel(
         }
     }
 
-    private fun getAudioCacheFile(text: String, voiceStyle: String): java.io.File {
-        val hashInput = "${text}_${voiceStyle}"
+    private fun getAudioCacheFile(text: String, voiceStyle: String, voiceGender: String): java.io.File {
+        val hashInput = "${text}_${voiceStyle}_${voiceGender}"
         val digest = java.security.MessageDigest.getInstance("MD5")
         val hashBytes = digest.digest(hashInput.toByteArray(Charsets.UTF_8))
         val hashString = hashBytes.joinToString("") { "%02x".format(it) }
@@ -129,17 +129,17 @@ class StoryViewModel(
 
     suspend fun generateSpeech(text: String, voiceStyle: String): ByteArray? {
         return try {
-            val cacheFile = getAudioCacheFile(text, voiceStyle)
+            val currentSettings = userSettings.first()
+            val cacheFile = getAudioCacheFile(text, voiceStyle, currentSettings.voiceGender)
             if (cacheFile.exists()) {
                 return cacheFile.readBytes()
             }
 
-            val currentSettings = userSettings.first()
             if (currentSettings.apiKey.isBlank()) {
                 _errorEvent.value = "Please configure your Gemini API key in settings."
                 return null
             }
-            val base64Data = storyRepository.generateSpeech(currentSettings.apiKey, text, voiceStyle)
+            val base64Data = storyRepository.generateSpeech(currentSettings.apiKey, text, voiceStyle, currentSettings.voiceGender)
             val audioBytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT)
             cacheFile.writeBytes(audioBytes)
             audioBytes
@@ -284,12 +284,15 @@ class StoryViewModel(
                     storyDao.deleteStory(story)
                     
                     // Also delete cached audio files for this story's sentences
-                    val voiceStyles = listOf("standard", "southern", "heavy_southern")
+                    val voiceStyles = listOf("standard", "southern", "heavy_southern", "beijing")
+                    val genders = listOf("female", "male")
                     story.storyData.sentences.forEach { sentence ->
                         voiceStyles.forEach { style ->
-                            val cacheFile = getAudioCacheFile(sentence.mandarin, style)
-                            if (cacheFile.exists()) {
-                                cacheFile.delete()
+                            genders.forEach { gender ->
+                                val cacheFile = getAudioCacheFile(sentence.mandarin, style, gender)
+                                if (cacheFile.exists()) {
+                                    cacheFile.delete()
+                                }
                             }
                         }
                     }

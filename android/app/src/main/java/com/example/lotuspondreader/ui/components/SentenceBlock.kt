@@ -71,27 +71,69 @@ fun SentenceBlock(
     modifier: Modifier = Modifier
 ) {
     val mandarinFontSize = when (fontSizePreference) {
-        "medium" -> 28.sp
-        "large" -> 36.sp
+        "medium" -> 30.sp
+        "large" -> 40.sp
         else -> 20.sp
     }
     
     val mandarinLineHeight = when (fontSizePreference) {
-        "medium" -> 42.sp
-        "large" -> 54.sp
+        "medium" -> 45.sp
+        "large" -> 60.sp
         else -> 30.sp
     }
     
     val pinyinFontSize = when (fontSizePreference) {
-        "medium" -> 18.sp
-        "large" -> 22.sp
+        "medium" -> 19.sp
+        "large" -> 24.sp
         else -> 14.sp
     }
     
     val englishStyle = when (fontSizePreference) {
-        "medium" -> MaterialTheme.typography.titleMedium
-        "large" -> MaterialTheme.typography.headlineSmall
+        "medium" -> MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, lineHeight = 26.sp)
+        "large" -> MaterialTheme.typography.titleLarge.copy(fontSize = 24.sp, lineHeight = 32.sp)
         else -> MaterialTheme.typography.bodyMedium
+    }
+
+    val dictTitleFontSize = when (fontSizePreference) {
+        "medium" -> 24.sp
+        "large" -> 30.sp
+        else -> 18.sp
+    }
+    
+    val dictTraditionalFontSize = when (fontSizePreference) {
+        "medium" -> 20.sp
+        "large" -> 24.sp
+        else -> 16.sp
+    }
+    
+    val dictContentFontSize = when (fontSizePreference) {
+        "medium" -> 16.sp
+        "large" -> 20.sp
+        else -> 13.sp
+    }
+    
+    val dictPlecoButtonHeight = when (fontSizePreference) {
+        "medium" -> 34.dp
+        "large" -> 40.dp
+        else -> 28.dp
+    }
+    
+    val dictPlecoFontSize = when (fontSizePreference) {
+        "medium" -> 13.sp
+        "large" -> 16.sp
+        else -> 11.sp
+    }
+    
+    val dictPopupWidth = when (fontSizePreference) {
+        "medium" -> 320.dp
+        "large" -> 350.dp
+        else -> 280.dp
+    }
+    
+    val dictPopupMaxHeight = when (fontSizePreference) {
+        "medium" -> 300.dp
+        "large" -> 360.dp
+        else -> 240.dp
     }
 
     Card(
@@ -222,7 +264,7 @@ fun SentenceBlock(
                                     ) {
                                         Card(
                                             modifier = Modifier
-                                                .width(280.dp)
+                                                .width(dictPopupWidth)
                                                 .shadow(8.dp, RoundedCornerShape(12.dp))
                                                 .padding(4.dp),
                                             shape = RoundedCornerShape(12.dp),
@@ -233,7 +275,7 @@ fun SentenceBlock(
                                             Column(
                                                 modifier = Modifier
                                                     .padding(12.dp)
-                                                    .heightIn(max = 240.dp)
+                                                    .heightIn(max = dictPopupMaxHeight)
                                                     .verticalScroll(rememberScrollState()),
                                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                                             ) {
@@ -246,7 +288,8 @@ fun SentenceBlock(
                                                         text = word,
                                                         style = MaterialTheme.typography.titleMedium.copy(
                                                             fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
-                                                            fontWeight = FontWeight.Bold
+                                                            fontWeight = FontWeight.Bold,
+                                                            fontSize = dictTitleFontSize
                                                         ),
                                                         color = MaterialTheme.colorScheme.primary,
                                                         modifier = Modifier.weight(1f)
@@ -257,13 +300,13 @@ fun SentenceBlock(
                                                             com.example.lotuspondreader.utils.PlecoDeepLinkHelper.openPleco(context, word)
                                                         },
                                                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                                        modifier = Modifier.height(28.dp),
+                                                        modifier = Modifier.height(dictPlecoButtonHeight),
                                                         colors = ButtonDefaults.buttonColors(
                                                             containerColor = MaterialTheme.colorScheme.primaryContainer,
                                                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                                                         )
                                                     ) {
-                                                        Text("Pleco", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                                        Text("Pleco", fontSize = dictPlecoFontSize, fontWeight = FontWeight.Bold)
                                                     }
                                                 }
 
@@ -278,7 +321,9 @@ fun SentenceBlock(
                                                     if (entries.isNullOrEmpty()) {
                                                         Text(
                                                             text = "No definition found in local dictionary.",
-                                                            style = MaterialTheme.typography.bodySmall,
+                                                            style = MaterialTheme.typography.bodySmall.copy(
+                                                                fontSize = dictContentFontSize
+                                                            ),
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
                                                     } else {
@@ -289,19 +334,25 @@ fun SentenceBlock(
                                                                         text = entry.traditional,
                                                                         style = MaterialTheme.typography.bodyMedium.copy(
                                                                             fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
-                                                                            fontWeight = FontWeight.Bold
+                                                                            fontWeight = FontWeight.Bold,
+                                                                            fontSize = dictTraditionalFontSize
                                                                         ),
                                                                         color = MaterialTheme.colorScheme.secondary
                                                                     )
                                                                 }
                                                                 Text(
                                                                     text = PinyinConverter.convertToToneMarks(entry.pinyin),
-                                                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                                        fontWeight = FontWeight.Medium,
+                                                                        fontSize = dictContentFontSize
+                                                                    ),
                                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                                                 )
                                                                 Text(
                                                                     text = PinyinConverter.convertPinyinInDefinition(entry.english),
-                                                                    style = MaterialTheme.typography.bodySmall,
+                                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                                        fontSize = dictContentFontSize
+                                                                    ),
                                                                     color = MaterialTheme.colorScheme.onSurface
                                                                 )
                                                             }

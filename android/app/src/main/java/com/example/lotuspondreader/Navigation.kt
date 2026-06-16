@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.activity.ComponentActivity
@@ -441,66 +442,94 @@ fun MainNavigation(
                                         .verticalScroll(androidx.compose.foundation.rememberScrollState()),
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Text("Display Settings", style = MaterialTheme.typography.titleLarge)
-                                    
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                    ) {
-                                        Text("Show Pinyin")
-                                        Switch(
-                                            checked = userSettings.showPinyin,
-                                            enabled = !activeFetches.contains("pinyin"),
-                                            onCheckedChange = { 
-                                                viewModel.updateSettings(userSettings.copy(showPinyin = it))
-                                                if (it) viewModel.checkAndFetchMissing("pinyin")
-                                            }
-                                        )
-                                    }
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text("Show", style = MaterialTheme.typography.titleMedium)
+                                        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                                        FlowRow(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            val pinyinLoading = activeFetches.contains("pinyin")
+                                            FilterChip(
+                                                selected = userSettings.showPinyin,
+                                                onClick = {
+                                                    val newValue = !userSettings.showPinyin
+                                                    viewModel.updateSettings(userSettings.copy(showPinyin = newValue))
+                                                    if (newValue) viewModel.checkAndFetchMissing("pinyin")
+                                                },
+                                                label = { Text("Pinyin") },
+                                                enabled = !pinyinLoading,
+                                                leadingIcon = if (userSettings.showPinyin) {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                                        )
+                                                    }
+                                                } else null
+                                            )
 
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                    ) {
-                                        Text("Show Zhuyin")
-                                        Switch(
-                                            checked = userSettings.showZhuyin,
-                                            enabled = !activeFetches.contains("zhuyin"),
-                                            onCheckedChange = { 
-                                                viewModel.updateSettings(userSettings.copy(showZhuyin = it))
-                                                if (it) viewModel.checkAndFetchMissing("zhuyin")
-                                            }
-                                        )
-                                    }
+                                            val zhuyinLoading = activeFetches.contains("zhuyin")
+                                            FilterChip(
+                                                selected = userSettings.showZhuyin,
+                                                onClick = {
+                                                    val newValue = !userSettings.showZhuyin
+                                                    viewModel.updateSettings(userSettings.copy(showZhuyin = newValue))
+                                                    if (newValue) viewModel.checkAndFetchMissing("zhuyin")
+                                                },
+                                                label = { Text("Zhuyin") },
+                                                enabled = !zhuyinLoading,
+                                                leadingIcon = if (userSettings.showZhuyin) {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                                        )
+                                                    }
+                                                } else null
+                                            )
 
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                    ) {
-                                        Text("Show English translation")
-                                        Switch(
-                                            checked = userSettings.showTranslation,
-                                            enabled = !activeFetches.contains("english"),
-                                            onCheckedChange = { 
-                                                viewModel.updateSettings(userSettings.copy(showTranslation = it))
-                                                if (it) viewModel.checkAndFetchMissing("english")
-                                            }
-                                        )
-                                    }
+                                            val englishLoading = activeFetches.contains("english")
+                                            FilterChip(
+                                                selected = userSettings.showTranslation,
+                                                onClick = {
+                                                    val newValue = !userSettings.showTranslation
+                                                    viewModel.updateSettings(userSettings.copy(showTranslation = newValue))
+                                                    if (newValue) viewModel.checkAndFetchMissing("english")
+                                                },
+                                                label = { Text("English") },
+                                                enabled = !englishLoading,
+                                                leadingIcon = if (userSettings.showTranslation) {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                                        )
+                                                    }
+                                                } else null
+                                            )
 
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                    ) {
-                                        Text("Highlight required vocabulary")
-                                        Switch(
-                                            checked = userSettings.studyMode,
-                                            onCheckedChange = { viewModel.updateSettings(userSettings.copy(studyMode = it)) }
-                                        )
+                                            FilterChip(
+                                                selected = userSettings.studyMode,
+                                                onClick = {
+                                                    viewModel.updateSettings(userSettings.copy(studyMode = !userSettings.studyMode))
+                                                },
+                                                label = { Text("Highlight Vocab") },
+                                                leadingIcon = if (userSettings.studyMode) {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                                        )
+                                                    }
+                                                } else null
+                                            )
+                                        }
                                     }
                                     
                                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -525,10 +554,8 @@ fun MainNavigation(
 
                                     HorizontalDivider()
 
-                                    Text("Speech Preferences", style = MaterialTheme.typography.titleMedium)
-
                                     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 12.dp)) {
-                                        Text("Speech speed", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold))
+                                        Text("Speech speed", style = MaterialTheme.typography.titleMedium)
                                         val rates = listOf(1.0f, 0.9f, 0.75f, 0.5f)
                                         val rateLabels = listOf("100%", "90%", "75%", "50%")
                                         SingleChoiceSegmentedButtonRow(
@@ -547,8 +574,29 @@ fun MainNavigation(
                                         }
                                     }
 
-                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        Text("Voice Engine", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold))
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text("Voice Gender", style = MaterialTheme.typography.titleMedium)
+                                        val genderOptions = listOf("female", "male")
+                                        val genderLabels = listOf("Female", "Male")
+                                        SingleChoiceSegmentedButtonRow(
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            genderOptions.forEachIndexed { index, option ->
+                                                val isSelected = userSettings.voiceGender == option
+                                                SegmentedButton(
+                                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = genderOptions.size),
+                                                    onClick = { viewModel.updateSettings(userSettings.copy(voiceGender = option)) },
+                                                    selected = isSelected,
+                                                    icon = { SegmentedButtonDefaults.Icon(active = isSelected) }
+                                                ) {
+                                                    Text(genderLabels[index])
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text("Voice Engine", style = MaterialTheme.typography.titleMedium)
                                         val engineOptions = listOf("Android", "Gemini")
                                         SingleChoiceSegmentedButtonRow(
                                             modifier = Modifier.fillMaxWidth()
@@ -587,9 +635,10 @@ fun MainNavigation(
                                             Text("Voice Style", style = MaterialTheme.typography.bodyMedium)
 
                                             val voiceStyles = listOf(
-                                                "standard" to "Standard Taiwanese Mandarin",
-                                                "southern" to "Southern Taiwan Accent (台南高雄腔)",
-                                                "heavy_southern" to "Heavy Southern + Minnan (偏鄉本土腔)"
+                                                "standard" to "Standard Taiwanese",
+                                                "southern" to "Southern Taiwan (台南高雄腔)",
+                                                "heavy_southern" to "Southern + Minnan (偏鄉本土腔)",
+                                                "beijing" to "Beijing (北京腔)"
                                             )
 
                                             voiceStyles.forEach { (value, label) ->

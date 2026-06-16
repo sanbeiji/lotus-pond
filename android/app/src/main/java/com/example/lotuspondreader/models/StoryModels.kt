@@ -42,5 +42,6 @@ data class UserSettings(
     val fontSizePreference: String = "small", // "small", "medium", "large"
     val speechRatePreference: Float = 0.9f,
     val useGeminiTts: Boolean = false,
-    val geminiTtsVoiceStyle: String = "standard"
+    val geminiTtsVoiceStyle: String = "standard",
+    val voiceGender: String = "female"
 )
