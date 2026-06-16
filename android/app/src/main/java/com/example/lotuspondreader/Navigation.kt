@@ -575,7 +575,7 @@ fun MainNavigation(
                                     }
 
                                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Text("Voice Gender", style = MaterialTheme.typography.titleMedium)
+                                        Text("Voice gender", style = MaterialTheme.typography.titleMedium)
                                         val genderOptions = listOf("female", "male")
                                         val genderLabels = listOf("Female", "Male")
                                         SingleChoiceSegmentedButtonRow(
@@ -596,7 +596,7 @@ fun MainNavigation(
                                     }
 
                                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Text("Voice Engine", style = MaterialTheme.typography.titleMedium)
+                                        Text("Voice engine", style = MaterialTheme.typography.titleMedium)
                                         val engineOptions = listOf("Android", "Gemini")
                                         SingleChoiceSegmentedButtonRow(
                                             modifier = Modifier.fillMaxWidth()
@@ -632,7 +632,7 @@ fun MainNavigation(
                                             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp),
                                             verticalArrangement = Arrangement.spacedBy(4.dp)
                                         ) {
-                                            Text("Voice Style", style = MaterialTheme.typography.bodyMedium)
+                                            Text("Voice style", style = MaterialTheme.typography.bodyMedium)
 
                                             val voiceStyles = listOf(
                                                 "standard" to "Standard Taiwanese",

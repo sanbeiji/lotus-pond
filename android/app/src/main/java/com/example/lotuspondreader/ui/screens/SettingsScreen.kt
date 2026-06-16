@@ -79,14 +79,14 @@ fun SettingsScreen(
 
         HorizontalDivider()
 
-        Text("Generate Story Preferences", style = MaterialTheme.typography.titleMedium)
+        Text("Generate story preferences", style = MaterialTheme.typography.titleMedium)
         
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Generate Pinyin")
+            Text("Generate pinyin")
             Switch(
                 checked = settings.generatePinyin,
                 onCheckedChange = { onSettingsChanged(settings.copy(generatePinyin = it)) }
@@ -98,7 +98,7 @@ fun SettingsScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Generate Zhuyin")
+            Text("Generate zhuyin")
             Switch(
                 checked = settings.generateZhuyin,
                 onCheckedChange = { onSettingsChanged(settings.copy(generateZhuyin = it)) }
@@ -145,7 +145,7 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text("Dynamic Color", style = MaterialTheme.typography.titleMedium)
+                Text("Dynamic color", style = MaterialTheme.typography.titleMedium)
                 Text("Use wallpaper colors (Android 12+)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Switch(
