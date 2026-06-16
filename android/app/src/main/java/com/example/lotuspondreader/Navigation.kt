@@ -722,6 +722,32 @@ fun MainNavigation(
                                             }
                                         }
                                     } else {
+                                        val currentTts = tts
+                                        if (currentTts != null) {
+                                            try {
+                                                val voices = currentTts.voices
+                                                if (voices != null) {
+                                                    val genderTarget = userSettings.voiceGender
+                                                    val targetVoice = if (genderTarget == "male") {
+                                                        voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
+                                                            ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
+                                                    } else {
+                                                        voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
+                                                            ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
+                                                    }
+                                                    val finalVoice = targetVoice 
+                                                        ?: voices.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" && !it.isNetworkConnectionRequired }
+                                                        ?: voices.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" }
+                                                        ?: voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired }
+                                                        ?: voices.firstOrNull { it.locale.language == "zh" }
+                                                    if (finalVoice != null) {
+                                                        currentTts.voice = finalVoice
+                                                    }
+                                                }
+                                            } catch (e: Exception) {
+                                                android.util.Log.e("TTS_DEBUG", "Error setting voice", e)
+                                            }
+                                        }
                                         tts?.setSpeechRate(userSettings.speechRatePreference)
                                         tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
                                     }
