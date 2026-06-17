@@ -95,32 +95,47 @@ fun SentenceBlock(
     }
 
     val dictTitleFontSize = when (fontSizePreference) {
-        "medium" -> 24.sp
-        "large" -> 30.sp
+        "medium" -> 22.sp
+        "large" -> 26.sp
         else -> 18.sp
+    }
+    val dictTitleLineHeight = when (fontSizePreference) {
+        "medium" -> 28.sp
+        "large" -> 34.sp
+        else -> 24.sp
     }
     
     val dictTraditionalFontSize = when (fontSizePreference) {
-        "medium" -> 20.sp
-        "large" -> 24.sp
+        "medium" -> 18.sp
+        "large" -> 22.sp
         else -> 16.sp
+    }
+    val dictTraditionalLineHeight = when (fontSizePreference) {
+        "medium" -> 24.sp
+        "large" -> 30.sp
+        else -> 22.sp
     }
     
     val dictContentFontSize = when (fontSizePreference) {
-        "medium" -> 16.sp
-        "large" -> 20.sp
+        "medium" -> 14.sp
+        "large" -> 17.sp
         else -> 13.sp
+    }
+    val dictContentLineHeight = when (fontSizePreference) {
+        "medium" -> 20.sp
+        "large" -> 24.sp
+        else -> 18.sp
     }
     
     val dictPlecoButtonHeight = when (fontSizePreference) {
-        "medium" -> 34.dp
-        "large" -> 40.dp
+        "medium" -> 30.dp
+        "large" -> 34.dp
         else -> 28.dp
     }
     
     val dictPlecoFontSize = when (fontSizePreference) {
-        "medium" -> 13.sp
-        "large" -> 16.sp
+        "medium" -> 12.sp
+        "large" -> 14.sp
         else -> 11.sp
     }
     
@@ -289,7 +304,8 @@ fun SentenceBlock(
                                                         style = MaterialTheme.typography.titleMedium.copy(
                                                             fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
                                                             fontWeight = FontWeight.Bold,
-                                                            fontSize = dictTitleFontSize
+                                                            fontSize = dictTitleFontSize,
+                                                            lineHeight = dictTitleLineHeight
                                                         ),
                                                         color = MaterialTheme.colorScheme.primary,
                                                         modifier = Modifier.weight(1f)
@@ -322,7 +338,8 @@ fun SentenceBlock(
                                                         Text(
                                                             text = "No definition found in local dictionary.",
                                                             style = MaterialTheme.typography.bodySmall.copy(
-                                                                fontSize = dictContentFontSize
+                                                                fontSize = dictContentFontSize,
+                                                                lineHeight = dictContentLineHeight
                                                             ),
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
@@ -335,7 +352,8 @@ fun SentenceBlock(
                                                                         style = MaterialTheme.typography.bodyMedium.copy(
                                                                             fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
                                                                             fontWeight = FontWeight.Bold,
-                                                                            fontSize = dictTraditionalFontSize
+                                                                            fontSize = dictTraditionalFontSize,
+                                                                            lineHeight = dictTraditionalLineHeight
                                                                         ),
                                                                         color = MaterialTheme.colorScheme.secondary
                                                                     )
@@ -344,14 +362,16 @@ fun SentenceBlock(
                                                                     text = PinyinConverter.convertToToneMarks(entry.pinyin),
                                                                     style = MaterialTheme.typography.bodySmall.copy(
                                                                         fontWeight = FontWeight.Medium,
-                                                                        fontSize = dictContentFontSize
+                                                                        fontSize = dictContentFontSize,
+                                                                        lineHeight = dictContentLineHeight
                                                                     ),
                                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                                                 )
                                                                 Text(
                                                                     text = PinyinConverter.convertPinyinInDefinition(entry.english),
                                                                     style = MaterialTheme.typography.bodySmall.copy(
-                                                                        fontSize = dictContentFontSize
+                                                                        fontSize = dictContentFontSize,
+                                                                        lineHeight = dictContentLineHeight
                                                                     ),
                                                                     color = MaterialTheme.colorScheme.onSurface
                                                                 )

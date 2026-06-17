@@ -195,7 +195,7 @@ class StoryRepository {
             val prompt = if (genre.equals("Music", ignoreCase = true)) {
                 val instruments = listOf(
                     "Violin", "Violin", "Violin", "Violin",
-                    "Viola", "Viola", "Viola", "Viola",
+                    "Viola", "Viola", "Viola",
                     "Cello", "Cello", "Cello", "Cello",
                     "Double bass", "Double bass", "Double bass", "Double bass",
                     "Piano", "Piano", "Piano", "Piano",
@@ -209,9 +209,10 @@ class StoryRepository {
                     "practicing a difficult piece on the <instrument> until late at night",
                     "teaching a young student how to play the <instrument>",
                     "playing in a professional symphony orchestra rehearsal",
-                    "rehearsing chamber music with a string quartet",
+                    "a group of musicians rehearsing chamber music",
                     "auditioning for a prestigious orchestra",
                     "discussing musical interpretation with other musicians",
+                    "musicians discussing a new composition",
                     "Musicians hanging out after the concert"
                 )
                 val activityTemplate = musicalActivities.random()
