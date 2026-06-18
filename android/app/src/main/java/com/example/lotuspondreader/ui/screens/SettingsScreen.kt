@@ -196,7 +196,7 @@ fun SettingsScreen(
                         
                         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Text(
-                                "Version 0.3.0 · Published June 10, 2026",
+                                "Version 0.4.0 · Published June 17, 2026",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
