@@ -417,6 +417,18 @@ fun MainNavigation(
                         val errorEvent by viewModel.errorEvent.collectAsState()
                         val snackbarHostState = remember { SnackbarHostState() }
 
+                        val hasPinyin = remember(story) { story.sentences.any { !it.pinyin.isNullOrEmpty() } }
+                        val hasZhuyin = remember(story) { story.sentences.any { !it.zhuyin.isNullOrEmpty() } }
+                        val hasEnglish = remember(story) { story.sentences.any { !it.english.isNullOrEmpty() } }
+
+                        val pinyinLoading = activeFetches.contains("pinyin")
+                        val zhuyinLoading = activeFetches.contains("zhuyin")
+                        val englishLoading = activeFetches.contains("english")
+
+                        val showPinyinSession = userSettings.showPinyin && (hasPinyin || pinyinLoading)
+                        val showZhuyinSession = userSettings.showZhuyin && (hasZhuyin || zhuyinLoading)
+                        val showTranslationSession = userSettings.showTranslation && (hasEnglish || englishLoading)
+
                         LaunchedEffect(errorEvent) {
                             errorEvent?.let {
                                 snackbarHostState.showSnackbar(
@@ -451,17 +463,16 @@ fun MainNavigation(
                                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                                             verticalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            val pinyinLoading = activeFetches.contains("pinyin")
                                             FilterChip(
-                                                selected = userSettings.showPinyin,
+                                                selected = showPinyinSession,
                                                 onClick = {
-                                                    val newValue = !userSettings.showPinyin
+                                                    val newValue = !showPinyinSession
                                                     viewModel.updateSettings(userSettings.copy(showPinyin = newValue))
                                                     if (newValue) viewModel.checkAndFetchMissing("pinyin")
                                                 },
                                                 label = { Text("Pinyin") },
                                                 enabled = !pinyinLoading,
-                                                leadingIcon = if (userSettings.showPinyin) {
+                                                leadingIcon = if (showPinyinSession) {
                                                     {
                                                         Icon(
                                                             imageVector = Icons.Filled.Done,
@@ -472,17 +483,16 @@ fun MainNavigation(
                                                 } else null
                                             )
 
-                                            val zhuyinLoading = activeFetches.contains("zhuyin")
                                             FilterChip(
-                                                selected = userSettings.showZhuyin,
+                                                selected = showZhuyinSession,
                                                 onClick = {
-                                                    val newValue = !userSettings.showZhuyin
+                                                    val newValue = !showZhuyinSession
                                                     viewModel.updateSettings(userSettings.copy(showZhuyin = newValue))
                                                     if (newValue) viewModel.checkAndFetchMissing("zhuyin")
                                                 },
                                                 label = { Text("Zhuyin") },
                                                 enabled = !zhuyinLoading,
-                                                leadingIcon = if (userSettings.showZhuyin) {
+                                                leadingIcon = if (showZhuyinSession) {
                                                     {
                                                         Icon(
                                                             imageVector = Icons.Filled.Done,
@@ -493,17 +503,16 @@ fun MainNavigation(
                                                 } else null
                                             )
 
-                                            val englishLoading = activeFetches.contains("english")
                                             FilterChip(
-                                                selected = userSettings.showTranslation,
+                                                selected = showTranslationSession,
                                                 onClick = {
-                                                    val newValue = !userSettings.showTranslation
+                                                    val newValue = !showTranslationSession
                                                     viewModel.updateSettings(userSettings.copy(showTranslation = newValue))
                                                     if (newValue) viewModel.checkAndFetchMissing("english")
                                                 },
                                                 label = { Text("English") },
                                                 enabled = !englishLoading,
-                                                leadingIcon = if (userSettings.showTranslation) {
+                                                leadingIcon = if (showTranslationSession) {
                                                     {
                                                         Icon(
                                                             imageVector = Icons.Filled.Done,
@@ -706,9 +715,9 @@ fun MainNavigation(
                         ) { innerReaderPadding ->
                             StoryView(
                                 story = story,
-                                showPinyin = userSettings.showPinyin,
-                                showZhuyin = userSettings.showZhuyin,
-                                showTranslation = userSettings.showTranslation,
+                                showPinyin = showPinyinSession,
+                                showZhuyin = showZhuyinSession,
+                                showTranslation = showTranslationSession,
                                 studyMode = userSettings.studyMode,
                                 fontSizePreference = userSettings.fontSizePreference,
                                 requiredTerms = termsList,
