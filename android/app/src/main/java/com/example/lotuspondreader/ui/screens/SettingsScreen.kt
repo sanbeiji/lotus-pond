@@ -171,7 +171,7 @@ fun SettingsScreen(
                         
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("Key Features", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                            Text("• Adaptive Difficulty: Choose from 8 TOCFL levels.\n• Interlinear Assistance: Toggle Pinyin/Zhuyin.\n• English Translations: Read natural English translations.\n• Vocabulary Practice: AI integrates custom words.")
+                            Text("• Adaptive Difficulty: Choose from 8 TOCFL levels.\n• Interlinear Assistance: Toggle Pinyin/Zhuyin.\n• English Translations: Read natural English translations.\n• Vocabulary Practice: AI integrates custom words.\n• Wear OS Companion: Real-time story sync and reading on your wrist with support for physical crown scrolling.")
                         }
                         
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
