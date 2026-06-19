@@ -15,13 +15,17 @@ import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.*
 import androidx.wear.compose.foundation.rememberSwipeToDismissBoxState
 import androidx.wear.compose.foundation.SwipeToDismissValue
+import com.google.android.gms.wearable.DataClient
+import com.google.android.gms.wearable.DataEvent
+import com.google.android.gms.wearable.DataEventBuffer
+import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.sanbeiji.lotuspondreader.wear.models.HistoryItem
 import kotlinx.serialization.json.Json
 
-class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListener {
+class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListener, DataClient.OnDataChangedListener {
 
     private var phoneNodeId: String? = null
     
@@ -34,12 +38,13 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Register Wearable Message Listener
+        // Register Wearable Message & Data Listeners
         Wearable.getMessageClient(this).addListener(this)
+        Wearable.getDataClient(this).addListener(this)
 
         // Find connected phone node
         findPhoneNode {
-            fetchHistory()
+            fetchHistoryFromDataClient()
         }
 
         setContent {
@@ -86,6 +91,64 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
                 errorMessage.value = "Sync request failed. Try again."
                 isLoading.value = false
             }
+    }
+
+    private fun fetchHistoryFromDataClient() {
+        isLoading.value = true
+        errorMessage.value = null
+
+        Wearable.getDataClient(this).getDataItem(
+            android.net.Uri.parse("wear://*/history")
+        ).addOnSuccessListener { dataItem ->
+            if (dataItem != null) {
+                try {
+                    val dataMap = DataMapItem.fromDataItem(dataItem).dataMap
+                    val jsonStr = dataMap.getString("history_json") ?: "[]"
+                    val list = Json.decodeFromString<List<HistoryItem>>(jsonStr)
+                    historyList.value = list
+                    errorMessage.value = null
+                    isLoading.value = false
+                    Log.d("WearMainActivity", "Successfully loaded initial history from DataClient cache.")
+                } catch (e: Exception) {
+                    Log.e("WearMainActivity", "Error parsing initial history DataItem, falling back", e)
+                    fetchHistory()
+                }
+            } else {
+                Log.d("WearMainActivity", "No history DataItem cached yet, fetching via message")
+                fetchHistory()
+            }
+        }.addOnFailureListener { e ->
+            Log.e("WearMainActivity", "Failed to get initial history DataItem, falling back", e)
+            fetchHistory()
+        }
+    }
+
+    override fun onDataChanged(dataEvents: DataEventBuffer) {
+        Log.d("WearMainActivity", "onDataChanged triggered, events count: ${dataEvents.count}")
+        for (event in dataEvents) {
+            if (event.type == DataEvent.TYPE_CHANGED && event.dataItem.uri.path == "/history") {
+                try {
+                    val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
+                    val jsonStr = dataMap.getString("history_json") ?: "[]"
+                    val list = Json.decodeFromString<List<HistoryItem>>(jsonStr)
+                    
+                    historyList.value = list
+                    errorMessage.value = null
+                    isLoading.value = false
+                    Log.d("WearMainActivity", "Real-time history list synced: ${list.size} stories.")
+
+                    // If a story is currently being read, make sure to update its reference from the fresh list
+                    val currentSelected = selectedStory.value
+                    if (currentSelected != null) {
+                        selectedStory.value = list.firstOrNull { it.id == currentSelected.id } ?: currentSelected
+                    }
+                } catch (e: Exception) {
+                    Log.e("WearMainActivity", "Error decoding real-time history payload", e)
+                    errorMessage.value = "Data format error from phone."
+                    isLoading.value = false
+                }
+            }
+        }
     }
 
     private fun generateStory() {
@@ -319,8 +382,9 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
 
     override fun onDestroy() {
         super.onDestroy()
-        // Unregister listener
+        // Unregister listeners
         Wearable.getMessageClient(this).removeListener(this)
+        Wearable.getDataClient(this).removeListener(this)
     }
 }
 
