@@ -13,8 +13,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.*
+import android.view.MotionEvent
+import android.view.ViewConfiguration
+import android.view.InputDevice
 import androidx.wear.compose.foundation.rememberSwipeToDismissBoxState
 import androidx.wear.compose.foundation.SwipeToDismissValue
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -34,6 +39,11 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
     private val historyList = mutableStateOf<List<HistoryItem>>(emptyList())
     private val selectedStory = mutableStateOf<HistoryItem?>(null)
     private val errorMessage = mutableStateOf<String?>(null)
+    private val isGeneratingStory = mutableStateOf(false)
+
+    // Hoisted list states
+    private val homeListState = ScalingLazyListState()
+    private val readingListState = ScalingLazyListState()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -132,15 +142,27 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
                     val jsonStr = dataMap.getString("history_json") ?: "[]"
                     val list = Json.decodeFromString<List<HistoryItem>>(jsonStr)
                     
+                    val oldIds = historyList.value.map { it.id }.toSet()
+                    val newStory = if (isGeneratingStory.value) {
+                        if (oldIds.isEmpty()) list.firstOrNull() else list.firstOrNull { it.id !in oldIds }
+                    } else {
+                        null
+                    }
+
                     historyList.value = list
                     errorMessage.value = null
                     isLoading.value = false
+                    isGeneratingStory.value = false
                     Log.d("WearMainActivity", "Real-time history list synced: ${list.size} stories.")
 
-                    // If a story is currently being read, make sure to update its reference from the fresh list
-                    val currentSelected = selectedStory.value
-                    if (currentSelected != null) {
-                        selectedStory.value = list.firstOrNull { it.id == currentSelected.id } ?: currentSelected
+                    if (newStory != null) {
+                        selectedStory.value = newStory
+                    } else {
+                        // If a story is currently being read, make sure to update its reference from the fresh list
+                        val currentSelected = selectedStory.value
+                        if (currentSelected != null) {
+                            selectedStory.value = list.firstOrNull { it.id == currentSelected.id } ?: currentSelected
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e("WearMainActivity", "Error decoding real-time history payload", e)
@@ -158,6 +180,7 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
             return
         }
         isLoading.value = true
+        isGeneratingStory.value = true
         errorMessage.value = null
 
         Wearable.getMessageClient(this)
@@ -165,6 +188,7 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
             .addOnFailureListener { e ->
                 Log.e("WearMainActivity", "Failed to send generate request", e)
                 errorMessage.value = "Failed to start generation."
+                isGeneratingStory.value = false
                 isLoading.value = false
             }
     }
@@ -176,14 +200,27 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
                 try {
                     val jsonStr = String(messageEvent.data)
                     val list = Json.decodeFromString<List<HistoryItem>>(jsonStr)
+                    
+                    val oldIds = historyList.value.map { it.id }.toSet()
+                    val newStory = if (isGeneratingStory.value) {
+                        if (oldIds.isEmpty()) list.firstOrNull() else list.firstOrNull { it.id !in oldIds }
+                    } else {
+                        null
+                    }
+
                     historyList.value = list
                     errorMessage.value = null
                     isLoading.value = false
+                    isGeneratingStory.value = false
                     
-                    // If a story is currently being read, make sure to update its reference from the fresh list
-                    val currentSelected = selectedStory.value
-                    if (currentSelected != null) {
-                        selectedStory.value = list.firstOrNull { it.id == currentSelected.id } ?: currentSelected
+                    if (newStory != null) {
+                        selectedStory.value = newStory
+                    } else {
+                        // If a story is currently being read, make sure to update its reference from the fresh list
+                        val currentSelected = selectedStory.value
+                        if (currentSelected != null) {
+                            selectedStory.value = list.firstOrNull { it.id == currentSelected.id } ?: currentSelected
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e("WearMainActivity", "Error decoding history payload", e)
@@ -194,6 +231,7 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
             "/error_response" -> {
                 val errorMsg = String(messageEvent.data)
                 errorMessage.value = errorMsg
+                isGeneratingStory.value = false
                 isLoading.value = false
             }
         }
@@ -308,6 +346,7 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
     fun StoryListScreen(list: List<HistoryItem>) {
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
+            state = homeListState,
             contentPadding = PaddingValues(top = 28.dp, bottom = 28.dp, start = 12.dp, end = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -345,16 +384,15 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
         val textContent = remember(story) {
             story.data.sentences.joinToString("") { it.mandarin }
         }
-        val listState = remember(story.id) {
-            ScalingLazyListState(
-                initialCenterItemIndex = 0,
-                initialCenterItemScrollOffset = 0
-            )
+
+        // Reset scroll position to top when a new story is opened
+        LaunchedEffect(story.id) {
+            readingListState.scrollToItem(0, 0)
         }
 
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
+            state = readingListState,
             contentPadding = PaddingValues(top = 28.dp, bottom = 48.dp, start = 16.dp, end = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             autoCentering = null
@@ -385,6 +423,22 @@ class MainActivity : ComponentActivity(), MessageClient.OnMessageReceivedListene
         // Unregister listeners
         Wearable.getMessageClient(this).removeListener(this)
         Wearable.getDataClient(this).removeListener(this)
+    }
+
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        if (event.action == MotionEvent.ACTION_SCROLL && event.isFromSource(InputDevice.SOURCE_ROTARY_ENCODER)) {
+            val delta = -event.getAxisValue(MotionEvent.AXIS_SCROLL)
+            val scrollFactor = ViewConfiguration.get(this).scaledVerticalScrollFactor
+            val pixels = delta * scrollFactor
+            
+            if (selectedStory.value != null) {
+                readingListState.dispatchRawDelta(pixels)
+            } else {
+                homeListState.dispatchRawDelta(pixels)
+            }
+            return true
+        }
+        return super.onGenericMotionEvent(event)
     }
 }
 
