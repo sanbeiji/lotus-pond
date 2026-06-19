@@ -43,5 +43,6 @@ data class UserSettings(
     val speechRatePreference: Float = 0.9f,
     val useGeminiTts: Boolean = false,
     val geminiTtsVoiceStyle: String = "standard",
-    val voiceGender: String = "female"
+    val voiceGender: String = "female",
+    val wearOsStoryLevel: String = "Novice 1"
 )

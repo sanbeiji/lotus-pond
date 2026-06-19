@@ -19,3 +19,5 @@ plugins {
 
 rootProject.name = "Lotus Pond Reader"
 include(":app")
+include(":wear")
+

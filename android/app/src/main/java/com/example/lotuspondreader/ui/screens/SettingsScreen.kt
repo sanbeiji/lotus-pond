@@ -211,6 +211,48 @@ fun SettingsScreen(
             )
         }
 
+        HorizontalDivider()
+
+        Text("Wear OS companion preferences", style = MaterialTheme.typography.titleMedium)
+
+        var wearOsLevelExpanded by remember { mutableStateOf(false) }
+        val wearOsLevels = listOf(
+            "Novice 1", "Novice 2", "A1 (Entry)", "A2 (Foundation)",
+            "B3 (Intermediate)", "B4 (Upper Intermediate)",
+            "C5 (Fluent)", "C6 (Advanced)"
+        )
+
+        ExposedDropdownMenuBox(
+            expanded = wearOsLevelExpanded,
+            onExpandedChange = { wearOsLevelExpanded = it },
+        ) {
+            OutlinedTextField(
+                value = settings.wearOsStoryLevel,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Wear OS story generation level") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = wearOsLevelExpanded) },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = wearOsLevelExpanded,
+                onDismissRequest = { wearOsLevelExpanded = false }
+            ) {
+                wearOsLevels.forEach { selectionOption ->
+                    DropdownMenuItem(
+                        text = { Text(selectionOption) },
+                        onClick = {
+                            onSettingsChanged(settings.copy(wearOsStoryLevel = selectionOption))
+                            wearOsLevelExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedButton(
             onClick = { showAboutDialog = true },
             modifier = Modifier.fillMaxWidth()

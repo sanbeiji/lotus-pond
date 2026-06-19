@@ -51,6 +51,7 @@ class SettingsRepository(private val context: Context) {
         val USE_GEMINI_TTS = booleanPreferencesKey("use_gemini_tts")
         val GEMINI_TTS_VOICE_STYLE = stringPreferencesKey("gemini_tts_voice_style")
         val VOICE_GENDER = stringPreferencesKey("voice_gender")
+        val WEAR_OS_STORY_LEVEL = stringPreferencesKey("wear_os_story_level")
     }
 
     val userSettingsFlow: Flow<UserSettings> = dataStore.data
@@ -77,7 +78,8 @@ class SettingsRepository(private val context: Context) {
                 speechRatePreference = preferences[SPEECH_RATE_PREFERENCE] ?: 0.9f,
                 useGeminiTts = preferences[USE_GEMINI_TTS] ?: false,
                 geminiTtsVoiceStyle = preferences[GEMINI_TTS_VOICE_STYLE] ?: "standard",
-                voiceGender = preferences[VOICE_GENDER] ?: "female"
+                voiceGender = preferences[VOICE_GENDER] ?: "female",
+                wearOsStoryLevel = preferences[WEAR_OS_STORY_LEVEL] ?: "Novice 1"
             )
         }
 
@@ -103,6 +105,7 @@ class SettingsRepository(private val context: Context) {
             preferences[USE_GEMINI_TTS] = settings.useGeminiTts
             preferences[GEMINI_TTS_VOICE_STYLE] = settings.geminiTtsVoiceStyle
             preferences[VOICE_GENDER] = settings.voiceGender
+            preferences[WEAR_OS_STORY_LEVEL] = settings.wearOsStoryLevel
         }
     }
 }
