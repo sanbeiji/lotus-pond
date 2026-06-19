@@ -12,6 +12,7 @@ data class StoryResponse(
 @Serializable
 data class Sentence(
     val mandarin: String,
+    val words: List<String> = emptyList(),
     val pinyin: String? = null,
     val zhuyin: String? = null,
     val english: String? = null
@@ -41,5 +42,7 @@ data class UserSettings(
     val fontSizePreference: String = "small", // "small", "medium", "large"
     val speechRatePreference: Float = 0.9f,
     val useGeminiTts: Boolean = false,
-    val geminiTtsVoiceStyle: String = "standard"
+    val geminiTtsVoiceStyle: String = "standard",
+    val voiceGender: String = "female",
+    val wearOsStoryLevel: String = "Novice 1"
 )

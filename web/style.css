@@ -14,6 +14,7 @@
   --shadow:       0 2px 14px rgba(0, 0, 0, 0.08);
   --radius:       12px;
   --mandarin-font: 'Iansui', '芫荽', 'Klee One', 'Noto Serif TC', serif;
+  --heading-font: 'Lobster', var(--mandarin-font);
   --history-hover: #f9f7f4;
   --highlight-bg: #fff2cc;
   --highlight-border: #ffd966;
@@ -67,6 +68,10 @@ body {
   flex-direction: column;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font);
+}
+
 a {
   color: var(--primary);
   text-decoration: underline;
@@ -89,16 +94,16 @@ header {
 }
 
 .header-inner h1 {
-  font-family: var(--mandarin-font);
+  font-family: var(--heading-font);
   font-size: 2.3rem;
-  font-weight: 700;
+  font-weight: normal;
   letter-spacing: 0.03em;
   margin-bottom: 0.4rem;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .header-subtitle {
-  font-family: var(--mandarin-font);
+  font-family: var(--heading-font);
   opacity: 0.9;
   font-size: 1rem;
   letter-spacing: 0.02em;

@@ -12,6 +12,13 @@ val IansuiFontFamily = FontFamily(
     Font(R.font.iansui, FontWeight.Normal)
 )
 
+val LobsterFontFamily = FontFamily(
+    Font(R.font.lobster_regular, FontWeight.Normal),
+    Font(R.font.lobster_regular, FontWeight.Medium),
+    Font(R.font.lobster_regular, FontWeight.SemiBold),
+    Font(R.font.lobster_regular, FontWeight.Bold)
+)
+
 // Set of Material typography styles to start with
 val Typography =
   Typography(

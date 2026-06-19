@@ -33,13 +33,17 @@ Install the standalone Android application for a dedicated mobile experience:
 
 - **Story generation** — Describe a plot or theme and get a full story in Traditional Mandarin.
 - **8 [TOCFL](https://en.wikipedia.org/wiki/Test_of_Chinese_as_a_Foreign_Language)-aligned levels** — From Novice 1 to C6 (Advanced), tailored specifically for Taiwanese linguistic patterns.
+- **Offline dictionary lookup (Android)** — Tap any character, word, or phrase in the story to view its pronunciation (with converted Pinyin tone marks) and English definition.
+- **Pleco integration (Android)** — Tap words in the lookup popup to seamlessly open and search them in the external Pleco dictionary app.
 - **Pinyin & Zhuyin toggle** — Switch between Pinyin and Zhuyin (Bopomofo) for pronunciation globally.
 - **Show pronunciation toggle** — Hide Pinyin/Zhuyin for a reading challenge or show it for assistance.
-- **Read aloud (TTS)** — Listen to each sentence with browser-native Mandarin speech synthesis.
+- **Advanced read aloud (TTS)** — Select voice gender and choose natural accent styles (including **Southern + Minnan** or **Beijing** accents) for text-to-speech.
 - **Study mode** — Visually highlight required vocabulary within the generated story.
+- **Refreshed "Inspire Me"** — Use dropdown categories (including the new **Music** category) with randomized scenarios.
 - **Story history** — Access your last 20 generated stories, saved locally in your browser or app.
+- **Wear OS companion app** — Real-time story synchronization to your watch with support for scrolling content using the physical watch crown (rotary dial).
 - **[Iansui (芫荽) font](https://fonts.google.com/specimen/Iansui)** — Beautiful handwriting-style font specifically designed for Traditional Chinese legibility.
-- **Model selection** — Choose between various stable 'lite' versions of Gemini (2.5, 3.1, etc.).
+- **Model selection** — Choose version of Gemini for text generation.
 - **Standalone & portable** — Zero dependencies, no `npm` required.
 
 ---
@@ -57,6 +61,33 @@ Install the standalone Android application for a dedicated mobile experience:
     - **Target SDK**: 36
 2. On first launch, the app will prompt you for your API Key.
 3. Your key is stored securely on your device using **EncryptedSharedPreferences**.
+
+### ⌚ Wear OS companion app
+To build, install, and test the companion Wear OS app on a physical watch (e.g., Pixel Watch) locally, follow these steps:
+1. **Enable Developer Options on the Watch**:
+   - Go to **Settings** > **System** > **About** > **Versions** on the watch.
+   - Tap **Build number** 7 times until you see the developer options toast.
+   - Go back and open the new **Developer Options** section.
+2. **Turn on Wireless Debugging**:
+   - Connect both your computer and watch to the **same Wi-Fi network**.
+   - Enable **ADB Debugging** and **Wireless Debugging** in Developer Options.
+   - Tap **Wireless Debugging** to open details and view the IP/port.
+3. **Pair and Connect from Computer**:
+   - Tap **Pair new device** on the watch to get a pairing port and 6-digit code, then run:
+     ```bash
+     adb pair <WATCH_IP>:<PAIRING_PORT>
+     ```
+   - Connect using the main IP and port:
+     ```bash
+     adb connect <WATCH_IP>:<PORT>
+     ```
+   - Check connection via `adb devices`.
+4. **Deploy and Run**:
+   - Install the debug Wear OS APK:
+     ```bash
+     JAVA_HOME=/Library/Java/JavaVirtualMachines/microsoft-17.jdk/Contents/Home ./gradlew :wear:installDebug
+     ```
+   - Spin the physical crown (rotary dial) on both the story list screen and reading screen for smooth content scrolling.
 
 ---
 

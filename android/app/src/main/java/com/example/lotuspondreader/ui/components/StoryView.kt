@@ -40,6 +40,7 @@ fun StoryView(
     fontSizePreference: String,
     requiredTerms: List<String>,
     onPlayAudio: (String) -> Unit,
+    onLookupWord: suspend (String) -> List<com.example.lotuspondreader.data.DictEntry>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(16.dp)
 ) {
@@ -61,7 +62,8 @@ fun StoryView(
                 studyMode = studyMode,
                 fontSizePreference = fontSizePreference,
                 requiredTerms = requiredTerms,
-                onPlayAudio = onPlayAudio
+                onPlayAudio = onPlayAudio,
+                onLookupWord = onLookupWord
             )
         }
 
@@ -129,7 +131,8 @@ fun StoryViewPreview() {
             studyMode = true,
             fontSizePreference = "small",
             requiredTerms = listOf("夜市", "朋友"),
-            onPlayAudio = {}
+            onPlayAudio = {},
+            onLookupWord = { emptyList() }
         )
     }
 }

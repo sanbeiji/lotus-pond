@@ -6,10 +6,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [StoryEntity::class], version = 2, exportSchema = false)
+@Database(entities = [StoryEntity::class, DictEntry::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class StoryDatabase : RoomDatabase() {
     abstract fun storyDao(): StoryDao
+    abstract fun dictDao(): DictDao
 
     companion object {
         @Volatile

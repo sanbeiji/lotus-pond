@@ -52,8 +52,8 @@ fun SplashScreen(
                 Text(
                     text = "🪷 Lotus Pond Reader",
                     style = MaterialTheme.typography.headlineLarge.copy(
-                        fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
-                        fontWeight = FontWeight.Bold
+                        fontFamily = com.example.lotuspondreader.theme.LobsterFontFamily,
+                        fontWeight = FontWeight.Normal
                     ),
                     color = Color.White,
                     textAlign = TextAlign.Center

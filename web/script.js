@@ -702,7 +702,60 @@ async function handleGenerate(e) {
 }
 
 async function generateGenrePrompt(genre) {
-    const prompt = `Generate a creative, engaging story premise in English suitable for a Mandarin learning story in the "${genre}" genre. The premise must be between 1 and 4 sentences long. It should set up an interesting plot, setting, or character dilemma, preferably reflecting Taiwanese culture, geography, or context. Return ONLY the raw story premise text. Do not include titles, quotes, markdown, JSON, or explanation.`;
+    const taiwanSettings = [
+        "a night market in Kaohsiung",
+        "a quiet tea house in Jiufen",
+        "a traditional bakery in Taichung",
+        "a street in Taipei on a rainy day",
+        "an old temple in Tainan",
+        "a sunny beach in Kenting",
+        "a slow train ride along the east coast",
+        "a busy boba tea shop",
+        "a sky lantern festival in Pingxi",
+        "a hot spring in Beitou",
+        "a breakfast shop in Taipei",
+        "a historic street in Lukang",
+        "a seaside path in Tamsui",
+        "a pottery workshop in Yingge",
+        "a seafood market in Keelung",
+        "a mango ice shop in Taipei",
+        "a green onion farm in Yilan",
+        "a path in Yangmingshan",
+        "the Taiwan High-Speed Rail",
+        "a cozy bookstore in Taipei",
+        "a hotel in Sun Moon Lake",
+        "a tea plantation in Maokong"
+    ];
+    let prompt;
+    if (genre.toLowerCase() === "music") {
+        const instruments = [
+            "Violin", "Violin", "Violin", "Violin",
+            "Viola", "Viola", "Viola", "Viola",
+            "Cello", "Cello", "Cello", "Cello",
+            "Double bass", "Double bass", "Double bass", "Double bass",
+            "Piano", "Piano", "Piano", "Piano",
+            "Guitar", "Clarinet", "Flute", "Oboe", "Bassoon",
+            "Trombone", "Trumpet", "French horn", "Tuba", "Tympani", "Percussion"
+        ];
+        const selectedInstrument = instruments[Math.floor(Math.random() * instruments.length)];
+
+        const musicalActivities = [
+            "preparing for a big concert in a symphony hall",
+            "practicing a difficult piece on the <instrument> until late at night",
+            "teaching a young student how to play the <instrument>",
+            "playing in a professional symphony orchestra rehearsal",
+            "rehearsing chamber music with a string quartet",
+            "auditioning for a prestigious orchestra",
+            "discussing musical interpretation with other musicians",
+            "Musicians hanging out after the concert"
+        ];
+        const activityTemplate = musicalActivities[Math.floor(Math.random() * musicalActivities.length)];
+        const activity = activityTemplate.replace("<instrument>", selectedInstrument.toLowerCase());
+        prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English about a professional classical musician who plays the ${selectedInstrument}. Set the story around or connect it to: ${activity}. Ensure the character is not always nervous; they can be happy, inspired, tired, or excited. Use very basic words so it is easy to read. Do not use complex language.`;
+    } else {
+        const randomSetting = taiwanSettings[Math.floor(Math.random() * taiwanSettings.length)];
+        prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English for the "${genre}" genre. Set the story in or connect it to: ${randomSetting}. Use very basic words so it is easy to read. Do not use complex language.`;
+    }
     
     try {
         // Force gemini-flash-lite-latest as mandated by requirements
@@ -1227,7 +1280,7 @@ async function speakWithGemini(text) {
     const voicePrompt = {
         'standard': '[Voice Style: Speak in a natural, standard, clear reading style.]\nRead in standard, clear Taiwanese Mandarin (都會風格台北/台灣腔) as heard in public announcements (like the Taipei MRT) or urban professional settings.\n- Speak in a natural, clean, moderately fast, modern Taiwanese tempo.\n- Retroflex sounds (zh, ch, sh) are relaxed and naturally simplified, avoiding any dry retroflex friction or thick northern Beijing acoustics. No "er" (no 兒化音).\n- Render neutral tones (輕聲) in accordance with general urban Taiwanese Mandarin usage (typically pronounced as lighter full tones rather than clipped neutral vowels).\n- Deliver with a clean, melodic, polite, and professional Taiwanese tone.',
         'southern': '[Voice Style: Speak gently, softly, and reassuringly, at a relaxed pace with extreme warmth.]\nRead in a warm, relaxed, authentic Southern Taiwanese Mandarin (台灣國語) regional accent (popular in Tainan, Kaohsiung, and Pingtung).\n- Speak with a friendly, local Taiwanese cadence and relaxed mouth positioning.\n- Strictly avoid Beijing-style speech: absolutely no curl-tongue "er" (no 兒化音) and do not retroflex sounds like zh, ch, sh (pronounce them shifted toward z, c, s, e.g. 知道 sounds like zīdào, 是 sounds like sì).\n- Do not suppress tones into neutral short tones (輕聲), pronounce grammatically light words with their full traditional Taiwanese Mandarin tones (e.g. 舒服 is shūfú, 先生 is xiānshēng).\n- Keep any natural sentence-final particles from Taiwan (like \'啦\', \'齁\', \'喔\', \'欸\') represented with authentic, comfortable, musical southern cadence.',
-        'heavy_southern': '[Voice Style: Speak extremely casually, off-the-cuff, like chatting with a close family member or childhood friend.]\nRead in a local, very down-to-earth, thick Southern Taiwanese Mandarin colloquial style (重度南部腔台灣國語) with strong Taiwanese (Minnan/Hokkien) substrate.\n- Sound like a friendly neighbor from Tainan or Kaohsiung speaking casual Mandarin.\n- Strongly dentalize retroflexes (zh, ch, sh -> z, c, s, e.g., 船 sounds like cuán, 睡 sounds like suì).\n- Use Minnan speech substrate pitch and rhythm. Syllable-final nasals "eng" and "en" can merge with "ing" and "in", or open slightly (e.g. 朋友 sounds like píngyǒu or péng-ǐou).\n- Do not use neutral/light tones (輕聲); give everything comfortable, rich Taiwanese tones.\n- If natural, blend f and h sounds gently (e.g., 飯 fàn sounds like huàn, 發生 fāshēng sounds like huāshēng).\n- Keep the cadence relaxed, friendly, and expressive, showing regional southern warmth.'
+        'heavy_southern': '[Voice Style: Speak in a natural, calm, and effortless everyday conversational style, like a friendly adult family member or colleague explaining something. Maintain a normal, steady, and comfortable speaking pace, strictly avoiding any dramatic, slow, or exaggerated theatrical delivery.]\nRead in an authentic Southern Taiwanese Mandarin colloquial style, naturally blending in Taiwanese (Minnan/Hokkien) vocabulary and substrate.\n- Deliver the speech with a warm, down-to-earth, and polite regional tone.\n- When the text contains mixed Taiwanese (Minnan) vocabulary, phrases, or sentence-final particles, pronounce them naturally and integrate them smoothly into the flow of speech.\n- Naturally relax retroflex sounds (zh, ch, sh tend toward z, c, s, but in a subtle, unforced way).\n- Avoid Beijing-style neutral/light tones; pronounce characters with comfortable, full traditional tones.\n- Keep the cadence relaxed, warm, and conversational.'
     };
     
     const voiceStyle = state.geminiTtsVoiceStyle || 'standard';

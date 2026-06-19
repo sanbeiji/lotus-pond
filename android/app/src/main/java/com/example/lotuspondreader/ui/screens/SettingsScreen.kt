@@ -79,14 +79,14 @@ fun SettingsScreen(
 
         HorizontalDivider()
 
-        Text("Generate Story Preferences", style = MaterialTheme.typography.titleMedium)
+        Text("Generate story preferences", style = MaterialTheme.typography.titleMedium)
         
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Generate Pinyin")
+            Text("Generate pinyin")
             Switch(
                 checked = settings.generatePinyin,
                 onCheckedChange = { onSettingsChanged(settings.copy(generatePinyin = it)) }
@@ -98,7 +98,7 @@ fun SettingsScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Generate Zhuyin")
+            Text("Generate zhuyin")
             Switch(
                 checked = settings.generateZhuyin,
                 onCheckedChange = { onSettingsChanged(settings.copy(generateZhuyin = it)) }
@@ -145,7 +145,7 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text("Dynamic Color", style = MaterialTheme.typography.titleMedium)
+                Text("Dynamic color", style = MaterialTheme.typography.titleMedium)
                 Text("Use wallpaper colors (Android 12+)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Switch(
@@ -171,7 +171,7 @@ fun SettingsScreen(
                         
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("Key Features", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                            Text("• Adaptive Difficulty: Choose from 8 TOCFL levels.\n• Interlinear Assistance: Toggle Pinyin/Zhuyin.\n• English Translations: Read natural English translations.\n• Vocabulary Practice: AI integrates custom words.")
+                            Text("• Adaptive Difficulty: Choose from 8 TOCFL levels.\n• Interlinear Assistance: Toggle Pinyin/Zhuyin.\n• English Translations: Read natural English translations.\n• Vocabulary Practice: AI integrates custom words.\n• Wear OS Companion: Real-time story sync and reading on your wrist with support for physical crown scrolling.")
                         }
                         
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -196,7 +196,7 @@ fun SettingsScreen(
                         
                         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Text(
-                                "Version 0.3.0 · Published June 10, 2026",
+                                "Version 0.4.0 · Published June 17, 2026",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -210,6 +210,48 @@ fun SettingsScreen(
                 }
             )
         }
+
+        HorizontalDivider()
+
+        Text("Wear OS companion preferences", style = MaterialTheme.typography.titleMedium)
+
+        var wearOsLevelExpanded by remember { mutableStateOf(false) }
+        val wearOsLevels = listOf(
+            "Novice 1", "Novice 2", "A1 (Entry)", "A2 (Foundation)",
+            "B3 (Intermediate)", "B4 (Upper Intermediate)",
+            "C5 (Fluent)", "C6 (Advanced)"
+        )
+
+        ExposedDropdownMenuBox(
+            expanded = wearOsLevelExpanded,
+            onExpandedChange = { wearOsLevelExpanded = it },
+        ) {
+            OutlinedTextField(
+                value = settings.wearOsStoryLevel,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Wear OS story generation level") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = wearOsLevelExpanded) },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = wearOsLevelExpanded,
+                onDismissRequest = { wearOsLevelExpanded = false }
+            ) {
+                wearOsLevels.forEach { selectionOption ->
+                    DropdownMenuItem(
+                        text = { Text(selectionOption) },
+                        onClick = {
+                            onSettingsChanged(settings.copy(wearOsStoryLevel = selectionOption))
+                            wearOsLevelExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedButton(
             onClick = { showAboutDialog = true },

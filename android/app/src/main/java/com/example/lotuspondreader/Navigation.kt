@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.activity.ComponentActivity
@@ -50,7 +51,7 @@ fun MainNavigation(
     var selectedItem by remember { mutableIntStateOf(0) }
     val items = listOf("Create", "History", "Settings")
     
-    val userSettings by viewModel.userSettings.collectAsState(initial = UserSettings())
+    val userSettings by viewModel.userSettings.collectAsState(initial = UserSettings(apiKey = "loading"))
     val uiState by viewModel.uiState.collectAsState()
     
     val plot by viewModel.plot.collectAsState()
@@ -115,7 +116,7 @@ fun MainNavigation(
         )
     }
 
-    if (userSettings.apiKey.isBlank()) {
+    if (userSettings.apiKey.isBlank() && currentScreen != Splash) {
         var tempApiKey by remember { mutableStateOf("") }
         val uriHandler = LocalUriHandler.current
         AlertDialog(
@@ -253,8 +254,8 @@ fun MainNavigation(
                             Text(
                                 text = "Lotus Pond Reader",
                                 style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = com.example.lotuspondreader.theme.IansuiFontFamily,
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                    fontFamily = com.example.lotuspondreader.theme.LobsterFontFamily,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
                                 ),
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 maxLines = 1,
@@ -266,7 +267,10 @@ fun MainNavigation(
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 text = viewName,
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = com.example.lotuspondreader.theme.LobsterFontFamily,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
+                                ),
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 maxLines = 1
                             )
@@ -413,6 +417,18 @@ fun MainNavigation(
                         val errorEvent by viewModel.errorEvent.collectAsState()
                         val snackbarHostState = remember { SnackbarHostState() }
 
+                        val hasPinyin = remember(story) { story.sentences.any { !it.pinyin.isNullOrEmpty() } }
+                        val hasZhuyin = remember(story) { story.sentences.any { !it.zhuyin.isNullOrEmpty() } }
+                        val hasEnglish = remember(story) { story.sentences.any { !it.english.isNullOrEmpty() } }
+
+                        val pinyinLoading = activeFetches.contains("pinyin")
+                        val zhuyinLoading = activeFetches.contains("zhuyin")
+                        val englishLoading = activeFetches.contains("english")
+
+                        val showPinyinSession = userSettings.showPinyin && (hasPinyin || pinyinLoading)
+                        val showZhuyinSession = userSettings.showZhuyin && (hasZhuyin || zhuyinLoading)
+                        val showTranslationSession = userSettings.showTranslation && (hasEnglish || englishLoading)
+
                         LaunchedEffect(errorEvent) {
                             errorEvent?.let {
                                 snackbarHostState.showSnackbar(
@@ -427,6 +443,7 @@ fun MainNavigation(
                         @OptIn(ExperimentalMaterial3Api::class)
                         if (showBottomSheet) {
                             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                            val sheetScrollState = androidx.compose.foundation.rememberScrollState()
                             ModalBottomSheet(
                                 onDismissRequest = { showBottomSheet = false },
                                 sheetState = sheetState
@@ -435,72 +452,97 @@ fun MainNavigation(
                                     modifier = Modifier
                                         .padding(16.dp)
                                         .navigationBarsPadding()
-                                        .verticalScroll(androidx.compose.foundation.rememberScrollState()),
+                                        .verticalScroll(sheetScrollState),
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    Text("Display Settings", style = MaterialTheme.typography.titleLarge)
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text("Show", style = MaterialTheme.typography.titleMedium)
+                                        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                                        FlowRow(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            FilterChip(
+                                                selected = showPinyinSession,
+                                                onClick = {
+                                                    val newValue = !showPinyinSession
+                                                    viewModel.updateSettings(userSettings.copy(showPinyin = newValue))
+                                                    if (newValue) viewModel.checkAndFetchMissing("pinyin")
+                                                },
+                                                label = { Text("Pinyin") },
+                                                enabled = !pinyinLoading,
+                                                leadingIcon = if (showPinyinSession) {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                                        )
+                                                    }
+                                                } else null
+                                            )
+
+                                            FilterChip(
+                                                selected = showZhuyinSession,
+                                                onClick = {
+                                                    val newValue = !showZhuyinSession
+                                                    viewModel.updateSettings(userSettings.copy(showZhuyin = newValue))
+                                                    if (newValue) viewModel.checkAndFetchMissing("zhuyin")
+                                                },
+                                                label = { Text("Zhuyin") },
+                                                enabled = !zhuyinLoading,
+                                                leadingIcon = if (showZhuyinSession) {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                                        )
+                                                    }
+                                                } else null
+                                            )
+
+                                            FilterChip(
+                                                selected = showTranslationSession,
+                                                onClick = {
+                                                    val newValue = !showTranslationSession
+                                                    viewModel.updateSettings(userSettings.copy(showTranslation = newValue))
+                                                    if (newValue) viewModel.checkAndFetchMissing("english")
+                                                },
+                                                label = { Text("English") },
+                                                enabled = !englishLoading,
+                                                leadingIcon = if (showTranslationSession) {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                                        )
+                                                    }
+                                                } else null
+                                            )
+
+                                            FilterChip(
+                                                selected = userSettings.studyMode,
+                                                onClick = {
+                                                    viewModel.updateSettings(userSettings.copy(studyMode = !userSettings.studyMode))
+                                                },
+                                                label = { Text("Highlight Vocab") },
+                                                leadingIcon = if (userSettings.studyMode) {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Done,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                                        )
+                                                    }
+                                                } else null
+                                            )
+                                        }
+                                    }
                                     
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                    ) {
-                                        Text("Show Pinyin")
-                                        Switch(
-                                            checked = userSettings.showPinyin,
-                                            enabled = !activeFetches.contains("pinyin"),
-                                            onCheckedChange = { 
-                                                viewModel.updateSettings(userSettings.copy(showPinyin = it))
-                                                if (it) viewModel.checkAndFetchMissing("pinyin")
-                                            }
-                                        )
-                                    }
-
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                    ) {
-                                        Text("Show Zhuyin")
-                                        Switch(
-                                            checked = userSettings.showZhuyin,
-                                            enabled = !activeFetches.contains("zhuyin"),
-                                            onCheckedChange = { 
-                                                viewModel.updateSettings(userSettings.copy(showZhuyin = it))
-                                                if (it) viewModel.checkAndFetchMissing("zhuyin")
-                                            }
-                                        )
-                                    }
-
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                    ) {
-                                        Text("Show English translation")
-                                        Switch(
-                                            checked = userSettings.showTranslation,
-                                            enabled = !activeFetches.contains("english"),
-                                            onCheckedChange = { 
-                                                viewModel.updateSettings(userSettings.copy(showTranslation = it))
-                                                if (it) viewModel.checkAndFetchMissing("english")
-                                            }
-                                        )
-                                    }
-
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                    ) {
-                                        Text("Highlight required vocabulary")
-                                        Switch(
-                                            checked = userSettings.studyMode,
-                                            onCheckedChange = { viewModel.updateSettings(userSettings.copy(studyMode = it)) }
-                                        )
-                                    }
-                                    
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         Text("Font size", style = MaterialTheme.typography.titleMedium)
                                         val fontOptions = listOf("small", "medium", "large")
                                         val fontLabels = listOf("Small", "Medium", "Large")
@@ -522,10 +564,8 @@ fun MainNavigation(
 
                                     HorizontalDivider()
 
-                                    Text("Speech Preferences", style = MaterialTheme.typography.titleMedium)
-
-                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 12.dp)) {
-                                        Text("Speech speed", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold))
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(bottom = 12.dp)) {
+                                        Text("Speech speed", style = MaterialTheme.typography.titleMedium)
                                         val rates = listOf(1.0f, 0.9f, 0.75f, 0.5f)
                                         val rateLabels = listOf("100%", "90%", "75%", "50%")
                                         SingleChoiceSegmentedButtonRow(
@@ -545,7 +585,28 @@ fun MainNavigation(
                                     }
 
                                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        Text("Voice Engine", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold))
+                                        Text("Voice gender", style = MaterialTheme.typography.titleMedium)
+                                        val genderOptions = listOf("female", "male")
+                                        val genderLabels = listOf("Female", "Male")
+                                        SingleChoiceSegmentedButtonRow(
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            genderOptions.forEachIndexed { index, option ->
+                                                val isSelected = userSettings.voiceGender == option
+                                                SegmentedButton(
+                                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = genderOptions.size),
+                                                    onClick = { viewModel.updateSettings(userSettings.copy(voiceGender = option)) },
+                                                    selected = isSelected,
+                                                    icon = { SegmentedButtonDefaults.Icon(active = isSelected) }
+                                                ) {
+                                                    Text(genderLabels[index])
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text("Voice engine", style = MaterialTheme.typography.titleMedium)
                                         val engineOptions = listOf("Android", "Gemini")
                                         SingleChoiceSegmentedButtonRow(
                                             modifier = Modifier.fillMaxWidth()
@@ -554,7 +615,16 @@ fun MainNavigation(
                                                 val isSelected = if (option == "Gemini") userSettings.useGeminiTts else !userSettings.useGeminiTts
                                                 SegmentedButton(
                                                     shape = SegmentedButtonDefaults.itemShape(index = index, count = engineOptions.size),
-                                                    onClick = { viewModel.updateSettings(userSettings.copy(useGeminiTts = (option == "Gemini"))) },
+                                                    onClick = {
+                                                        val isGemini = option == "Gemini"
+                                                        viewModel.updateSettings(userSettings.copy(useGeminiTts = isGemini))
+                                                        if (isGemini) {
+                                                            scope.launch {
+                                                                kotlinx.coroutines.delay(100)
+                                                                sheetScrollState.animateScrollTo(sheetScrollState.maxValue)
+                                                            }
+                                                        }
+                                                    },
                                                     selected = isSelected,
                                                     icon = { SegmentedButtonDefaults.Icon(active = isSelected) }
                                                 ) {
@@ -579,19 +649,20 @@ fun MainNavigation(
                                     if (userSettings.useGeminiTts) {
                                         Column(
                                             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp),
-                                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                                            verticalArrangement = Arrangement.spacedBy(2.dp)
                                         ) {
-                                            Text("Voice Style", style = MaterialTheme.typography.bodyMedium)
+                                            Text("Voice style", style = MaterialTheme.typography.bodyMedium)
 
                                             val voiceStyles = listOf(
-                                                "standard" to "Standard Taiwanese Mandarin",
-                                                "southern" to "Southern Taiwan Accent (台南高雄腔)",
-                                                "heavy_southern" to "Heavy Southern + Minnan (偏鄉本土腔)"
+                                                "standard" to "Standard Taiwanese",
+                                                "southern" to "Southern Taiwan (台南高雄腔)",
+                                                "heavy_southern" to "Southern + Minnan (偏鄉本土腔)",
+                                                "beijing" to "Beijing (北京腔)"
                                             )
 
                                             voiceStyles.forEach { (value, label) ->
                                                 Row(
-                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                                    modifier = Modifier.fillMaxWidth(),
                                                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                                                 ) {
                                                     RadioButton(
@@ -644,9 +715,9 @@ fun MainNavigation(
                         ) { innerReaderPadding ->
                             StoryView(
                                 story = story,
-                                showPinyin = userSettings.showPinyin,
-                                showZhuyin = userSettings.showZhuyin,
-                                showTranslation = userSettings.showTranslation,
+                                showPinyin = showPinyinSession,
+                                showZhuyin = showZhuyinSession,
+                                showTranslation = showTranslationSession,
                                 studyMode = userSettings.studyMode,
                                 fontSizePreference = userSettings.fontSizePreference,
                                 requiredTerms = termsList,
@@ -660,10 +731,37 @@ fun MainNavigation(
                                             }
                                         }
                                     } else {
+                                        val currentTts = tts
+                                        if (currentTts != null) {
+                                            try {
+                                                val voices = currentTts.voices
+                                                if (voices != null) {
+                                                    val genderTarget = userSettings.voiceGender
+                                                    val targetVoice = if (genderTarget == "male") {
+                                                        voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
+                                                            ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
+                                                    } else {
+                                                        voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
+                                                            ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
+                                                    }
+                                                    val finalVoice = targetVoice 
+                                                        ?: voices.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" && !it.isNetworkConnectionRequired }
+                                                        ?: voices.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" }
+                                                        ?: voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired }
+                                                        ?: voices.firstOrNull { it.locale.language == "zh" }
+                                                    if (finalVoice != null) {
+                                                        currentTts.voice = finalVoice
+                                                    }
+                                                }
+                                            } catch (e: Exception) {
+                                                android.util.Log.e("TTS_DEBUG", "Error setting voice", e)
+                                            }
+                                        }
                                         tts?.setSpeechRate(userSettings.speechRatePreference)
                                         tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
                                     }
                                 },
+                                onLookupWord = { word -> viewModel.lookupWord(word) },
                                 contentPadding = PaddingValues(
                                     start = 16.dp,
                                     end = 16.dp,
