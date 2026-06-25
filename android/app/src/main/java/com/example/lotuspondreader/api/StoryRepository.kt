@@ -193,48 +193,96 @@ class StoryRepository {
                 "a tea plantation in Maokong"
             )
 
-            val relationships = listOf(
-                "a local resident who knows everyone in the area",
-                "a shop owner or vendor working on-site",
-                "a traveler visiting this location for the very first time",
-                "someone returning to their childhood hometown after many years away",
-                "a tourist on a solo weekend adventure",
-                "an expat trying to adjust to local life in Taiwan",
-                "someone visiting family or searching for an old friend"
-            )
+            val relationship: String
+            val emotion: String
+            val motivation: String
+            val twist: String
 
-            val emotions = listOf(
-                "feeling deeply nostalgic and thoughtful",
-                "feeling weary from travel but determined to succeed",
-                "feeling incredibly excited and curious about their surroundings",
-                "feeling peaceful, relaxed, and mindful",
-                "feeling slightly anxious or worried about an upcoming decision",
-                "feeling melancholic yet hopeful about a new beginning",
-                "feeling inspired, creative, and energetic"
-            )
+            if (genre.equals("Music", ignoreCase = true)) {
+                val relationships = listOf(
+                    "a regular member of the orchestra",
+                    "a featured guest soloist",
+                    "a dedicated music student practicing at the hall",
+                    "a private music teacher coaching a student",
+                    "a chamber musician rehearsing with their ensemble",
+                    "a musician auditioning for a seat in the orchestra"
+                )
 
-            val motivations = listOf(
-                "seeking a quiet moment of reflection away from their busy work life",
-                "trying to resolve a personal or family dilemma",
-                "searching for a specific local item, ingredient, or keepsake",
-                "looking to reconnect with a specific memory from their past",
-                "hoping to start a new career, project, or hobby",
-                "simply wandering and taking in the local atmosphere"
-            )
+                val emotions = listOf(
+                    "feeling a mix of stage fright and excitement",
+                    "feeling exhausted after hours of intense individual practice",
+                    "feeling inspired by a beautiful phrase in the score",
+                    "feeling frustrated by a technically challenging passage",
+                    "feeling proud of their student's progress",
+                    "feeling collaborative and eager to work with fellow musicians"
+                )
 
-            val twists = listOf(
-                "a sudden, unexpected heavy rainstorm forcing people to seek shelter together",
-                "misplacing a small but personally valuable keepsake",
-                "an unexpected encounter with an old acquaintance or a friendly stranger",
-                "discovering a hidden, forgotten historical or natural detail about the setting",
-                "accidentally overhearing a strange, intriguing conversation",
-                "a minor misunderstanding or humorous mix-up with a local vendor"
-            )
+                val motivations = listOf(
+                    "striving to master a difficult solo passage before the concert",
+                    "trying to find the perfect phrasing or interpretation for a piece",
+                    "preparing their instrument and sheet music for a critical rehearsal",
+                    "collaborating with a colleague to synchronize their playing",
+                    "mentoring a student to help them overcome a musical hurdle",
+                    "warming up thoroughly before going on stage"
+                )
 
-            val relationship = relationships.random()
-            val emotion = emotions.random()
-            val motivation = motivations.random()
-            val twist = twists.random()
+                val twists = listOf(
+                    "a string suddenly snaps right before a run-through",
+                    "misplacing their marked sheet music or performance score",
+                    "a sudden disagreement with the conductor or stand partner about tempo",
+                    "discovering a minor crack or mechanical issue with their instrument",
+                    "realizing they forgot their rosin, shoulder rest, or key accessory",
+                    "the rehearsal room being double-booked with another ensemble"
+                )
+
+                relationship = relationships.random()
+                emotion = emotions.random()
+                motivation = motivations.random()
+                twist = twists.random()
+            } else {
+                val relationships = listOf(
+                    "a local resident who knows everyone in the area",
+                    "a shop owner or vendor working on-site",
+                    "a traveler visiting this location for the very first time",
+                    "someone returning to their childhood hometown after many years away",
+                    "a tourist on a solo weekend adventure",
+                    "an expat trying to adjust to local life in Taiwan",
+                    "someone visiting family or searching for an old friend"
+                )
+
+                val emotions = listOf(
+                    "feeling deeply nostalgic and thoughtful",
+                    "feeling weary from travel but determined to succeed",
+                    "feeling incredibly excited and curious about their surroundings",
+                    "feeling peaceful, relaxed, and mindful",
+                    "feeling slightly anxious or worried about an upcoming decision",
+                    "feeling melancholic yet hopeful about a new beginning",
+                    "feeling inspired, creative, and energetic"
+                )
+
+                val motivations = listOf(
+                    "seeking a quiet moment of reflection away from their busy work life",
+                    "trying to resolve a personal or family dilemma",
+                    "searching for a specific local item, ingredient, or keepsake",
+                    "looking to reconnect with a specific memory from their past",
+                    "hoping to start a new career, project, or hobby",
+                    "simply wandering and taking in the local atmosphere"
+                )
+
+                val twists = listOf(
+                    "a sudden, unexpected heavy rainstorm forcing people to seek shelter together",
+                    "misplacing a small but personally valuable keepsake",
+                    "an unexpected encounter with an old acquaintance or a friendly stranger",
+                    "discovering a hidden, forgotten historical or natural detail about the setting",
+                    "accidentally overhearing a strange, intriguing conversation",
+                    "a minor misunderstanding or humorous mix-up with a local vendor"
+                )
+
+                relationship = relationships.random()
+                emotion = emotions.random()
+                motivation = motivations.random()
+                twist = twists.random()
+            }
 
             val prompt = if (genre.equals("Music", ignoreCase = true)) {
                 val instruments = listOf(

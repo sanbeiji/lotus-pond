@@ -727,48 +727,93 @@ async function generateGenrePrompt(genre) {
         "a tea plantation in Maokong"
     ];
 
-    const relationships = [
-        "a local resident who knows everyone in the area",
-        "a shop owner or vendor working on-site",
-        "a traveler visiting this location for the very first time",
-        "someone returning to their childhood hometown after many years away",
-        "a tourist on a solo weekend adventure",
-        "an expat trying to adjust to local life in Taiwan",
-        "someone visiting family or searching for an old friend"
-    ];
+    let relationship, emotion, motivation, twist;
 
-    const emotions = [
-        "feeling deeply nostalgic and thoughtful",
-        "feeling weary from travel but determined to succeed",
-        "feeling incredibly excited and curious about their surroundings",
-        "feeling peaceful, relaxed, and mindful",
-        "feeling slightly anxious or worried about an upcoming decision",
-        "feeling melancholic yet hopeful about a new beginning",
-        "feeling inspired, creative, and energetic"
-    ];
+    if (genre.toLowerCase() === "music") {
+        const relationships = [
+            "a regular member of the orchestra",
+            "a featured guest soloist",
+            "a dedicated music student practicing at the hall",
+            "a private music teacher coaching a student",
+            "a chamber musician rehearsing with their ensemble",
+            "a musician auditioning for a seat in the orchestra"
+        ];
 
-    const motivations = [
-        "seeking a quiet moment of reflection away from their busy work life",
-        "trying to resolve a personal or family dilemma",
-        "searching for a specific local item, ingredient, or keepsake",
-        "looking to reconnect with a specific memory from their past",
-        "hoping to start a new career, project, or hobby",
-        "simply wandering and taking in the local atmosphere"
-    ];
+        const emotions = [
+            "feeling a mix of stage fright and excitement",
+            "feeling exhausted after hours of intense individual practice",
+            "feeling inspired by a beautiful phrase in the score",
+            "feeling frustrated by a technically challenging passage",
+            "feeling proud of their student's progress",
+            "feeling collaborative and eager to work with fellow musicians"
+        ];
 
-    const twists = [
-        "a sudden, unexpected heavy rainstorm forcing people to seek shelter together",
-        "misplacing a small but personally valuable keepsake",
-        "an unexpected encounter with an old acquaintance or a friendly stranger",
-        "discovering a hidden, forgotten historical or natural detail about the setting",
-        "accidentally overhearing a strange, intriguing conversation",
-        "a minor misunderstanding or humorous mix-up with a local vendor"
-    ];
+        const motivations = [
+            "striving to master a difficult solo passage before the concert",
+            "trying to find the perfect phrasing or interpretation for a piece",
+            "preparing their instrument and sheet music for a critical rehearsal",
+            "collaborating with a colleague to synchronize their playing",
+            "mentoring a student to help them overcome a musical hurdle",
+            "warming up thoroughly before going on stage"
+        ];
 
-    const relationship = relationships[Math.floor(Math.random() * relationships.length)];
-    const emotion = emotions[Math.floor(Math.random() * emotions.length)];
-    const motivation = motivations[Math.floor(Math.random() * motivations.length)];
-    const twist = twists[Math.floor(Math.random() * twists.length)];
+        const twists = [
+            "a string suddenly snaps right before a run-through",
+            "misplacing their marked sheet music or performance score",
+            "a sudden disagreement with the conductor or stand partner about tempo",
+            "discovering a minor crack or mechanical issue with their instrument",
+            "realizing they forgot their rosin, shoulder rest, or key accessory",
+            "the rehearsal room being double-booked with another ensemble"
+        ];
+
+        relationship = relationships[Math.floor(Math.random() * relationships.length)];
+        emotion = emotions[Math.floor(Math.random() * emotions.length)];
+        motivation = motivations[Math.floor(Math.random() * motivations.length)];
+        twist = twists[Math.floor(Math.random() * twists.length)];
+    } else {
+        const relationships = [
+            "a local resident who knows everyone in the area",
+            "a shop owner or vendor working on-site",
+            "a traveler visiting this location for the very first time",
+            "someone returning to their childhood hometown after many years away",
+            "a tourist on a solo weekend adventure",
+            "an expat trying to adjust to local life in Taiwan",
+            "someone visiting family or searching for an old friend"
+        ];
+
+        const emotions = [
+            "feeling deeply nostalgic and thoughtful",
+            "feeling weary from travel but determined to succeed",
+            "feeling incredibly excited and curious about their surroundings",
+            "feeling peaceful, relaxed, and mindful",
+            "feeling slightly anxious or worried about an upcoming decision",
+            "feeling melancholic yet hopeful about a new beginning",
+            "feeling inspired, creative, and energetic"
+        ];
+
+        const motivations = [
+            "seeking a quiet moment of reflection away from their busy work life",
+            "trying to resolve a personal or family dilemma",
+            "searching for a specific local item, ingredient, or keepsake",
+            "looking to reconnect with a specific memory from their past",
+            "hoping to start a new career, project, or hobby",
+            "simply wandering and taking in the local atmosphere"
+        ];
+
+        const twists = [
+            "a sudden, unexpected heavy rainstorm forcing people to seek shelter together",
+            "misplacing a small but personally valuable keepsake",
+            "an unexpected encounter with an old acquaintance or a friendly stranger",
+            "discovering a hidden, forgotten historical or natural detail about the setting",
+            "accidentally overhearing a strange, intriguing conversation",
+            "a minor misunderstanding or humorous mix-up with a local vendor"
+        ];
+
+        relationship = relationships[Math.floor(Math.random() * relationships.length)];
+        emotion = emotions[Math.floor(Math.random() * emotions.length)];
+        motivation = motivations[Math.floor(Math.random() * motivations.length)];
+        twist = twists[Math.floor(Math.random() * twists.length)];
+    }
 
     let prompt;
     if (genre.toLowerCase() === "music") {
@@ -794,7 +839,7 @@ async function generateGenrePrompt(genre) {
             "Musicians hanging out after the concert"
         ];
         const activityTemplate = musicalActivities[Math.floor(Math.random() * musicalActivities.length)];
-        const activity = activityTemplate.replace("<instrument>", selectedInstrument.lowercase ? selectedInstrument.toLowerCase() : selectedInstrument);
+        const activity = activityTemplate.replace("<instrument>", selectedInstrument.toLowerCase());
 
         prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English about a professional classical musician who plays the ${selectedInstrument}. Set the story around or connect it to: ${activity}. The protagonist's relationship to the setting is that they are ${relationship}. Their emotional state is ${emotion}, and they are ${motivation}. On occasion, there is a hint of this conflict/event: ${twist}. Use very basic words so it is easy to read. Do not use complex language.`;
     } else {
