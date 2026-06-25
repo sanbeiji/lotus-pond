@@ -726,6 +726,50 @@ async function generateGenrePrompt(genre) {
         "a hotel in Sun Moon Lake",
         "a tea plantation in Maokong"
     ];
+
+    const relationships = [
+        "a local resident who knows everyone in the area",
+        "a shop owner or vendor working on-site",
+        "a traveler visiting this location for the very first time",
+        "someone returning to their childhood hometown after many years away",
+        "a tourist on a solo weekend adventure",
+        "an expat trying to adjust to local life in Taiwan",
+        "someone visiting family or searching for an old friend"
+    ];
+
+    const emotions = [
+        "feeling deeply nostalgic and thoughtful",
+        "feeling weary from travel but determined to succeed",
+        "feeling incredibly excited and curious about their surroundings",
+        "feeling peaceful, relaxed, and mindful",
+        "feeling slightly anxious or worried about an upcoming decision",
+        "feeling melancholic yet hopeful about a new beginning",
+        "feeling inspired, creative, and energetic"
+    ];
+
+    const motivations = [
+        "seeking a quiet moment of reflection away from their busy work life",
+        "trying to resolve a personal or family dilemma",
+        "searching for a specific local item, ingredient, or keepsake",
+        "looking to reconnect with a specific memory from their past",
+        "hoping to start a new career, project, or hobby",
+        "simply wandering and taking in the local atmosphere"
+    ];
+
+    const twists = [
+        "a sudden, unexpected heavy rainstorm forcing people to seek shelter together",
+        "misplacing a small but personally valuable keepsake",
+        "an unexpected encounter with an old acquaintance or a friendly stranger",
+        "discovering a hidden, forgotten historical or natural detail about the setting",
+        "accidentally overhearing a strange, intriguing conversation",
+        "a minor misunderstanding or humorous mix-up with a local vendor"
+    ];
+
+    const relationship = relationships[Math.floor(Math.random() * relationships.length)];
+    const emotion = emotions[Math.floor(Math.random() * emotions.length)];
+    const motivation = motivations[Math.floor(Math.random() * motivations.length)];
+    const twist = twists[Math.floor(Math.random() * twists.length)];
+
     let prompt;
     if (genre.toLowerCase() === "music") {
         const instruments = [
@@ -750,11 +794,12 @@ async function generateGenrePrompt(genre) {
             "Musicians hanging out after the concert"
         ];
         const activityTemplate = musicalActivities[Math.floor(Math.random() * musicalActivities.length)];
-        const activity = activityTemplate.replace("<instrument>", selectedInstrument.toLowerCase());
-        prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English about a professional classical musician who plays the ${selectedInstrument}. Set the story around or connect it to: ${activity}. Ensure the character is not always nervous; they can be happy, inspired, tired, or excited. Use very basic words so it is easy to read. Do not use complex language.`;
+        const activity = activityTemplate.replace("<instrument>", selectedInstrument.lowercase ? selectedInstrument.toLowerCase() : selectedInstrument);
+
+        prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English about a professional classical musician who plays the ${selectedInstrument}. Set the story around or connect it to: ${activity}. The protagonist's relationship to the setting is that they are ${relationship}. Their emotional state is ${emotion}, and they are ${motivation}. On occasion, there is a hint of this conflict/event: ${twist}. Use very basic words so it is easy to read. Do not use complex language.`;
     } else {
         const randomSetting = taiwanSettings[Math.floor(Math.random() * taiwanSettings.length)];
-        prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English for the "${genre}" genre. Set the story in or connect it to: ${randomSetting}. Use very basic words so it is easy to read. Do not use complex language.`;
+        prompt = `Return a JSON object with a "premise" key containing a short story idea (1 to 2 sentences) in simple English for the "${genre}" genre. Set the story in or connect it to: ${randomSetting}. The protagonist's relationship to the setting is that they are ${relationship}. Their emotional state is ${emotion}, and they are ${motivation}. On occasion, there is a hint of this conflict/event: ${twist}. Use very basic words so it is easy to read. Do not use complex language.`;
     }
     
     try {
@@ -807,12 +852,34 @@ SKILL LEVEL DEFINITIONS (TOCFL BANDS):
     // Realistic sentence targets: ~20-25 characters per sentence
     const sentenceTarget = Math.max(3, Math.ceil(length / 22));
     
-    const novellaInstruction = length > 1000 ? `
-The requested story is a NOVELLA (at least ${length} characters). 
-You MUST structure it as a 5-chapter story with distinct scenes for each chapter. 
-Expand on the world-building, sensory details, internal character thoughts, and extensive dialogue. 
-DO NOT SUMMARIZE. Write as if you are a professional author.
-` : "";
+    let structureInstruction = "";
+    if (length <= 400) {
+        structureInstruction = `
+STRUCTURE & ARC REQUIREMENTS:
+This is a short story (~${length} characters).
+- Focus either on a single, cohesive, well-defined event OR a compelling opening that builds suspense and leaves the reader on a cliffhanger at a key moment.
+- The story must feel complete or intentionally structured, rather than randomly truncated.
+`;
+    } else if (length <= 800) {
+        structureInstruction = `
+STRUCTURE & ARC REQUIREMENTS:
+This is a medium story (~${length} characters).
+- You MUST structure the story with a clear, logical, and continuous narrative arc:
+  1. Opening: Set the scene directly and introduce the character's initial situation.
+  2. Development: Develop the conflict or action.
+  3. Climax: A high-point of tension or action.
+  4. Conclusion: Provide a clear resolution or logical wrap-up.
+`;
+    } else {
+        structureInstruction = `
+STRUCTURE & ARC REQUIREMENTS:
+The requested story is a NOVELLA (at least ${length} characters).
+- You MUST structure it as a 5-chapter story with distinct scenes for each chapter.
+- Expand on the world-building, sensory details, internal character thoughts, and extensive dialogue.
+- DO NOT SUMMARIZE. Write as if you are a professional author.
+- Ensure there is a continuous, logical narrative arc across the chapters with a setup, rising action, climax, and resolution.
+`;
+    }
 
     const lengthPriority = length > 1000 ? "ABSOLUTE HIGHEST priority" : "important target";
     const lengthAdjective = length > 1000 ? "AT LEAST" : "approximately";
@@ -828,9 +895,15 @@ CRITICAL LINGUISTIC REQUIREMENTS:
    - GEOGRAPHY: Vary the settings across different cities (e.g., Taichung, Tainan, Hualien, Keelung), counties (e.g., Yilan, Pingtung, Nantou), and landscapes (high mountain tea farms, coastal fishing villages, bustling night markets, quiet rural towns).
    - CULTURE: Incorporate a wide range of Taiwanese life, such as temple festivals, traditional arts (like glove puppetry), tea ceremonies, hiking culture, family dynamics, local snacks (小吃), and historical landmarks.
    - SOCIAL NORMS: Reflect authentic Taiwanese social etiquette and daily interactions.
-4. SKILL LEVEL: Adhere strictly to the ${skillLevel} level requirements defined above.
+4. SKILL LEVEL ADHERENCE: Adhere strictly to the ${skillLevel} level requirements defined above.
+   - RIGOROUS VOCABULARY CONTROL: The vocabulary must NOT exceed the chosen TOCFL band. If the scenario involves complex emotions, conflicts, or twists, you MUST express them using simplified, direct sentence structures and basic vocabulary appropriate for the level. Do not introduce advanced terms.
 5. VOCABULARY INTEGRATION: If specific vocabulary terms are provided ("${requiredTerms}"), you MUST include EVERY term at least TWICE in the story. Ensure they are used naturally but frequently enough for the reader to practice them. Integrate them into both narrative and dialogue where appropriate.
 6. STRUCTURE: Break the story into logical sentences. Each sentence must be its own object in the response.
+
+CREATIVITY & VARIETY REQUIREMENTS:
+1. STRIKING OPENINGS: Avoid all generic introductory cliches (e.g. do NOT start with "從前...", "在台灣...", "有一個人叫...", or naming the character in a standard S-V-O sentence). Instead, start directly in media res (in the middle of the action), with a line of dialogue, or with a descriptive/sensory detail of the environment.
+2. ARC AND DEVELOPMENT:
+${structureInstruction}
 
 OUTPUT FORMAT:
 You must return a valid JSON object with NO OTHER TEXT before or after the JSON. DO NOT include markdown code blocks.
@@ -845,7 +918,6 @@ The JSON must follow this exact structure:
 }
 
 CRITICAL LENGTH REQUIREMENT:
-${novellaInstruction}
 The user has requested a story of ${lengthAdjective} ${length} Mandarin characters.
 To achieve this, you MUST:
 - Generate approximately ${sentenceTarget} sentences.

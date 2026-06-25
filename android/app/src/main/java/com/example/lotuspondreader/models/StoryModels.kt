@@ -44,5 +44,6 @@ data class UserSettings(
     val useGeminiTts: Boolean = false,
     val geminiTtsVoiceStyle: String = "standard",
     val voiceGender: String = "female",
-    val wearOsStoryLevel: String = "Novice 1"
+    val wearOsStoryLevel: String = "Novice 1",
+    val readerStyle: String = "sentence"
 )

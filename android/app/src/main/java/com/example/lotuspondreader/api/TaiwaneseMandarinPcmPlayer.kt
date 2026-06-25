@@ -20,8 +20,8 @@ class TaiwaneseMandarinPcmPlayer {
      * Writes raw ByteArray PCM frames to an authentic AudioTrack channel
      */
     suspend fun playRawPcm(audioBytes: ByteArray, speed: Float = 1.0f) = withContext(Dispatchers.IO) {
+        var audioTrack: AudioTrack? = null
         try {
-            
             // Calculate optimal buffer sizing
             val minBufferSize = AudioTrack.getMinBufferSize(
                 sampleRate,
@@ -30,7 +30,7 @@ class TaiwaneseMandarinPcmPlayer {
             )
             
             // Build native Android linear PCM hardware track
-            val audioTrack = AudioTrack.Builder()
+            audioTrack = AudioTrack.Builder()
                 .setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -59,15 +59,21 @@ class TaiwaneseMandarinPcmPlayer {
 
             audioTrack.play()
             
-            // Block thread waiting for completion to safely release stream resources
+            // Suspend coroutine waiting for completion to safely release stream resources
             val durationMs = (((audioBytes.size / 2.0) / sampleRate) * 1000) / speed
-            Thread.sleep(durationMs.toLong() + 200)
+            kotlinx.coroutines.delay(durationMs.toLong() + 200)
             
-            audioTrack.stop()
-            audioTrack.release()
-            
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // Handle cancellation cleanly
         } catch (e: Exception) {
             e.printStackTrace()
+        } finally {
+            try {
+                audioTrack?.stop()
+                audioTrack?.release()
+            } catch (e: Exception) {
+                // ignore cleanup errors
+            }
         }
     }
 }

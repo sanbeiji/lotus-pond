@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -46,6 +47,11 @@ import com.example.lotuspondreader.ui.screens.SplashScreen
 import com.example.lotuspondreader.viewmodel.StoryUiState
 import com.example.lotuspondreader.viewmodel.StoryViewModel
 import com.example.lotuspondreader.viewmodel.StoryViewModelFactory
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import android.speech.tts.UtteranceProgressListener
+import com.example.lotuspondreader.models.StoryResponse
 // import com.example.lotuspondreader.ui.screens.HistoryScreen
 
 @Composable
@@ -82,6 +88,133 @@ fun MainNavigation(
         onDispose {
             textToSpeech.stop()
             textToSpeech.shutdown()
+        }
+    }
+
+    val globalScope = rememberCoroutineScope()
+    var activePlayingSentenceIndex by remember { mutableStateOf<Int?>(null) }
+    var currentPlayJob by remember { mutableStateOf<Job?>(null) }
+
+    fun stopPlayback() {
+        currentPlayJob?.cancel()
+        currentPlayJob = null
+        activePlayingSentenceIndex = null
+        tts?.stop()
+    }
+
+    suspend fun playAndroidTts(
+        tts: TextToSpeech,
+        text: String,
+        rate: Float,
+        voiceGender: String
+    ): Boolean = suspendCancellableCoroutine { continuation ->
+        val utteranceId = "utterance_${System.currentTimeMillis()}"
+        
+        val voices = tts.voices
+        val targetVoice = if (voices != null) {
+            if (voiceGender == "male") {
+                voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
+                    ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
+            } else {
+                voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
+                    ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
+            }
+        } else null
+        
+        val finalVoice = targetVoice 
+            ?: voices?.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" && !it.isNetworkConnectionRequired }
+            ?: voices?.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" }
+            ?: voices?.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired }
+
+        val listener = object : UtteranceProgressListener() {
+            override fun onStart(id: String?) {}
+            override fun onDone(id: String?) {
+                if (id == utteranceId && continuation.isActive) {
+                    continuation.resume(true)
+                }
+            }
+            @Deprecated("Deprecated in Java")
+            override fun onError(id: String?) {
+                if (id == utteranceId && continuation.isActive) {
+                    continuation.resume(false)
+                }
+            }
+            override fun onError(id: String?, errorCode: Int) {
+                if (id == utteranceId && continuation.isActive) {
+                    continuation.resume(false)
+                }
+            }
+        }
+        
+        tts.setOnUtteranceProgressListener(listener)
+        tts.setSpeechRate(rate)
+        if (finalVoice != null) {
+            tts.voice = finalVoice
+        }
+        
+        continuation.invokeOnCancellation {
+            tts.stop()
+        }
+        
+        val result = tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+        if (result != TextToSpeech.SUCCESS) {
+            if (continuation.isActive) {
+                continuation.resume(false)
+            }
+        }
+    }
+
+    fun playSingleSentence(
+        text: String,
+        sentenceIndex: Int,
+        pcmPlayer: com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer
+    ) {
+        stopPlayback()
+        currentPlayJob = globalScope.launch {
+            activePlayingSentenceIndex = sentenceIndex
+            if (userSettings.readerStyle == "paragraph") {
+                // Do not allow single-sentence speak when in paragraph mode if the UI elements aren't there,
+                // but if we trigger it, play it anyway
+            }
+            if (userSettings.useGeminiTts) {
+                val audioData = viewModel.generateSpeech(text, userSettings.geminiTtsVoiceStyle)
+                if (audioData != null) {
+                    pcmPlayer.playRawPcm(audioData, userSettings.speechRatePreference)
+                }
+            } else {
+                val currentTts = tts
+                if (currentTts != null) {
+                    playAndroidTts(currentTts, text, userSettings.speechRatePreference, userSettings.voiceGender)
+                }
+            }
+            activePlayingSentenceIndex = null
+            currentPlayJob = null
+        }
+    }
+
+    fun playEntireStory(
+        story: StoryResponse,
+        pcmPlayer: com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer
+    ) {
+        stopPlayback()
+        currentPlayJob = globalScope.launch {
+            for (index in story.sentences.indices) {
+                activePlayingSentenceIndex = index
+                val text = story.sentences[index].mandarin
+                if (userSettings.useGeminiTts) {
+                    val audioData = viewModel.generateSpeech(text, userSettings.geminiTtsVoiceStyle)
+                    if (audioData != null) {
+                        pcmPlayer.playRawPcm(audioData, userSettings.speechRatePreference)
+                    }
+                } else {
+                    val currentTts = tts
+                    if (currentTts != null) {
+                        playAndroidTts(currentTts, text, userSettings.speechRatePreference, userSettings.voiceGender)
+                    }
+                }
+            }
+            activePlayingSentenceIndex = null
+            currentPlayJob = null
         }
     }
 
@@ -235,7 +368,12 @@ fun MainNavigation(
             tts = tts,
             selectedItem = selectedItem,
             onSelectedItemChange = { selectedItem = it },
-            backStack = backStack
+            backStack = backStack,
+            activePlayingSentenceIndex = activePlayingSentenceIndex,
+            currentPlayJob = currentPlayJob,
+            onPlayEntireStory = { story, pcmPlayer -> playEntireStory(story, pcmPlayer) },
+            onPlaySingleSentence = { text, idx, pcmPlayer -> playSingleSentence(text, idx, pcmPlayer) },
+            onStopPlayback = { stopPlayback() }
         )
     } else {
         Row(
@@ -613,6 +751,29 @@ fun MainNavigation(
                                     }
                                     
                                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text("Reader style", style = MaterialTheme.typography.titleMedium)
+                                        val readerStyles = listOf("sentence", "paragraph")
+                                        val readerLabels = listOf("Sentences", "Paragraphs")
+                                        SingleChoiceSegmentedButtonRow(
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            readerStyles.forEachIndexed { index, option ->
+                                                SegmentedButton(
+                                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = readerStyles.size),
+                                                    onClick = { 
+                                                        viewModel.updateSettings(userSettings.copy(readerStyle = option)) 
+                                                        stopPlayback()
+                                                    },
+                                                    selected = userSettings.readerStyle == option,
+                                                    icon = {}
+                                                ) {
+                                                    Text(readerLabels[index])
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                         Text("Font size", style = MaterialTheme.typography.titleMedium)
                                         val fontOptions = listOf("small", "medium", "large")
                                         val fontLabels = listOf("Small", "Medium", "Large")
@@ -776,6 +937,20 @@ fun MainNavigation(
                                         }
                                     },
                                     actions = {
+                                        if (userSettings.readerStyle == "paragraph") {
+                                            IconButton(onClick = {
+                                                if (currentPlayJob != null) {
+                                                    stopPlayback()
+                                                } else {
+                                                    playEntireStory(story, pcmPlayer)
+                                                }
+                                            }) {
+                                                Text(
+                                                    text = if (currentPlayJob != null) "⏹️" else "🔊",
+                                                    fontSize = 24.sp
+                                                )
+                                            }
+                                        }
                                         IconButton(onClick = { showBottomSheet = true }) {
                                             Icon(Icons.Filled.Settings, contentDescription = "Display Settings")
                                         }
@@ -791,44 +966,14 @@ fun MainNavigation(
                                 studyMode = userSettings.studyMode,
                                 fontSizePreference = userSettings.fontSizePreference,
                                 requiredTerms = termsList,
+                                readerStyle = userSettings.readerStyle,
+                                activePlayingSentenceIndex = activePlayingSentenceIndex,
                                 onPlayAudio = { textToSpeak -> 
-                                    if (userSettings.useGeminiTts) {
-                                        tts?.stop()
-                                        scope.launch {
-                                            val audioData = viewModel.generateSpeech(textToSpeak, userSettings.geminiTtsVoiceStyle)
-                                            if (audioData != null) {
-                                                pcmPlayer.playRawPcm(audioData, userSettings.speechRatePreference)
-                                            }
-                                        }
+                                    val sentenceIndex = story.sentences.indexOfFirst { it.mandarin == textToSpeak }
+                                    if (sentenceIndex != -1) {
+                                        playSingleSentence(textToSpeak, sentenceIndex, pcmPlayer)
                                     } else {
-                                        val currentTts = tts
-                                        if (currentTts != null) {
-                                            try {
-                                                val voices = currentTts.voices
-                                                if (voices != null) {
-                                                    val genderTarget = userSettings.voiceGender
-                                                    val targetVoice = if (genderTarget == "male") {
-                                                        voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
-                                                            ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
-                                                    } else {
-                                                        voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
-                                                            ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
-                                                    }
-                                                    val finalVoice = targetVoice 
-                                                        ?: voices.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" && !it.isNetworkConnectionRequired }
-                                                        ?: voices.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" }
-                                                        ?: voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired }
-                                                        ?: voices.firstOrNull { it.locale.language == "zh" }
-                                                    if (finalVoice != null) {
-                                                        currentTts.voice = finalVoice
-                                                    }
-                                                }
-                                            } catch (e: Exception) {
-                                                android.util.Log.e("TTS_DEBUG", "Error setting voice", e)
-                                            }
-                                        }
-                                        tts?.setSpeechRate(userSettings.speechRatePreference)
-                                        tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
+                                        playSingleSentence(textToSpeak, 0, pcmPlayer)
                                     }
                                 },
                                 onLookupWord = { word -> viewModel.lookupWord(word) },
@@ -869,7 +1014,12 @@ fun TwoColumnLayout(
     tts: TextToSpeech?,
     selectedItem: Int,
     onSelectedItemChange: (Int) -> Unit,
-    backStack: androidx.navigation3.runtime.NavBackStack<androidx.navigation3.runtime.NavKey>
+    backStack: androidx.navigation3.runtime.NavBackStack<androidx.navigation3.runtime.NavKey>,
+    activePlayingSentenceIndex: Int?,
+    currentPlayJob: Job?,
+    onPlayEntireStory: (StoryResponse, com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer) -> Unit,
+    onPlaySingleSentence: (String, Int, com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer) -> Unit,
+    onStopPlayback: () -> Unit
 ) {
     val historyList by viewModel.history.collectAsState(initial = emptyList())
     val activeStory = if (uiState is StoryUiState.Success) uiState.story else null
@@ -1077,6 +1227,20 @@ fun TwoColumnLayout(
                                     containerColor = MaterialTheme.colorScheme.background
                                 ),
                                 actions = {
+                                    if (userSettings.readerStyle == "paragraph") {
+                                        IconButton(onClick = {
+                                            if (currentPlayJob != null) {
+                                                onStopPlayback()
+                                            } else {
+                                                onPlayEntireStory(story, pcmPlayer)
+                                            }
+                                        }) {
+                                            Text(
+                                                text = if (currentPlayJob != null) "⏹️" else "🔊",
+                                                fontSize = 24.sp
+                                            )
+                                        }
+                                    }
                                     Box {
                                         IconButton(onClick = { showSettingsMenu = true }) {
                                             Icon(Icons.Filled.Settings, contentDescription = "Display Settings")
@@ -1091,7 +1255,8 @@ fun TwoColumnLayout(
                                             showTranslationSession = showTranslationSession,
                                             pinyinLoading = pinyinLoading,
                                             zhuyinLoading = zhuyinLoading,
-                                            englishLoading = englishLoading
+                                            englishLoading = englishLoading,
+                                            onStopPlayback = { onStopPlayback() }
                                         )
                                     }
                                 }
@@ -1106,44 +1271,14 @@ fun TwoColumnLayout(
                             studyMode = userSettings.studyMode,
                             fontSizePreference = userSettings.fontSizePreference,
                             requiredTerms = termsList,
+                            readerStyle = userSettings.readerStyle,
+                            activePlayingSentenceIndex = activePlayingSentenceIndex,
                             onPlayAudio = { textToSpeak -> 
-                                if (userSettings.useGeminiTts) {
-                                    tts?.stop()
-                                    scope.launch {
-                                        val audioData = viewModel.generateSpeech(textToSpeak, userSettings.geminiTtsVoiceStyle)
-                                        if (audioData != null) {
-                                            pcmPlayer.playRawPcm(audioData, userSettings.speechRatePreference)
-                                        }
-                                    }
+                                val sentenceIndex = story.sentences.indexOfFirst { it.mandarin == textToSpeak }
+                                if (sentenceIndex != -1) {
+                                    onPlaySingleSentence(textToSpeak, sentenceIndex, pcmPlayer)
                                 } else {
-                                    val currentTts = tts
-                                    if (currentTts != null) {
-                                        try {
-                                            val voices = currentTts.voices
-                                            if (voices != null) {
-                                                val genderTarget = userSettings.voiceGender
-                                                val targetVoice = if (genderTarget == "male") {
-                                                    voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
-                                                        ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
-                                                } else {
-                                                    voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
-                                                        ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
-                                                }
-                                                val finalVoice = targetVoice 
-                                                    ?: voices.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" && !it.isNetworkConnectionRequired }
-                                                    ?: voices.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" }
-                                                    ?: voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired }
-                                                    ?: voices.firstOrNull { it.locale.language == "zh" }
-                                                if (finalVoice != null) {
-                                                    currentTts.voice = finalVoice
-                                                }
-                                            }
-                                        } catch (e: Exception) {
-                                            android.util.Log.e("TTS_DEBUG", "Error setting voice", e)
-                                        }
-                                    }
-                                    tts?.setSpeechRate(userSettings.speechRatePreference)
-                                    tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
+                                    onPlaySingleSentence(textToSpeak, 0, pcmPlayer)
                                 }
                             },
                             onLookupWord = { word -> viewModel.lookupWord(word) },
@@ -1283,7 +1418,8 @@ fun ReaderSettingsDropdown(
     showTranslationSession: Boolean,
     pinyinLoading: Boolean,
     zhuyinLoading: Boolean,
-    englishLoading: Boolean
+    englishLoading: Boolean,
+    onStopPlayback: () -> Unit = {}
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -1383,6 +1519,29 @@ fun ReaderSettingsDropdown(
                 }
             }
             
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Reader style", style = MaterialTheme.typography.titleMedium)
+                val readerStyles = listOf("sentence", "paragraph")
+                val readerLabels = listOf("Sentences", "Paragraphs")
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    readerStyles.forEachIndexed { index, option ->
+                        SegmentedButton(
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = readerStyles.size),
+                            onClick = { 
+                                viewModel.updateSettings(userSettings.copy(readerStyle = option)) 
+                                onStopPlayback()
+                            },
+                            selected = userSettings.readerStyle == option,
+                            icon = {}
+                        ) {
+                            Text(readerLabels[index])
+                        }
+                    }
+                }
+            }
+
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("Font size", style = MaterialTheme.typography.titleMedium)
                 val fontOptions = listOf("small", "medium", "large")
