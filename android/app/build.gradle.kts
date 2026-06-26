@@ -85,6 +85,12 @@ dependencies {
   implementation(libs.androidx.navigation3.runtime)
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
+  // Adaptive Layouts
+  implementation("androidx.compose.material3.adaptive:adaptive")
+  implementation("androidx.compose.material3.adaptive:adaptive-layout")
+  implementation("androidx.compose.material3.adaptive:adaptive-navigation")
+  implementation("androidx.compose.material3:material3-adaptive-navigation-suite")
+
   // Room
   implementation(libs.room.runtime)
   ksp(libs.room.compiler)

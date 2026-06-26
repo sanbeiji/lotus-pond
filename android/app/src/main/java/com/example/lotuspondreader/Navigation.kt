@@ -35,7 +35,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation3.ui.NavDisplay
+import androidx.compose.material3.adaptive.navigationsuite.*
 import android.speech.tts.TextToSpeech
 import java.util.Locale
 import com.example.lotuspondreader.models.UserSettings
@@ -54,6 +56,7 @@ import android.speech.tts.UtteranceProgressListener
 import com.example.lotuspondreader.models.StoryResponse
 // import com.example.lotuspondreader.ui.screens.HistoryScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainNavigation(
     viewModel: StoryViewModel = viewModel(factory = StoryViewModelFactory(LocalContext.current))
@@ -74,7 +77,7 @@ fun MainNavigation(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
     val isWideScreen = configuration.screenWidthDp > 600
-    val isTwoColumnMode = configuration.screenWidthDp >= 840 && isLandscape
+    val isTwoColumnMode = configuration.smallestScreenWidthDp >= 600 && configuration.screenWidthDp >= 840 && isLandscape
     val context = LocalContext.current
     
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
@@ -376,7 +379,43 @@ fun MainNavigation(
             onStopPlayback = { stopPlayback() }
         )
     } else {
-        Row(
+        val currentScreen = backStack.lastOrNull()
+        val showNav = (currentScreen == Home || currentScreen == History || currentScreen == Settings)
+        val navigationSuiteState = rememberNavigationSuiteScaffoldState()
+
+        LaunchedEffect(showNav) {
+            if (showNav) {
+                navigationSuiteState.show()
+            } else {
+                navigationSuiteState.hide()
+            }
+        }
+
+        val suiteColors = NavigationSuiteDefaults.colors(
+            navigationBarContainerColor = MaterialTheme.colorScheme.primary,
+            navigationBarContentColor = MaterialTheme.colorScheme.onPrimary,
+            navigationRailContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+            navigationRailContentColor = MaterialTheme.colorScheme.onSurface
+        )
+
+        val itemColors = NavigationSuiteDefaults.itemColors(
+            navigationBarItemColors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                unselectedIconColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                unselectedTextColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                indicatorColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            navigationRailItemColors = NavigationRailItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                indicatorColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        )
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
@@ -387,15 +426,14 @@ fun MainNavigation(
                     )
                 )
         ) {
-            if (isWideScreen && (backStack.lastOrNull() == Home || backStack.lastOrNull() == History || backStack.lastOrNull() == Settings)) {
-                NavigationRail(
-                    modifier = Modifier.safeDrawingPadding(),
-                    containerColor = androidx.compose.ui.graphics.Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ) {
-                Spacer(Modifier.weight(1f))
+            NavigationSuiteScaffold(
+                state = navigationSuiteState,
+                navigationSuiteColors = suiteColors,
+                layoutType = if (isWideScreen) NavigationSuiteType.NavigationRail else NavigationSuiteType.NavigationBar,
+                containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                navigationSuiteItems = {
                 items.forEachIndexed { index, item ->
-                    NavigationRailItem(
+                    item(
                         icon = {
                             when (index) {
                                 0 -> Icon(Icons.Filled.Create, contentDescription = item)
@@ -405,13 +443,7 @@ fun MainNavigation(
                         },
                         label = { Text(item) },
                         selected = selectedItem == index,
-                        colors = NavigationRailItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                            unselectedTextColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-                            indicatorColor = MaterialTheme.colorScheme.onPrimary
-                        ),
+                        colors = itemColors,
                         onClick = {
                             selectedItem = index
                             when (index) {
@@ -431,109 +463,61 @@ fun MainNavigation(
                         }
                     )
                 }
-                Spacer(Modifier.weight(1f))
-            }
-        }
-        
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = androidx.compose.ui.graphics.Color.Transparent,
-            topBar = {
-                val currentScreen = backStack.lastOrNull()
-                if (currentScreen == Home || currentScreen == History || currentScreen == Settings) {
-                    val viewName = when (currentScreen) {
-                        Home -> "Create"
-                        History -> "History"
-                        Settings -> "Settings"
-                        else -> ""
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .windowInsetsPadding(WindowInsets.statusBars)
-                            .padding(top = 8.dp, bottom = 8.dp),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+            },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                topBar = {
+                    val currentScreenTop = backStack.lastOrNull()
+                    if (currentScreenTop == Home || currentScreenTop == History || currentScreenTop == Settings) {
+                        val viewName = when (currentScreenTop) {
+                            Home -> "Create"
+                            History -> "History"
+                            Settings -> "Settings"
+                            else -> ""
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .windowInsetsPadding(WindowInsets.statusBars)
+                                .padding(top = 8.dp, bottom = 8.dp),
+                            contentAlignment = Alignment.TopCenter
                         ) {
-                            Text(
-                                text = "Lotus Pond Reader",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = com.example.lotuspondreader.theme.LobsterFontFamily,
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
-                                ),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(text = "🪷", style = MaterialTheme.typography.titleLarge)
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = viewName,
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = com.example.lotuspondreader.theme.LobsterFontFamily,
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
-                                ),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                maxLines = 1
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            ) {
+                                Text(
+                                    text = "Lotus Pond Reader",
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontFamily = com.example.lotuspondreader.theme.LobsterFontFamily,
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
+                                    ),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(text = "🪷", style = MaterialTheme.typography.titleLarge)
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = viewName,
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontFamily = com.example.lotuspondreader.theme.LobsterFontFamily,
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
+                                    ),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
                 }
-            },
-            bottomBar = {
-                // Only show bottom bar on root screens
-                if (!isWideScreen && (backStack.lastOrNull() == Home || backStack.lastOrNull() == History || backStack.lastOrNull() == Settings)) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ) {
-                    items.forEachIndexed { index, item ->
-                        NavigationBarItem(
-                            icon = {
-                                when (index) {
-                                    0 -> Icon(Icons.Filled.Create, contentDescription = item)
-                                    1 -> Icon(Icons.AutoMirrored.Filled.List, contentDescription = item)
-                                    2 -> Icon(Icons.Filled.Settings, contentDescription = item)
-                                }
-                            },
-                            label = { Text(item) },
-                            selected = selectedItem == index,
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.primary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-                                selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                unselectedTextColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-                                indicatorColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            onClick = {
-                                selectedItem = index
-                                when (index) {
-                                    0 -> {
-                                        backStack.clear()
-                                        backStack.add(Home)
-                                    }
-                                    1 -> {
-                                        backStack.clear()
-                                        backStack.add(History)
-                                    }
-                                    2 -> {
-                                        backStack.clear()
-                                        backStack.add(Settings)
-                                    }
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    ) { innerPadding ->
+            ) { innerPadding ->
         NavDisplay(
             backStack = backStack,
             onBack = {
@@ -910,11 +894,16 @@ fun MainNavigation(
                             }
                         }
 
+                        @OptIn(ExperimentalMaterial3Api::class)
+                        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
                         Scaffold(
+                            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                             snackbarHost = { SnackbarHost(snackbarHostState) },
                             topBar = {
                                 @OptIn(ExperimentalMaterial3Api::class)
                                 CenterAlignedTopAppBar(
+                                    scrollBehavior = scrollBehavior,
                                     title = { 
                                         Text(
                                             text = story.title,
@@ -993,10 +982,12 @@ fun MainNavigation(
             }
         )
       } // End Scaffold
-    } // End Row
+    } // End NavigationSuiteScaffold
+    } // End Box
   } // End if-else isTwoColumnMode
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TwoColumnLayout(
     viewModel: StoryViewModel,
@@ -1209,10 +1200,15 @@ fun TwoColumnLayout(
                     val showZhuyinSession = userSettings.showZhuyin && (hasZhuyin || zhuyinLoading)
                     val showTranslationSession = userSettings.showTranslation && (hasEnglish || englishLoading)
 
+                    @OptIn(ExperimentalMaterial3Api::class)
+                    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
                     Scaffold(
+                        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                         topBar = {
                             @OptIn(ExperimentalMaterial3Api::class)
                             CenterAlignedTopAppBar(
+                                scrollBehavior = scrollBehavior,
                                 title = { 
                                     Text(
                                         text = story.title,
