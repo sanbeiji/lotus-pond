@@ -195,6 +195,36 @@ fun MainNavigation(
         }
     }
 
+    fun playWordTts(word: String) {
+        val currentTts = tts ?: return
+        stopPlayback()
+        
+        val voices = currentTts.voices
+        val targetVoice = if (voices != null) {
+            if (userSettings.voiceGender == "male") {
+                voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
+                    ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("male", ignoreCase = true) || it.name.contains("-ctd-") || it.name.contains("-ccd-")) }
+            } else {
+                voices.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
+                    ?: voices.firstOrNull { it.locale.language == "zh" && (it.name.contains("female", ignoreCase = true) || it.name.contains("-ctc-") || it.name.contains("-cte-") || it.name.contains("-ccc-") || it.name.contains("-ssa-")) }
+            }
+        } else null
+        
+        val finalVoice = targetVoice 
+            ?: voices?.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" && !it.isNetworkConnectionRequired }
+            ?: voices?.firstOrNull { it.locale.language == "zh" && it.locale.country == "TW" }
+            ?: voices?.firstOrNull { it.locale.language == "zh" && !it.isNetworkConnectionRequired }
+            
+        currentTts.setSpeechRate(userSettings.speechRatePreference)
+        if (finalVoice != null) {
+            currentTts.voice = finalVoice
+        } else {
+            currentTts.language = Locale.TRADITIONAL_CHINESE
+        }
+        
+        currentTts.speak(word, TextToSpeech.QUEUE_FLUSH, null, "word_${System.currentTimeMillis()}")
+    }
+
     fun playEntireStory(
         story: StoryResponse,
         pcmPlayer: com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer
@@ -376,7 +406,8 @@ fun MainNavigation(
             currentPlayJob = currentPlayJob,
             onPlayEntireStory = { story, pcmPlayer -> playEntireStory(story, pcmPlayer) },
             onPlaySingleSentence = { text, idx, pcmPlayer -> playSingleSentence(text, idx, pcmPlayer) },
-            onStopPlayback = { stopPlayback() }
+            onStopPlayback = { stopPlayback() },
+            onPlayWordTts = { word -> playWordTts(word) }
         )
     } else {
         val currentScreen = backStack.lastOrNull()
@@ -966,6 +997,7 @@ fun MainNavigation(
                                     }
                                 },
                                 onLookupWord = { word -> viewModel.lookupWord(word) },
+                                onPlayWordTts = { word -> playWordTts(word) },
                                 contentPadding = PaddingValues(
                                     start = 16.dp,
                                     end = 16.dp,
@@ -1010,7 +1042,8 @@ fun TwoColumnLayout(
     currentPlayJob: Job?,
     onPlayEntireStory: (StoryResponse, com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer) -> Unit,
     onPlaySingleSentence: (String, Int, com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer) -> Unit,
-    onStopPlayback: () -> Unit
+    onStopPlayback: () -> Unit,
+    onPlayWordTts: (String) -> Unit
 ) {
     val historyList by viewModel.history.collectAsState(initial = emptyList())
     val activeStory = if (uiState is StoryUiState.Success) uiState.story else null
@@ -1278,6 +1311,7 @@ fun TwoColumnLayout(
                                 }
                             },
                             onLookupWord = { word -> viewModel.lookupWord(word) },
+                            onPlayWordTts = onPlayWordTts,
                             contentPadding = PaddingValues(
                                 start = 24.dp,
                                 end = 24.dp,

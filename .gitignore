@@ -33,3 +33,10 @@ yarn-error.log*
 # Temporary files
 tmp/
 temp/
+
+# SQLite / Database temporary files
+*-shm
+*-wal
+*-journal
+*.db
+*.sqlite

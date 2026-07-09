@@ -69,6 +69,7 @@ fun SentenceBlock(
     requiredTerms: List<String>,
     onPlayAudio: (String) -> Unit,
     onLookupWord: suspend (String) -> List<com.example.lotuspondreader.data.DictEntry>,
+    onPlayWordTts: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val mandarinFontSize = when (fontSizePreference) {
@@ -230,6 +231,7 @@ fun SentenceBlock(
                                                 if (isChinese) {
                                                     clickable {
                                                         selectedWordIndex = index
+                                                        onPlayWordTts(word)
                                                         coroutineScope.launch {
                                                             isLoading = true
                                                             lookupResult = onLookupWord(word)
@@ -330,6 +332,20 @@ fun SentenceBlock(
                                                             )
                                                         ) {
                                                             Text("Pleco", fontSize = dictPlecoFontSize, fontWeight = FontWeight.Bold)
+                                                        }
+                                                        Spacer(modifier = Modifier.width(4.dp))
+                                                        Button(
+                                                            onClick = {
+                                                                onPlayWordTts(word)
+                                                            },
+                                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                                            modifier = Modifier.height(dictPlecoButtonHeight),
+                                                            colors = ButtonDefaults.buttonColors(
+                                                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                                            )
+                                                        ) {
+                                                            Text("🔊", fontSize = dictPlecoFontSize)
                                                         }
                                                     }
 

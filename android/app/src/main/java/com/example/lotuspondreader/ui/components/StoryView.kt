@@ -40,6 +40,7 @@ fun StoryView(
     requiredTerms: List<String>,
     onPlayAudio: (String) -> Unit,
     onLookupWord: suspend (String) -> List<com.example.lotuspondreader.data.DictEntry>,
+    onPlayWordTts: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     readerStyle: String = "sentence",
@@ -181,7 +182,8 @@ fun StoryView(
                                 dictPlecoFontSize = dictPlecoFontSize,
                                 dictPopupWidth = dictPopupWidth,
                                 dictPopupMaxHeight = dictPopupMaxHeight,
-                                onLookupWord = onLookupWord
+                                onLookupWord = onLookupWord,
+                                onPlayWordTts = onPlayWordTts
                             )
                         }
                     }
@@ -318,7 +320,8 @@ fun StoryView(
                     fontSizePreference = fontSizePreference,
                     requiredTerms = requiredTerms,
                     onPlayAudio = onPlayAudio,
-                    onLookupWord = onLookupWord
+                    onLookupWord = onLookupWord,
+                    onPlayWordTts = onPlayWordTts
                 )
             }
         }
@@ -381,7 +384,8 @@ fun MandarinParagraph(
     dictPlecoFontSize: androidx.compose.ui.unit.TextUnit,
     dictPopupWidth: androidx.compose.ui.unit.Dp,
     dictPopupMaxHeight: androidx.compose.ui.unit.Dp,
-    onLookupWord: suspend (String) -> List<com.example.lotuspondreader.data.DictEntry>
+    onLookupWord: suspend (String) -> List<com.example.lotuspondreader.data.DictEntry>,
+    onPlayWordTts: (String) -> Unit
 ) {
     var selectedWordIndex by remember { mutableStateOf<Int?>(null) }
     var lookupResult by remember { mutableStateOf<List<com.example.lotuspondreader.data.DictEntry>?>(null) }
@@ -457,6 +461,7 @@ fun MandarinParagraph(
                                 if (isChinese) {
                                     clickable {
                                         selectedWordIndex = index
+                                        onPlayWordTts(word)
                                         coroutineScope.launch {
                                             isLoading = true
                                             lookupResult = onLookupWord(word)
@@ -556,6 +561,20 @@ fun MandarinParagraph(
                                             )
                                         ) {
                                             Text("Pleco", fontSize = dictPlecoFontSize, fontWeight = FontWeight.Bold)
+                                        }
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Button(
+                                            onClick = {
+                                                onPlayWordTts(word)
+                                            },
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                            modifier = Modifier.height(dictPlecoButtonHeight),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                             )
+                                        ) {
+                                            Text("🔊", fontSize = dictPlecoFontSize)
                                         }
                                     }
 
