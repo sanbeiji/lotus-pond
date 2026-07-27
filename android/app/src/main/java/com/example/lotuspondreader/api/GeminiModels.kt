@@ -54,6 +54,7 @@ data class PrebuiltVoiceConfig(
 @Serializable
 data class GeminiResponse(
     val candidates: List<Candidate>? = null,
+    val modelVersion: String? = null,
     val error: GeminiError? = null
 )
 

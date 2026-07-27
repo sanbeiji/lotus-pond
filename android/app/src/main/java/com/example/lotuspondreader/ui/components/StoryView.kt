@@ -361,6 +361,21 @@ fun StoryView(
                 }
             }
         }
+
+        story.modelUsed?.takeIf { it.isNotBlank() }?.let { model ->
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Model used: $model",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
     }
 }
 

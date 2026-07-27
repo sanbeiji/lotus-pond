@@ -91,6 +91,7 @@ const elements = {
     fontSizeRadios: document.querySelectorAll('input[name="font-size"]'),
     speechRateRadios: document.querySelectorAll('input[name="speech-rate"]'),
     copyBtn: document.getElementById('copy-btn'),
+    storyModelInfo: document.getElementById('story-model-info'),
     genrePromptSelect: document.getElementById('genre-prompt-select'),
     
     historyList: document.getElementById('history-list'),
@@ -342,9 +343,46 @@ function applyFontSize() {
     }
 }
 
-function updateModelFooter() {
+let lastResponseModelVersion = null;
+
+async function resolveModelVersion(model) {
+    const targetModel = model || state.selectedModel || 'gemini-flash-lite-latest';
+    if (!state.apiKey) return targetModel;
+    try {
+        const url = `${API_BASE}/models/${targetModel}?key=${state.apiKey}`;
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Gemini model metadata response:', data);
+            
+            if (data.baseModelId) {
+                return data.baseModelId.replace(/^models\//, '');
+            }
+            
+            const cleanName = (data.name || targetModel).replace(/^models\//, '');
+            if (data.version && /^\d+(\.\d+)*(-[a-z0-9]+)?$/i.test(data.version) && !cleanName.includes(data.version)) {
+                if (cleanName.endsWith('-latest')) {
+                    return `${cleanName.replace(/-latest$/, '')}-${data.version}`;
+                }
+                return `${cleanName}-${data.version}`;
+            }
+            
+            return cleanName;
+        }
+    } catch (e) {
+        console.warn('Failed to resolve model version', e);
+    }
+    return targetModel;
+}
+
+async function updateModelFooter() {
     const modelDisplay = document.getElementById('model-version');
-    if (modelDisplay) modelDisplay.textContent = state.selectedModel || 'gemini-flash-lite-latest';
+    const model = state.selectedModel || 'gemini-flash-lite-latest';
+    if (modelDisplay) modelDisplay.textContent = model;
+    if (state.apiKey) {
+        const resolved = await resolveModelVersion(model);
+        if (modelDisplay) modelDisplay.textContent = resolved;
+    }
 }
 
 function saveState() {
@@ -671,6 +709,7 @@ async function handleGenerate(e) {
         const result = await callGemini(prompt);
         const storyData = parseResponse(result);
         storyData.requiredTerms = requiredTerms;
+        storyData.modelUsed = lastResponseModelVersion || await resolveModelVersion(state.selectedModel || 'gemini-flash-lite-latest');
         
         lastStoryData = storyData;
         renderStory(storyData);
@@ -1004,6 +1043,11 @@ async function callGemini(prompt, forceModel = null) {
         }
         
         const data = await response.json();
+        if (data.modelVersion) {
+            lastResponseModelVersion = data.modelVersion.replace(/^models\//, '');
+        } else {
+            lastResponseModelVersion = null;
+        }
         if (!data.candidates || data.candidates.length === 0) {
             throw new Error('API returned no candidates. Please verify content safety and API limits.');
         }
@@ -1070,6 +1114,16 @@ function parseResponse(text) {
 function renderStory(storyData) {
     elements.storyHeading.textContent = storyData.title;
     elements.storyContent.innerHTML = '';
+
+    const modelInfoEl = elements.storyModelInfo || document.getElementById('story-model-info');
+    if (modelInfoEl) {
+        if (storyData.modelUsed) {
+            modelInfoEl.textContent = `Model used: ${storyData.modelUsed}`;
+            modelInfoEl.hidden = false;
+        } else {
+            modelInfoEl.hidden = true;
+        }
+    }
     
     const requiredTermsStr = storyData.requiredTerms || '';
     const requiredTerms = requiredTermsStr.split(/[ ,，]+/).filter(t => t.length > 0);

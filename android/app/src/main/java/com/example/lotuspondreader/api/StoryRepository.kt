@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -16,6 +17,14 @@ import kotlin.math.max
 
 @kotlinx.serialization.Serializable
 private data class DynamicFetchResult(val result: List<String>)
+
+@kotlinx.serialization.Serializable
+private data class ModelInfoResponse(
+    val name: String? = null,
+    val version: String? = null,
+    val displayName: String? = null,
+    val baseModelId: String? = null
+)
 
 class StoryRepository {
 
@@ -39,6 +48,30 @@ class StoryRepository {
 
     private val standardClient = createClient(60)
     private val extendedClient = createClient(180)
+
+    suspend fun resolveModelVersion(apiKey: String, model: String): String {
+        return try {
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/${model}?key=${apiKey}"
+            val response: ModelInfoResponse = standardClient.get(url).body()
+            if (!response.baseModelId.isNullOrBlank()) {
+                response.baseModelId.removePrefix("models/")
+            } else {
+                val cleanName = (response.name ?: model).removePrefix("models/")
+                val ver = response.version
+                if (!ver.isNullOrBlank() && !cleanName.contains(ver)) {
+                    if (cleanName.endsWith("-latest")) {
+                        "${cleanName.removeSuffix("-latest")}-$ver"
+                    } else {
+                        "$cleanName-$ver"
+                    }
+                } else {
+                    cleanName
+                }
+            }
+        } catch (e: Exception) {
+            model
+        }
+    }
 
     suspend fun generateStory(
         apiKey: String,
@@ -78,7 +111,8 @@ class StoryRepository {
                 ?: throw Exception("No content returned from Gemini API")
 
             val parsedStory = parseResponse(responseText)
-            return parsedStory.copy(requiredTerms = requiredTerms)
+            val resolvedModel = response.modelVersion?.takeIf { it.isNotBlank() } ?: resolveModelVersion(apiKey, model)
+            return parsedStory.copy(requiredTerms = requiredTerms, modelUsed = resolvedModel)
         } catch (e: Exception) {
             val msg = e.message ?: "Network request failed"
             val sanitizedMsg = if (apiKey.isNotBlank()) msg.replace(apiKey, "[REDACTED]") else msg

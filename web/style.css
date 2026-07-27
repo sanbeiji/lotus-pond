@@ -916,6 +916,20 @@ input.invalid {
     color: var(--primary);
 }
 
+.story-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.story-model-info {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
 /* ─── Footer ─────────────────────────────────────────────────── */
 footer {
   text-align: center;
