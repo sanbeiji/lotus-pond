@@ -143,6 +143,8 @@ class StoryViewModel(
             val audioBytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT)
             cacheFile.writeBytes(audioBytes)
             audioBytes
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             _errorEvent.value = e.message ?: "Failed to generate speech."
             null

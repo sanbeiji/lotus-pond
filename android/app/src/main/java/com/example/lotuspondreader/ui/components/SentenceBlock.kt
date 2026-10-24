@@ -70,7 +70,8 @@ fun SentenceBlock(
     onPlayAudio: (String) -> Unit,
     onLookupWord: suspend (String) -> List<com.example.lotuspondreader.data.DictEntry>,
     onPlayWordTts: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isGeneratingAudio: Boolean = false
 ) {
     val mandarinFontSize = when (fontSizePreference) {
         "medium" -> 30.sp
@@ -482,10 +483,18 @@ fun SentenceBlock(
                     onClick = { onPlayAudio(sentence.mandarin) },
                     modifier = Modifier.size(40.dp)
                 ) {
-                    Text(
-                        text = "🔊",
-                        fontSize = 24.sp
-                    )
+                    if (isGeneratingAudio) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Text(
+                            text = "🔊",
+                            fontSize = 24.sp
+                        )
+                    }
                 }
             }
             

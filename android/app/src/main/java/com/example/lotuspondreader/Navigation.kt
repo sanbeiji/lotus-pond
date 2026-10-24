@@ -96,12 +96,14 @@ fun MainNavigation(
 
     val globalScope = rememberCoroutineScope()
     var activePlayingSentenceIndex by remember { mutableStateOf<Int?>(null) }
+    var generatingSpeechSentenceIndex by remember { mutableStateOf<Int?>(null) }
     var currentPlayJob by remember { mutableStateOf<Job?>(null) }
 
     fun stopPlayback() {
         currentPlayJob?.cancel()
         currentPlayJob = null
         activePlayingSentenceIndex = null
+        generatingSpeechSentenceIndex = null
         tts?.stop()
     }
 
@@ -180,7 +182,9 @@ fun MainNavigation(
                 // but if we trigger it, play it anyway
             }
             if (userSettings.useGeminiTts) {
+                generatingSpeechSentenceIndex = sentenceIndex
                 val audioData = viewModel.generateSpeech(text, userSettings.geminiTtsVoiceStyle)
+                generatingSpeechSentenceIndex = null
                 if (audioData != null) {
                     pcmPlayer.playRawPcm(audioData, userSettings.speechRatePreference)
                 }
@@ -191,6 +195,7 @@ fun MainNavigation(
                 }
             }
             activePlayingSentenceIndex = null
+            generatingSpeechSentenceIndex = null
             currentPlayJob = null
         }
     }
@@ -235,7 +240,9 @@ fun MainNavigation(
                 activePlayingSentenceIndex = index
                 val text = story.sentences[index].mandarin
                 if (userSettings.useGeminiTts) {
+                    generatingSpeechSentenceIndex = index
                     val audioData = viewModel.generateSpeech(text, userSettings.geminiTtsVoiceStyle)
+                    generatingSpeechSentenceIndex = null
                     if (audioData != null) {
                         pcmPlayer.playRawPcm(audioData, userSettings.speechRatePreference)
                     }
@@ -247,6 +254,7 @@ fun MainNavigation(
                 }
             }
             activePlayingSentenceIndex = null
+            generatingSpeechSentenceIndex = null
             currentPlayJob = null
         }
     }
@@ -403,6 +411,7 @@ fun MainNavigation(
             onSelectedItemChange = { selectedItem = it },
             backStack = backStack,
             activePlayingSentenceIndex = activePlayingSentenceIndex,
+            generatingSpeechSentenceIndex = generatingSpeechSentenceIndex,
             currentPlayJob = currentPlayJob,
             onPlayEntireStory = { story, pcmPlayer -> playEntireStory(story, pcmPlayer) },
             onPlaySingleSentence = { text, idx, pcmPlayer -> playSingleSentence(text, idx, pcmPlayer) },
@@ -965,10 +974,18 @@ fun MainNavigation(
                                                     playEntireStory(story, pcmPlayer)
                                                 }
                                             }) {
-                                                Text(
-                                                    text = if (currentPlayJob != null) "⏹️" else "🔊",
-                                                    fontSize = 24.sp
-                                                )
+                                                if (generatingSpeechSentenceIndex != null) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(24.dp),
+                                                        strokeWidth = 2.dp,
+                                                        color = MaterialTheme.colorScheme.primary
+                                                    )
+                                                } else {
+                                                    Text(
+                                                        text = if (currentPlayJob != null) "⏹️" else "🔊",
+                                                        fontSize = 24.sp
+                                                    )
+                                                }
                                             }
                                         }
                                         IconButton(onClick = { showBottomSheet = true }) {
@@ -988,6 +1005,7 @@ fun MainNavigation(
                                 requiredTerms = termsList,
                                 readerStyle = userSettings.readerStyle,
                                 activePlayingSentenceIndex = activePlayingSentenceIndex,
+                                generatingSpeechSentenceIndex = generatingSpeechSentenceIndex,
                                 onPlayAudio = { textToSpeak -> 
                                     val sentenceIndex = story.sentences.indexOfFirst { it.mandarin == textToSpeak }
                                     if (sentenceIndex != -1) {
@@ -1039,6 +1057,7 @@ fun TwoColumnLayout(
     onSelectedItemChange: (Int) -> Unit,
     backStack: androidx.navigation3.runtime.NavBackStack<androidx.navigation3.runtime.NavKey>,
     activePlayingSentenceIndex: Int?,
+    generatingSpeechSentenceIndex: Int?,
     currentPlayJob: Job?,
     onPlayEntireStory: (StoryResponse, com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer) -> Unit,
     onPlaySingleSentence: (String, Int, com.example.lotuspondreader.api.TaiwaneseMandarinPcmPlayer) -> Unit,
@@ -1264,10 +1283,18 @@ fun TwoColumnLayout(
                                                 onPlayEntireStory(story, pcmPlayer)
                                             }
                                         }) {
-                                            Text(
-                                                text = if (currentPlayJob != null) "⏹️" else "🔊",
-                                                fontSize = 24.sp
-                                            )
+                                            if (generatingSpeechSentenceIndex != null) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(24.dp),
+                                                    strokeWidth = 2.dp,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            } else {
+                                                Text(
+                                                    text = if (currentPlayJob != null) "⏹️" else "🔊",
+                                                    fontSize = 24.sp
+                                                )
+                                            }
                                         }
                                     }
                                     Box {
@@ -1302,6 +1329,7 @@ fun TwoColumnLayout(
                             requiredTerms = termsList,
                             readerStyle = userSettings.readerStyle,
                             activePlayingSentenceIndex = activePlayingSentenceIndex,
+                            generatingSpeechSentenceIndex = generatingSpeechSentenceIndex,
                             onPlayAudio = { textToSpeak -> 
                                 val sentenceIndex = story.sentences.indexOfFirst { it.mandarin == textToSpeak }
                                 if (sentenceIndex != -1) {

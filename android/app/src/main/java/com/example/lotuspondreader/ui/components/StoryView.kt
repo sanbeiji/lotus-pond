@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -44,7 +45,8 @@ fun StoryView(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     readerStyle: String = "sentence",
-    activePlayingSentenceIndex: Int? = null
+    activePlayingSentenceIndex: Int? = null,
+    generatingSpeechSentenceIndex: Int? = null
 ) {
     val clipboardManager = LocalClipboardManager.current
     var copied by remember { mutableStateOf(false) }
@@ -310,7 +312,7 @@ fun StoryView(
 
         } else {
             // Default: Individual sentences view
-            items(story.sentences) { sentence ->
+            itemsIndexed(story.sentences) { index, sentence ->
                 SentenceBlock(
                     sentence = sentence,
                     showPinyin = showPinyin,
@@ -321,7 +323,8 @@ fun StoryView(
                     requiredTerms = requiredTerms,
                     onPlayAudio = onPlayAudio,
                     onLookupWord = onLookupWord,
-                    onPlayWordTts = onPlayWordTts
+                    onPlayWordTts = onPlayWordTts,
+                    isGeneratingAudio = generatingSpeechSentenceIndex == index
                 )
             }
         }
